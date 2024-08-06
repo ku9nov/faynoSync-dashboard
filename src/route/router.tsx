@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { LoginPage } from '../pages/loginPage.tsx';
+import { SignInPage } from '../pages/signInPage.tsx';
+import { SignUpPage } from '../pages/signUpPage.tsx';
 import { HomePage } from '../pages/homePage.tsx';
 import { PrivateRoute } from './privateRoute.tsx';
 import { PublicRoute } from './publicRoute.tsx';
@@ -25,7 +26,15 @@ export const router = createBrowserRouter([
     path: '/signin',
     element: (
       <PublicRoute>
-        <LoginPage />
+        <SignInPage />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/signup',
+    element: (
+      <PublicRoute>
+        <SignUpPage />
       </PublicRoute>
     ),
   },

@@ -9,7 +9,7 @@ type User = {};
 const AuthContext = createContext<User | null>(null);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const isSignedIn = true;
+  const isSignedIn = false;
 
   const [user] = useState<User | null>(isSignedIn ? { id: 1 } : null);
 
