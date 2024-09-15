@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { AuthLogo } from '../components/auth-logo/authLogo.tsx';
 import { AuthButton } from '../components/buttons/authButton.tsx';
 import { AuthInputs } from '../components/inputs/authInputs.tsx';
+import { AuthApi } from '../service/api/auth.api.ts';
 
 interface FormValues {
   username: string;
   password: string;
-  confirmPassword: string;
-  apiKey: string;
+  secretKey: string;
 }
 
 export const SignInPage = () => {
@@ -19,22 +19,26 @@ export const SignInPage = () => {
   const initialValues: FormValues = {
     username: '',
     password: '',
-    confirmPassword: '',
-    apiKey: '',
+    secretKey: '',
   };
 
   const validationSchema = Yup.object().shape({
     username: Yup.string()
-      .min(3, 'Минимальная длина 3 символа')
-      .required('Обязательное поле'),
+      .min(3, 'Minimum 3 symbol')
+      .required('Required field'),
     password: Yup.string()
-      .min(6, 'Минимальная длина 6 символов')
-      .required('Обязательное поле'),
-    confirmPassword: Yup.string()
-      .oneOf([Yup.ref('password')], 'Пароли должны совпадать')
-      .required('Обязательное поле'),
-    apiKey: Yup.string().required('Обязательное поле'),
+      .min(6, 'Minimum 6 symbol')
+      .required('Required field'),
+    secretKey: Yup.string().required('Required field'),
   });
+
+  const handleSubmit = (e: FormValues) => {
+    AuthApi.signIn({
+      username: e.username,
+      password: e.password,
+      secretKey: e.secretKey,
+    });
+  };
 
   return (
     <AuthWrapper>
@@ -47,10 +51,10 @@ export const SignInPage = () => {
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={(values: FormValues) => {
-              console.log(values);
+              handleSubmit(values);
             }}>
             {({}) => (
-              <Form>
+              <Form className='flex flex-col gap-3'>
                 <AuthInputs
                   name='username'
                   type='text'
@@ -62,12 +66,11 @@ export const SignInPage = () => {
                   placeholder='password'
                 />
                 <AuthInputs
-                  name='confirmPassword'
-                  type='password'
-                  placeholder='Confirm Password'
+                  name='secretKey'
+                  type='text'
+                  placeholder='secretKey'
                 />
-                <AuthInputs name='apiKey' type='text' placeholder='apiKey' />
-                <div className='flex flex-col gap-4 mt-4'>
+                <div className='flex flex-col gap-3 mt-4'>
                   <AuthButton
                     type='submit'
                     text='Register'
