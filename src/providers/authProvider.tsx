@@ -1,27 +1,90 @@
 import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import axios from 'axios';
 
-type AuthProviderProps = PropsWithChildren & {
-  isSignedIn?: boolean;
+type LoginProviderProps = {
+  username: string;
+  password: string;
 };
 
-type User = {};
+type SignUpProviderProps = LoginProviderProps & { secretKey: string };
 
-const AuthContext = createContext<User | null>(null);
+interface AuthContextType {
+  token: string | null;
+  login: ({ username, password }: LoginProviderProps) => Promise<void>;
+  signUp: ({
+    username,
+    password,
+    secretKey,
+  }: SignUpProviderProps) => Promise<void>;
+  logout: () => void;
+}
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const isSignedIn = false;
+const AuthContext = createContext<AuthContextType | null>(null);
 
-  const [user] = useState<User | null>(isSignedIn ? { id: 1 } : null);
+export const AuthProvider = ({ children }: PropsWithChildren) => {
+  const [token, setToken] = useState<string | null>(null);
 
-  return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>;
+  const login = async ({
+    username,
+    password,
+  }: LoginProviderProps): Promise<void> => {
+    try {
+      const response = await axios.post(
+        'http://localhost:9000/login',
+        {
+          username,
+          password,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setToken(response.data.token);
+    } catch (error: any) {
+      throw error?.response?.data?.error;
+    }
+  };
+
+  const signUp = async ({
+    username,
+    password,
+    secretKey,
+  }: SignUpProviderProps) => {
+    try {
+      const response = await axios.post(
+        'http://localhost:9000/signup',
+        {
+          username,
+          password,
+          api_key: secretKey,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('Success:', response.data);
+    } catch (error: any) {
+      throw error?.response?.data?.error;
+    }
+  };
+
+  const logout = () => {};
+
+  return (
+    <AuthContext.Provider value={{ token, login, logout, signUp }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = () => {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-
   return context;
-};
+}

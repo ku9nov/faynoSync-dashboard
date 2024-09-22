@@ -3,14 +3,14 @@ import { PropsWithChildren, useEffect, FC } from 'react';
 import { useAuth } from '../providers/authProvider.tsx';
 
 export const PublicRoute: FC<PropsWithChildren> = ({ children }) => {
-  const user = useAuth();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user !== null) {
+    if (token) {
       navigate('/home', { replace: true });
     }
-  }, [navigate, user]);
+  }, [navigate, token]);
 
   return children;
 };

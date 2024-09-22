@@ -15,7 +15,7 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: '/home',
+    path: '/board',
     element: (
       <PrivateRoute>
         <HomePage />
