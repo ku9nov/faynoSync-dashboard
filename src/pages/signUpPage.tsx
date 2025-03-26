@@ -97,7 +97,7 @@ export const SignUpPage = () => {
                   />
                   <AuthInputs
                     name='secretKey'
-                    type='text'
+                    type='password'
                     placeholder='secretKey'
                   />
                   <div className='w-full text-red-600 text-center'>

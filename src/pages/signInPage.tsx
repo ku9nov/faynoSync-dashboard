@@ -38,7 +38,7 @@ export const SignInPage = () => {
     }
     try {
       await login({ username: e.username, password: e.password });
-      navigate('/board');
+      navigate('/applications');
     } catch (error: any) {
       setRespError(error);
     }
