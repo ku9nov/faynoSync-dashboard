@@ -15,10 +15,10 @@ export const ArchitectureCard: React.FC<ArchitectureCardProps> = ({
 }) => {
   return (
     <div
-      className="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow duration-200"
+      className="bg-purple-700 p-6 rounded-lg shadow-md cursor-pointer hover:bg-purple-600 transition-colors"
       onClick={onClick}
     >
-      <h2 className="text-xl font-bold mb-2 font-roboto text-purple-900">
+      <h2 className="text-xl font-semibold mb-2 text-white">
         {architecture.name}
       </h2>
     </div>

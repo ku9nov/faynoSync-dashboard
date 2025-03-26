@@ -18,11 +18,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {["Application 1", "Application 2", "Application 3"].map((app) => (
         <div
           key={app}
-          className="bg-white rounded-lg shadow-md p-4 cursor-pointer"
+          className="bg-purple-700 p-6 rounded-lg shadow-md cursor-pointer hover:bg-purple-600 transition-colors"
           onClick={() => onAppClick(app)}
         >
           <i className="fas fa-cube text-4xl text-purple-800 mb-2"></i>
-          <h3 className="text-lg font-semibold">{app}</h3>
+          <h3 className="text-xl font-semibold mb-2 text-white">{app}</h3>
         </div>
       ))}
     </div>

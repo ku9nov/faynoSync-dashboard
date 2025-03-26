@@ -12,10 +12,10 @@ interface PlatformCardProps {
 export const PlatformCard: React.FC<PlatformCardProps> = ({ platform, onClick }) => {
   return (
     <div
-      className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-purple-700 p-6 rounded-lg shadow-md cursor-pointer hover:bg-purple-600 transition-colors"
       onClick={onClick}
     >
-      <h3 className="text-xl font-semibold text-purple-900">{platform.name}</h3>
+      <h3 className="text-xl font-semibold mb-2 text-white">{platform.name}</h3>
     </div>
   );
 }; 
