@@ -1,5 +1,6 @@
 import { createContext, PropsWithChildren, useContext, useState } from 'react';
 import axios from 'axios';
+import { env } from '../config/env';
 
 type LoginProviderProps = {
   username: string;
@@ -30,7 +31,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }: LoginProviderProps): Promise<void> => {
     try {
       const response = await axios.post(
-        'http://localhost:9000/login',
+        `${env.API_URL}/login`,
         {
           username,
           password,
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }: SignUpProviderProps) => {
     try {
       const response = await axios.post(
-        'http://localhost:9000/signup',
+        `${env.API_URL}/signup`,
         {
           username,
           password,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { env } from '../../config/env';
 
 const token =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDMxMDEwODcsInVzZXJuYW1lIjoidm92YXN5QGdtYWlsLmNvbSJ9.06Ono5dW4QnU4D2G9COc3j6a0LD666hdfmkXx89IyGw';
@@ -19,7 +20,7 @@ export const useArchitectureQuery = () => {
 
   const getArchitecture = async () => {
     try {
-      const response = await axios.get('http://localhost:9000/arch/list', {
+      const response = await axios.get(`${env.API_URL}/arch/list`, {
         headers: {
           Authorization: 'Bearer ' + token,
         },
