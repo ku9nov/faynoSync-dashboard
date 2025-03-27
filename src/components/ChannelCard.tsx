@@ -2,13 +2,13 @@ import React from 'react';
 
 interface ChannelCardProps {
   name: string;
-  description: string;
+  // description: string;
   onClick: () => void;
 }
 
 export const ChannelCard: React.FC<ChannelCardProps> = ({
   name,
-  description,
+  // description,
   onClick,
 }) => {
   return (
@@ -17,7 +17,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
       onClick={onClick}
     >
       <h3 className="text-xl font-semibold mb-2 text-white">{name}</h3>
-      <p className="text-purple-300">{description}</p>
+      {/* <p className="text-purple-300">{description}</p> */}
     </div>
   );
 }; 
