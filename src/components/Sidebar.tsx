@@ -1,11 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-interface SidebarProps {
-  activePage?: 'applications' | 'channels' | 'platforms' | 'architectures';
-}
-
-export const Sidebar: React.FC<SidebarProps> = ({ activePage = 'applications' }) => {
+export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname.split('/')[1] || 'applications';
@@ -22,7 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage = 'applications' })
   };
 
   return (
-    <aside className="w-64 h-screen bg-gradient-to-b from-[#6a1b9a] to-[#ff8f00]">
+    <aside className="w-64 h-screen bg-gradient-to-b from-purple-800 to-orange-500">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-white mb-8">faynosync</h1>
         <nav>

@@ -7,62 +7,79 @@ import { PlatformsPage } from '../pages/platformsPage.tsx';
 import { ArchitecturesPage } from '../pages/architecturesPage.tsx';
 import { PrivateRoute } from './privateRoute.tsx';
 import { PublicRoute } from './publicRoute.tsx';
+import { AuthProvider } from '../providers/authProvider.tsx';
+import { ToastContainer } from 'react-toastify';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <PrivateRoute>
-        <HomePage />
-      </PrivateRoute>
+      <AuthProvider>
+        <ToastContainer />
+        <PrivateRoute>
+          <HomePage />
+        </PrivateRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/applications',
     element: (
-      <PrivateRoute>
-        <HomePage />
-      </PrivateRoute>
+      <AuthProvider>
+        <PrivateRoute>
+          <HomePage />
+        </PrivateRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/channels',
     element: (
-      <PrivateRoute>
-        <ChannelsPage />
-      </PrivateRoute>
+      <AuthProvider>
+        <PrivateRoute>
+          <ChannelsPage />
+        </PrivateRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/platforms',
     element: (
-      <PrivateRoute>
-        <PlatformsPage />
-      </PrivateRoute>
+      <AuthProvider>
+        <PrivateRoute>
+          <PlatformsPage />
+        </PrivateRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/architectures',
     element: (
-      <PrivateRoute>
-        <ArchitecturesPage />
-      </PrivateRoute>
+      <AuthProvider>
+        <PrivateRoute>
+          <ArchitecturesPage />
+        </PrivateRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/signin',
     element: (
-      <PublicRoute>
-        <SignInPage />
-      </PublicRoute>
+      <AuthProvider>
+        <PublicRoute>
+          <SignInPage />
+        </PublicRoute>
+      </AuthProvider>
     ),
   },
   {
     path: '/signup',
     element: (
-      <PublicRoute>
-        <SignUpPage />
-      </PublicRoute>
+      <AuthProvider>
+        <PublicRoute>
+          <SignUpPage />
+        </PublicRoute>
+      </AuthProvider>
     ),
   },
 ]);

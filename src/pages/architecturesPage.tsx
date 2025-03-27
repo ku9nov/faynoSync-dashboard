@@ -4,7 +4,7 @@ import { Header } from '../components/Header';
 import { CreateArchitectureModal } from '../components/CreateArchitectureModal';
 import { EditArchitectureModal } from '../components/EditArchitectureModal';
 import { ArchitectureCard } from '../components/ArchitectureCard';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery.ts';
+import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
 
 export const ArchitecturesPage = () => {
   const [createArchitectureOpen, setCreateArchitectureOpen] =
@@ -25,7 +25,7 @@ export const ArchitecturesPage = () => {
   return (
     <div className='min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto'>
       <div className='flex'>
-        <Sidebar activePage='architectures' />
+        <Sidebar />
         <main className='flex-1 p-8'>
           <Header
             title='Architectures'
@@ -33,7 +33,7 @@ export const ArchitecturesPage = () => {
             createButtonText='Create Architecture'
           />
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {architectures.map((architecture) => (
+            {architectures.map((architecture: Architecture) => (
               <ArchitectureCard
                 key={architecture.ID}
                 archName={architecture.ArchID}

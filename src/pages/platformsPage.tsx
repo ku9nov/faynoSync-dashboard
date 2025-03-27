@@ -26,7 +26,7 @@ export const PlatformsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
       <div className="flex">
-        <Sidebar activePage="platforms" />
+        <Sidebar />
         <main className="flex-1 p-8">
           <Header
             title="Platforms"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../providers/authProvider';
 
 interface SettingsMenuProps {
   onClose: () => void;
@@ -6,6 +7,7 @@ interface SettingsMenuProps {
 
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const { logout } = useAuth();
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -17,6 +19,11 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+  };
 
   return (
     <div
@@ -32,7 +39,10 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
         Settings
       </button>
       <div className="border-t border-gray-200 my-2"></div>
-      <button className="w-full text-left px-4 py-2 hover:bg-purple-50 text-red-600">
+      <button 
+        onClick={handleLogout}
+        className="w-full text-left px-4 py-2 hover:bg-purple-50 text-red-600"
+      >
         <i className="fas fa-sign-out-alt mr-2"></i>
         Logout
       </button>
