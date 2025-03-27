@@ -13,7 +13,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
 }) => {
   return (
     <div
-      className="bg-purple-700 p-6 rounded-lg shadow-md cursor-pointer hover:bg-purple-600 transition-colors"
+      className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors"
       onClick={onClick}
     >
       <h3 className="text-xl font-semibold mb-2 text-white">{name}</h3>
