@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChangelogEntry } from '../hooks/use-query/useAppsQuery';
+import ReactMarkdown from 'react-markdown';
 
 interface ChangelogModalProps {
   appName: string;
@@ -23,13 +24,14 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
           Changelog for {appName} v{version}
         </h2>
         <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-2">Changes in this version</h3>
           {currentVersionChangelog ? (
             <>
               <p className="text-gray-600 mb-2">
                 Date: {new Date(currentVersionChangelog.Date).toLocaleDateString()}
               </p>
-              <p className="whitespace-pre-wrap">{currentVersionChangelog.Changes || 'No changes description'}</p>
+              <div className="prose prose-sm max-w-none">
+                <ReactMarkdown>{currentVersionChangelog.Changes || 'No changes description'}</ReactMarkdown>
+              </div>
             </>
           ) : (
             <p className="text-gray-600">No changelog information available for this version</p>
