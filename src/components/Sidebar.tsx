@@ -18,7 +18,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 h-screen bg-gradient-to-b from-purple-800 to-orange-500">
+    <aside className="w-64 min-h-screen bg-gradient-to-b from-purple-800 to-orange-500">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-white mb-8">faynosync</h1>
         <nav>
