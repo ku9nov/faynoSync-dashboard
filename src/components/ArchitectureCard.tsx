@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { DeleteArchitectureConfirmationModal } from './DeleteArchitectureConfirmationModal';
 
 interface ArchitectureCardProps {
   archName: string;
@@ -40,8 +40,8 @@ export const ArchitectureCard: React.FC<ArchitectureCardProps> = ({
       </button>
 
       {showDeleteModal && (
-        <DeleteConfirmationModal
-          archName={archName}
+        <DeleteArchitectureConfirmationModal
+          architectureName={archName}
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteConfirm}
         />

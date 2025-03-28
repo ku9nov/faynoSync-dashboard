@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 
-interface DeleteConfirmationModalProps {
-  version: string;
+interface DeleteArchitectureConfirmationModalProps {
+  architectureName: string;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
-  version,
+export const DeleteArchitectureConfirmationModal: React.FC<DeleteArchitectureConfirmationModalProps> = ({
+  architectureName,
   onClose,
   onConfirm,
 }) => {
@@ -15,7 +15,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (confirmationText === version) {
+    if (confirmationText === architectureName) {
       onConfirm();
     }
   };
@@ -36,7 +36,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           Delete Confirmation
         </h2>
         <p className='text-white mb-4'>
-          To confirm deletion of application version "{version}", please enter its current version:
+          To delete architecture "{architectureName}" please enter its name:
         </p>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
@@ -45,7 +45,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
               value={confirmationText}
               onChange={(e) => setConfirmationText(e.target.value)}
               className='w-full p-2 rounded-lg font-roboto'
-              placeholder='Enter current version'
+              placeholder='Enter architecture name'
             />
           </div>
           <div className='flex justify-end'>
@@ -57,7 +57,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
             </button>
             <button
               type='submit'
-              disabled={confirmationText !== version}
+              disabled={confirmationText !== architectureName}
               className='bg-red-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
               Delete
             </button>
