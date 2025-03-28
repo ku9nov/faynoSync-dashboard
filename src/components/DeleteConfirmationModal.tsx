@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-interface EditArchitectureModalProps {
+interface DeleteConfirmationModalProps {
   archName: string;
   onClose: () => void;
+  onConfirm: () => void;
 }
 
-export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
+export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   archName,
   onClose,
+  onConfirm,
 }) => {
+  const [confirmationText, setConfirmationText] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the architecture update logic
-    onClose();
+    if (confirmationText === archName) {
+      onConfirm();
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -28,21 +33,19 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
     >
       <div className='bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96'>
         <h2 className='text-2xl font-bold mb-4 text-white font-roboto'>
-          Edit Architecture
+          Delete Confirmation
         </h2>
+        <p className='text-white mb-4'>
+          To delete architecture "{archName}" please enter its name:
+        </p>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
-            <label
-              htmlFor='rename'
-              className='block text-white mb-2 font-roboto'>
-              Rename Architecture
-            </label>
             <input
               type='text'
-              id='rename'
-              name='rename'
+              value={confirmationText}
+              onChange={(e) => setConfirmationText(e.target.value)}
               className='w-full p-2 rounded-lg font-roboto'
-              defaultValue={archName}
+              placeholder='Enter architecture name'
             />
           </div>
           <div className='flex justify-end'>
@@ -54,12 +57,13 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
             </button>
             <button
               type='submit'
-              className='bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200'>
-              Save
+              disabled={confirmationText !== archName}
+              className='bg-red-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
+              Delete
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-};
+}; 

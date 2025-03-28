@@ -20,7 +20,15 @@ export const ArchitecturesPage = () => {
   const selectArchitecture = (architecture: string) =>
     setSelectedArchitecture(architecture);
 
-  const { architectures } = useArchitectureQuery();
+  const { architectures, deleteArchitecture } = useArchitectureQuery();
+
+  const handleDelete = async (archName: string) => {
+    try {
+      await deleteArchitecture(archName);
+    } catch (error) {
+      console.error('Error deleting architecture:', error);
+    }
+  };
 
   return (
     <div className='min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto'>
@@ -38,6 +46,7 @@ export const ArchitecturesPage = () => {
                 key={architecture.ID}
                 archName={architecture.ArchID}
                 onClick={() => selectArchitecture(architecture.ArchID)}
+                onDelete={() => handleDelete(architecture.ArchID)}
               />
             ))}
           </div>
