@@ -14,7 +14,7 @@ export type ChangelogEntry = {
   Date: string;
 };
 
-export type App = {
+export type AppVersion = {
   ID: string;
   AppName: string;
   Version: string;
@@ -26,14 +26,33 @@ export type App = {
   Updated_at: string;
 };
 
-export const useAppsQuery = () => {
+export type AppListItem = {
+  ID: string;
+  AppName: string;
+  Logo: string;
+  Updated_at: string;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export const useAppsQuery = (appName?: string, page: number = 1) => {
   const queryClient = useQueryClient();
 
-  const { data: apps = [] } = useQuery<App[]>({
-    queryKey: ['apps'],
+  const { data: apps = [] } = useQuery<AppVersion[] | AppListItem[] | PaginatedResponse<AppVersion>>({
+    queryKey: ['apps', appName, page],
     queryFn: async () => {
-      const response = await axiosInstance.get('/');
-      return response.data.apps;
+      if (appName) {
+        const response = await axiosInstance.get(`/search?app_name=${appName}&limit=9&page=${page}`);
+        return response.data;
+      } else {
+        const response = await axiosInstance.get('/app/list');
+        return response.data.apps;
+      }
     },
   });
 
