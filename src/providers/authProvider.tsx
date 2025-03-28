@@ -1,5 +1,7 @@
-import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import { createContext, PropsWithChildren, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { env } from '../config/env';
+import { useNavigate } from 'react-router-dom';
 
 type LoginProviderProps = {
   username: string;
@@ -22,7 +24,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('token');
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  }, [token]);
 
   const login = async ({
     username,
@@ -30,7 +43,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }: LoginProviderProps): Promise<void> => {
     try {
       const response = await axios.post(
-        'http://localhost:9000/login',
+        `${env.API_URL}/login`,
         {
           username,
           password,
@@ -54,7 +67,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }: SignUpProviderProps) => {
     try {
       const response = await axios.post(
-        'http://localhost:9000/signup',
+        `${env.API_URL}/signup`,
         {
           username,
           password,
@@ -72,7 +85,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const logout = () => {};
+  const logout = () => {
+    setToken(null);
+    navigate('/signin', { replace: true });
+  };
 
   return (
     <AuthContext.Provider value={{ token, login, logout, signUp }}>

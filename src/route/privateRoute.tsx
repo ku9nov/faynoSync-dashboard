@@ -12,5 +12,9 @@ export const PrivateRoute: FC<PropsWithChildren> = ({ children }) => {
     }
   }, [navigate, token]);
 
+  if (!token) {
+    return null;
+  }
+
   return children;
 };

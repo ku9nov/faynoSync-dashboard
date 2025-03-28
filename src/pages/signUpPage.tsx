@@ -54,7 +54,7 @@ export const SignUpPage = () => {
         secretKey: e.secretKey,
       });
       toastSuccess('Signed Up successfully.');
-      navigate('/home');
+      navigate('/applications');
       resetForm();
     } catch (error: any) {
       setRespError(error);

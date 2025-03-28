@@ -4,42 +4,62 @@ import { Header } from '../components/Header';
 import { CreateArchitectureModal } from '../components/CreateArchitectureModal';
 import { EditArchitectureModal } from '../components/EditArchitectureModal';
 import { ArchitectureCard } from '../components/ArchitectureCard';
-
-interface Architecture {
-  name: string;
-}
+import { DeleteArchitectureConfirmationModal } from '../components/DeleteArchitectureConfirmationModal';
+import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
 
 export const ArchitecturesPage = () => {
-  const [createArchitectureOpen, setCreateArchitectureOpen] = React.useState(false);
-  const [selectedArchitecture, setSelectedArchitecture] = React.useState<Architecture | null>(null);
+  const [createArchitectureOpen, setCreateArchitectureOpen] =
+    React.useState(false);
+
+  const [selectedArchitecture, setSelectedArchitecture] = React.useState<
+    string | null
+  >(null);
+
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
+  const [architectureToDelete, setArchitectureToDelete] = React.useState<string | null>(null);
 
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
 
-  const selectArchitecture = (architecture: Architecture) => setSelectedArchitecture(architecture);
+  const selectArchitecture = (architecture: string) =>
+    setSelectedArchitecture(architecture);
 
-  const architectures = [
-    { name: 'x86' },
-    { name: 'x64' },
-    { name: 'arm64' },
-  ];
+  const { architectures, deleteArchitecture } = useArchitectureQuery();
+
+  const handleDelete = async (archName: string) => {
+    setArchitectureToDelete(archName);
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (architectureToDelete) {
+      try {
+        await deleteArchitecture(architectureToDelete);
+        setDeleteConfirmationOpen(false);
+        setArchitectureToDelete(null);
+      } catch (error) {
+        console.error('Error deleting architecture:', error);
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
-      <div className="flex">
-        <Sidebar activePage="architectures" />
-        <main className="flex-1 p-8">
+    <div className='min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto'>
+      <div className='flex'>
+        <Sidebar />
+        <main className='flex-1 p-8'>
           <Header
-            title="Architectures"
+            title='Architectures'
             onCreateClick={openCreateArchitecture}
-            createButtonText="Create Architecture"
+            createButtonText='Create Architecture'
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {architectures.map((architecture) => (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {architectures.map((architecture: Architecture) => (
               <ArchitectureCard
-                key={architecture.name}
-                architecture={architecture}
-                onClick={() => selectArchitecture(architecture)}
+                key={architecture.ID}
+                archName={architecture.ArchID}
+                onClick={() => selectArchitecture(architecture.ArchID)}
+                onDelete={() => handleDelete(architecture.ArchID)}
               />
             ))}
           </div>
@@ -52,10 +72,21 @@ export const ArchitecturesPage = () => {
 
       {selectedArchitecture && (
         <EditArchitectureModal
-          architecture={selectedArchitecture}
+          archName={selectedArchitecture}
           onClose={() => setSelectedArchitecture(null)}
+        />
+      )}
+
+      {deleteConfirmationOpen && architectureToDelete && (
+        <DeleteArchitectureConfirmationModal
+          architectureName={architectureToDelete}
+          onClose={() => {
+            setDeleteConfirmationOpen(false);
+            setArchitectureToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>
   );
-}; 
+};

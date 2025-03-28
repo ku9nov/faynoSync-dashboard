@@ -7,7 +7,7 @@ interface CreateChannelModalProps {
 export const CreateChannelModal: React.FC<CreateChannelModalProps> = ({ onClose }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Тут буде логіка створення каналу
+    // Here will be the channel creation logic
     onClose();
   };
 

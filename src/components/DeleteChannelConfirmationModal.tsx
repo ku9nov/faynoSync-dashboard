@@ -1,22 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-interface Platform {
-  name: string;
-}
-
-interface EditPlatformModalProps {
-  platform: Platform;
+interface DeleteChannelConfirmationModalProps {
+  channelName: string;
   onClose: () => void;
+  onConfirm: () => void;
 }
 
-export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
-  platform,
+export const DeleteChannelConfirmationModal: React.FC<DeleteChannelConfirmationModalProps> = ({
+  channelName,
   onClose,
+  onConfirm,
 }) => {
+  const [confirmationText, setConfirmationText] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the platform update logic
-    onClose();
+    if (confirmationText === channelName) {
+      onConfirm();
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -32,21 +33,19 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
     >
       <div className='bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96'>
         <h2 className='text-2xl font-bold mb-4 text-white font-roboto'>
-          Edit Platform
+          Delete Confirmation
         </h2>
+        <p className='text-white mb-4'>
+          To delete channel "{channelName}" please enter its name:
+        </p>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
-            <label
-              htmlFor='rename'
-              className='block text-white mb-2 font-roboto'>
-              Rename Platform
-            </label>
             <input
               type='text'
-              id='rename'
-              name='rename'
+              value={confirmationText}
+              onChange={(e) => setConfirmationText(e.target.value)}
               className='w-full p-2 rounded-lg font-roboto'
-              defaultValue={platform.name}
+              placeholder='Enter channel name'
             />
           </div>
           <div className='flex justify-end'>
@@ -58,8 +57,9 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
             </button>
             <button
               type='submit'
-              className='bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200'>
-              Save
+              disabled={confirmationText !== channelName}
+              className='bg-red-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
+              Delete
             </button>
           </div>
         </form>
