@@ -28,7 +28,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   return (
     <div
       ref={menuRef}
-      className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg py-2 animate-fade-in"
+      className="absolute right-0 top-12 w-48 bg-white rounded-lg shadow-lg py-2 animate-fade-in z-50"
     >
       <button className="w-full text-left px-4 py-2 hover:bg-purple-50 text-gray-700">
         <i className="fas fa-user mr-2"></i>
