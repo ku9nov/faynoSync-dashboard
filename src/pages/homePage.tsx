@@ -6,13 +6,20 @@ import { Dashboard } from "../components/Dashboard";
 import { UploadModal } from "../components/UploadModal";
 import { ChangelogModal } from "../components/ChangelogModal";
 import { ChangelogEntry } from "../hooks/use-query/useAppsQuery";
+import { useParams, useNavigate } from "react-router-dom";
 
 export const HomePage = () => {
+  const { appName } = useParams();
+  const navigate = useNavigate();
   const [showUploadModal, setShowUploadModal] = React.useState(false);
-  const [selectedApp, setSelectedApp] = React.useState<string | null>(null);
+  const [selectedApp, setSelectedApp] = React.useState<string | null>(appName || null);
   const [showChangelogModal, setShowChangelogModal] = React.useState(false);
   const [selectedVersion, setSelectedVersion] = React.useState<string | null>(null);
   const [selectedChangelog, setSelectedChangelog] = React.useState<ChangelogEntry[]>([]);
+
+  React.useEffect(() => {
+    setSelectedApp(appName || null);
+  }, [appName]);
 
   const toggleUploadModal = () => {
     setShowUploadModal(!showUploadModal);
@@ -20,6 +27,12 @@ export const HomePage = () => {
 
   const handleAppClick = (appName: string) => {
     setSelectedApp(appName);
+    navigate(`/applications/${appName}`);
+  };
+
+  const handleBackClick = () => {
+    setSelectedApp(null);
+    navigate('/applications');
   };
 
   const handleChangelogClick = (version: string, changelog: ChangelogEntry[]) => {
@@ -48,7 +61,7 @@ export const HomePage = () => {
             selectedApp={selectedApp}
             onAppClick={handleAppClick}
             onChangelogClick={handleChangelogClick}
-            onBackClick={() => setSelectedApp(null)}
+            onBackClick={handleBackClick}
           />
         </main>
       </div>

@@ -33,6 +33,16 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/applications/:appName',
+    element: (
+      <AuthProvider>
+        <PrivateRoute>
+          <HomePage />
+        </PrivateRoute>
+      </AuthProvider>
+    ),
+  },
+  {
     path: '/channels',
     element: (
       <AuthProvider>

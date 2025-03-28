@@ -4,6 +4,7 @@ import { ActionIcons } from './ActionIcons';
 import { EditVersionModal } from './EditVersionModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { DownloadArtifactsModal } from './DownloadArtifactsModal';
+import { useSearchParams } from 'react-router-dom';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -18,7 +19,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onChangelogClick,
   onBackClick,
 }) => {
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const { apps, updateApp, deleteApp } = useAppsQuery(selectedApp || undefined, currentPage);
   const [selectedVersion, setSelectedVersion] = React.useState<AppVersion | null>(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
@@ -28,6 +30,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const appList = apps as AppListItem[];
   const paginatedVersions = apps as PaginatedResponse<AppVersion>;
   const appVersions = paginatedVersions?.items || [];
+
+  const handlePageChange = (page: number) => {
+    setSearchParams({ page: page.toString() });
+  };
 
   const handleDownload = (app: AppVersion) => {
     if (app.Artifacts.length === 1) {
@@ -121,21 +127,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-8">
             <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
               className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="First page"
             >
-              Previous
+              <i className="fas fa-angle-double-left"></i>
+            </button>
+            <button
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Previous page"
+            >
+              <i className="fas fa-angle-left"></i>
             </button>
             <span className="px-4 py-2 text-white">
               Page {currentPage} of {totalPages}
             </span>
             <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Next page"
             >
-              Next
+              <i className="fas fa-angle-right"></i>
+            </button>
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Last page"
+            >
+              <i className="fas fa-angle-double-right"></i>
             </button>
           </div>
         )}
