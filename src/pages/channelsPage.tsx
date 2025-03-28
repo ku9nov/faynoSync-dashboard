@@ -4,15 +4,16 @@ import { Header } from '../components/Header';
 import { CreateChannelModal } from '../components/CreateChannelModal';
 import { EditChannelModal } from '../components/EditChannelModal';
 import { ChannelCard } from '../components/ChannelCard';
+import { useChannelQuery, Channel } from '../hooks/use-query/useChannelQuery';
 
 export const ChannelsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-  const [selectedChannel, setSelectedChannel] = React.useState<string | null>(null);
+  const [selectedChannel, setSelectedChannel] = React.useState<Channel | null>(null);
 
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
-  const openEditModal = (channel: string) => {
+  const openEditModal = (channel: Channel) => {
     setSelectedChannel(channel);
     setIsEditModalOpen(true);
   };
@@ -21,15 +22,20 @@ export const ChannelsPage = () => {
     setIsEditModalOpen(false);
   };
 
-  const channels = [
-    { name: 'nightly', description: 'Nightly build channel' },
-    { name: 'stable', description: 'Stable release channel' },
-  ];
+  const { channels, deleteChannel } = useChannelQuery();
+
+  const handleDelete = async (channelName: string) => {
+    try {
+      await deleteChannel(channelName);
+    } catch (error) {
+      console.error('Error deleting channel:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
       <div className="flex">
-        <Sidebar activePage="channels" />
+        <Sidebar />
         <main className="flex-1 p-8">
           <Header
             title="Channels"
@@ -39,10 +45,11 @@ export const ChannelsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {channels.map((channel) => (
               <ChannelCard
-                key={channel.name}
-                name={channel.name}
-                description={channel.description}
-                onClick={() => openEditModal(channel.name)}
+                key={channel.ID}
+                name={channel.ChannelName}
+                // description={`Last updated: ${new Date(channel.Updated_at).toLocaleDateString()}`}
+                onClick={() => openEditModal(channel)}
+                onDelete={() => handleDelete(channel.ChannelName)}
               />
             ))}
           </div>
@@ -55,7 +62,7 @@ export const ChannelsPage = () => {
 
       {isEditModalOpen && selectedChannel && (
         <EditChannelModal
-          channelName={selectedChannel}
+          channelName={selectedChannel.ChannelName}
           onClose={closeEditModal}
         />
       )}

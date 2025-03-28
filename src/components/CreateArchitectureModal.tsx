@@ -9,7 +9,7 @@ export const CreateArchitectureModal: React.FC<CreateArchitectureModalProps> = (
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Тут буде логіка створення архітектури
+    // Here will be the architecture creation logic
     onClose();
   };
 

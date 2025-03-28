@@ -1,23 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { DeleteChannelConfirmationModal } from './DeleteChannelConfirmationModal';
 
 interface ChannelCardProps {
   name: string;
-  description: string;
+  // description: string;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
 export const ChannelCard: React.FC<ChannelCardProps> = ({
   name,
-  description,
+  // description,
   onClick,
+  onDelete,
 }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (onDelete) {
+      onDelete();
+    }
+    setShowDeleteModal(false);
+  };
+
   return (
-    <div
-      className="bg-purple-700 p-6 rounded-lg shadow-md cursor-pointer hover:bg-purple-600 transition-colors"
-      onClick={onClick}
-    >
-      <h3 className="text-xl font-semibold mb-2 text-white">{name}</h3>
-      <p className="text-purple-300">{description}</p>
+    <div className='relative'>
+      <div
+        className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors"
+        onClick={onClick}
+      >
+        <h3 className="text-xl font-semibold mb-2 text-white">{name}</h3>
+        {/* <p className="text-purple-300">{description}</p> */}
+      </div>
+      <button
+        onClick={handleDeleteClick}
+        className='absolute top-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors duration-200'>
+        <i className='fas fa-trash'></i>
+      </button>
+
+      {showDeleteModal && (
+        <DeleteChannelConfirmationModal
+          channelName={name}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
     </div>
   );
 }; 

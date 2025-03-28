@@ -5,12 +5,14 @@ import { Sidebar } from "../components/Sidebar";
 import { Dashboard } from "../components/Dashboard";
 import { UploadModal } from "../components/UploadModal";
 import { ChangelogModal } from "../components/ChangelogModal";
+import { ChangelogEntry } from "../hooks/use-query/useAppsQuery";
 
 export const HomePage = () => {
   const [showUploadModal, setShowUploadModal] = React.useState(false);
   const [selectedApp, setSelectedApp] = React.useState<string | null>(null);
   const [showChangelogModal, setShowChangelogModal] = React.useState(false);
   const [selectedVersion, setSelectedVersion] = React.useState<string | null>(null);
+  const [selectedChangelog, setSelectedChangelog] = React.useState<ChangelogEntry[]>([]);
 
   const toggleUploadModal = () => {
     setShowUploadModal(!showUploadModal);
@@ -20,20 +22,22 @@ export const HomePage = () => {
     setSelectedApp(appName);
   };
 
-  const handleChangelogClick = (version: string) => {
+  const handleChangelogClick = (version: string, changelog: ChangelogEntry[]) => {
     setSelectedVersion(version);
+    setSelectedChangelog(changelog);
     setShowChangelogModal(true);
   };
 
   const closeChangelogModal = () => {
     setShowChangelogModal(false);
     setSelectedVersion(null);
+    setSelectedChangelog([]);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
       <div className="flex">
-        <Sidebar activePage="applications" />
+        <Sidebar />
         <main className="flex-1 p-8">
           <Header
             title="Applications"
@@ -55,6 +59,7 @@ export const HomePage = () => {
         <ChangelogModal
           appName={selectedApp}
           version={selectedVersion}
+          changelog={selectedChangelog}
           onClose={closeChangelogModal}
         />
       )}

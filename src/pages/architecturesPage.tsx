@@ -4,7 +4,8 @@ import { Header } from '../components/Header';
 import { CreateArchitectureModal } from '../components/CreateArchitectureModal';
 import { EditArchitectureModal } from '../components/EditArchitectureModal';
 import { ArchitectureCard } from '../components/ArchitectureCard';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery.ts';
+import { DeleteArchitectureConfirmationModal } from '../components/DeleteArchitectureConfirmationModal';
+import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
 
 export const ArchitecturesPage = () => {
   const [createArchitectureOpen, setCreateArchitectureOpen] =
@@ -14,18 +15,38 @@ export const ArchitecturesPage = () => {
     string | null
   >(null);
 
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
+  const [architectureToDelete, setArchitectureToDelete] = React.useState<string | null>(null);
+
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
 
   const selectArchitecture = (architecture: string) =>
     setSelectedArchitecture(architecture);
 
-  const { architectures } = useArchitectureQuery();
+  const { architectures, deleteArchitecture } = useArchitectureQuery();
+
+  const handleDelete = async (archName: string) => {
+    setArchitectureToDelete(archName);
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (architectureToDelete) {
+      try {
+        await deleteArchitecture(architectureToDelete);
+        setDeleteConfirmationOpen(false);
+        setArchitectureToDelete(null);
+      } catch (error) {
+        console.error('Error deleting architecture:', error);
+      }
+    }
+  };
 
   return (
     <div className='min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto'>
       <div className='flex'>
-        <Sidebar activePage='architectures' />
+        <Sidebar />
         <main className='flex-1 p-8'>
           <Header
             title='Architectures'
@@ -33,11 +54,12 @@ export const ArchitecturesPage = () => {
             createButtonText='Create Architecture'
           />
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {architectures.map((architecture) => (
+            {architectures.map((architecture: Architecture) => (
               <ArchitectureCard
                 key={architecture.ID}
                 archName={architecture.ArchID}
                 onClick={() => selectArchitecture(architecture.ArchID)}
+                onDelete={() => handleDelete(architecture.ArchID)}
               />
             ))}
           </div>
@@ -52,6 +74,17 @@ export const ArchitecturesPage = () => {
         <EditArchitectureModal
           archName={selectedArchitecture}
           onClose={() => setSelectedArchitecture(null)}
+        />
+      )}
+
+      {deleteConfirmationOpen && architectureToDelete && (
+        <DeleteArchitectureConfirmationModal
+          architectureName={architectureToDelete}
+          onClose={() => {
+            setDeleteConfirmationOpen(false);
+            setArchitectureToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>

@@ -11,17 +11,21 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Тут буде логіка оновлення архітектури
+    // Here will be the architecture update logic
     onClose();
   };
 
-  const handleDelete = () => {
-    // Тут буде логіка видалення архітектури
-    onClose();
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   };
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in'>
+    <div 
+      className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50'
+      onClick={handleBackdropClick}
+    >
       <div className='bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96'>
         <h2 className='text-2xl font-bold mb-4 text-white font-roboto'>
           Edit Architecture
@@ -50,14 +54,8 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
             </button>
             <button
               type='submit'
-              className='bg-purple-600 text-white px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-purple-700 transition-colors duration-200'>
+              className='bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200'>
               Save
-            </button>
-            <button
-              type='button'
-              onClick={handleDelete}
-              className='bg-red-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200'>
-              Delete
             </button>
           </div>
         </form>
