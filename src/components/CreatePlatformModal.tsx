@@ -7,7 +7,7 @@ interface CreatePlatformModalProps {
 export const CreatePlatformModal: React.FC<CreatePlatformModalProps> = ({ onClose }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Тут буде логіка створення платформи
+    // Here will be the platform creation logic
     onClose();
   };
 
