@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 
 interface EditVersionModalProps {
   appName: string;
@@ -34,6 +36,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [isPreview, setIsPreview] = React.useState(false);
   const [platform, setPlatform] = React.useState<string>('');
   const [arch, setArch] = React.useState<string>('');
+
+  const { platforms } = usePlatformQuery();
+  const { architectures } = useArchitectureQuery();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,10 +105,11 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       required
                     >
                       <option value="">Select platform</option>
-                      <option value="windows">Windows</option>
-                      <option value="linux">Linux</option>
-                      <option value="macos">macOS</option>
-                      <option value="browser">Browser</option>
+                      {platforms.map((p) => (
+                        <option key={p.ID} value={p.PlatformName}>
+                          {p.PlatformName}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -117,12 +123,11 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       required
                     >
                       <option value="">Select architecture</option>
-                      <option value="amd64">AMD64</option>
-                      <option value="arm64">ARM64</option>
-                      <option value="x86">x86</option>
-                      <option value="chrome">Chrome</option>
-                      <option value="firefox">Firefox</option>
-                      <option value="operaedge">Opera/Edge</option>
+                      {architectures.map((a) => (
+                        <option key={a.ID} value={a.ArchID}>
+                          {a.ArchID}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
