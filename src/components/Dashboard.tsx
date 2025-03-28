@@ -5,6 +5,8 @@ import { EditVersionModal } from './EditVersionModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { DownloadArtifactsModal } from './DownloadArtifactsModal';
 import { useSearchParams } from 'react-router-dom';
+import axiosInstance from '../config/axios';
+import { useQuery } from '@tanstack/react-query';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -30,6 +32,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const appList = apps as AppListItem[];
   const paginatedVersions = apps as PaginatedResponse<AppVersion>;
   const appVersions = paginatedVersions?.items || [];
+
+  const { data: appLogo } = useQuery({
+    queryKey: ['appLogo', selectedApp],
+    queryFn: async () => {
+      if (!selectedApp) return null;
+      const response = await axiosInstance.get('/app/list');
+      const app = response.data.apps.find((a: AppListItem) => a.AppName === selectedApp);
+      return app?.Logo || null;
+    },
+    enabled: !!selectedApp,
+  });
 
   const handlePageChange = (page: number) => {
     setSearchParams({ page: page.toString() });
@@ -88,7 +101,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
         >
           ← Back
         </button>
-        <h2 className="text-2xl font-bold text-white mb-6">{selectedApp}</h2>
+        <div className="flex items-center gap-4 mb-6">
+          {appLogo ? (
+            <div className="relative w-12 h-12">
+              <img 
+                src={appLogo} 
+                alt={`${selectedApp} logo`}
+                className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
+                loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.opacity = '0';
+                  setTimeout(() => {
+                    target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+                    target.style.opacity = '1';
+                  }, 300);
+                }}
+                onLoad={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.opacity = '1';
+                }}
+              />
+              <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className="text-white/50"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <path d="M12 8v8"></path>
+                <path d="M8 12h8"></path>
+              </svg>
+            </div>
+          )}
+          <h2 className="text-2xl font-bold text-white">{selectedApp}</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {appVersions.map((app) => (
             <div
@@ -216,15 +273,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
         >
           <div className="flex items-center gap-4 mb-4">
             {app.Logo ? (
-              <img 
-                src={app.Logo} 
-                alt={`${app.AppName} logo`}
-                className="w-12 h-12 rounded-lg object-contain bg-white/5"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
-                }}
-              />
+              <div className="relative w-12 h-12">
+                <img 
+                  src={app.Logo} 
+                  alt={`${app.AppName} logo`}
+                  className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.opacity = '0';
+                    setTimeout(() => {
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+                      target.style.opacity = '1';
+                    }, 300);
+                  }}
+                  onLoad={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.opacity = '1';
+                  }}
+                />
+                <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
+              </div>
             ) : (
               <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
                 <svg 
