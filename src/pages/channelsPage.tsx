@@ -22,7 +22,15 @@ export const ChannelsPage = () => {
     setIsEditModalOpen(false);
   };
 
-  const { channels } = useChannelQuery();
+  const { channels, deleteChannel } = useChannelQuery();
+
+  const handleDelete = async (channelName: string) => {
+    try {
+      await deleteChannel(channelName);
+    } catch (error) {
+      console.error('Error deleting channel:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
@@ -41,6 +49,7 @@ export const ChannelsPage = () => {
                 name={channel.ChannelName}
                 // description={`Last updated: ${new Date(channel.Updated_at).toLocaleDateString()}`}
                 onClick={() => openEditModal(channel)}
+                onDelete={() => handleDelete(channel.ChannelName)}
               />
             ))}
           </div>

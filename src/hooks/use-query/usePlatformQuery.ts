@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../config/axios';
 
 export type Platform = {
@@ -8,6 +8,8 @@ export type Platform = {
 };
 
 export const usePlatformQuery = () => {
+  const queryClient = useQueryClient();
+
   const { data: platforms = [] } = useQuery<Platform[]>({
     queryKey: ['platforms'],
     queryFn: async () => {
@@ -16,5 +18,18 @@ export const usePlatformQuery = () => {
     },
   });
 
-  return { platforms };
+  const deletePlatformMutation = useMutation({
+    mutationFn: async (platformName: string) => {
+      await axiosInstance.delete(`/platform/${platformName}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+    },
+  });
+
+  const deletePlatform = async (platformName: string) => {
+    await deletePlatformMutation.mutateAsync(platformName);
+  };
+
+  return { platforms, deletePlatform };
 }; 

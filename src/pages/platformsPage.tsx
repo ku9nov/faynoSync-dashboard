@@ -15,7 +15,15 @@ export const PlatformsPage = () => {
 
   const selectPlatform = (platform: Platform) => setSelectedPlatform(platform);
 
-  const { platforms } = usePlatformQuery();
+  const { platforms, deletePlatform } = usePlatformQuery();
+
+  const handleDelete = async (platformName: string) => {
+    try {
+      await deletePlatform(platformName);
+    } catch (error) {
+      console.error('Error deleting platform:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
@@ -33,6 +41,7 @@ export const PlatformsPage = () => {
                 key={platform.ID}
                 platform={{ name: platform.PlatformName }}
                 onClick={() => selectPlatform(platform)}
+                onDelete={() => handleDelete(platform.PlatformName)}
               />
             ))}
           </div>

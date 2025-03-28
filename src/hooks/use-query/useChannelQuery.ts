@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../config/axios';
 
 export type Channel = {
@@ -8,6 +8,8 @@ export type Channel = {
 };
 
 export const useChannelQuery = () => {
+  const queryClient = useQueryClient();
+
   const { data: channels = [] } = useQuery<Channel[]>({
     queryKey: ['channels'],
     queryFn: async () => {
@@ -16,5 +18,18 @@ export const useChannelQuery = () => {
     },
   });
 
-  return { channels };
+  const deleteChannelMutation = useMutation({
+    mutationFn: async (channelName: string) => {
+      await axiosInstance.delete(`/channel/${channelName}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+  });
+
+  const deleteChannel = async (channelName: string) => {
+    await deleteChannelMutation.mutateAsync(channelName);
+  };
+
+  return { channels, deleteChannel };
 }; 
