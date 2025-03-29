@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 interface DeleteArchitectureConfirmationModalProps {
+  architectureId: string;
   architectureName: string;
   onClose: () => void;
   onConfirm: () => void;

@@ -16,7 +16,7 @@ export const ArchitecturesPage = () => {
   >(null);
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
-  const [architectureToDelete, setArchitectureToDelete] = React.useState<string | null>(null);
+  const [architectureToDelete, setArchitectureToDelete] = React.useState<{ id: string; name: string } | null>(null);
 
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
@@ -26,15 +26,15 @@ export const ArchitecturesPage = () => {
 
   const { architectures, deleteArchitecture } = useArchitectureQuery();
 
-  const handleDelete = async (archName: string) => {
-    setArchitectureToDelete(archName);
+  const handleDelete = async (archId: string, archName: string) => {
+    setArchitectureToDelete({ id: archId, name: archName });
     setDeleteConfirmationOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (architectureToDelete) {
       try {
-        await deleteArchitecture(architectureToDelete);
+        await deleteArchitecture(architectureToDelete.id);
         setDeleteConfirmationOpen(false);
         setArchitectureToDelete(null);
       } catch (error) {
@@ -59,7 +59,7 @@ export const ArchitecturesPage = () => {
                 key={architecture.ID}
                 archName={architecture.ArchID}
                 onClick={() => selectArchitecture(architecture.ArchID)}
-                onDelete={() => handleDelete(architecture.ArchID)}
+                onDelete={() => handleDelete(architecture.ID, architecture.ArchID)}
               />
             ))}
           </div>
@@ -79,7 +79,8 @@ export const ArchitecturesPage = () => {
 
       {deleteConfirmationOpen && architectureToDelete && (
         <DeleteArchitectureConfirmationModal
-          architectureName={architectureToDelete}
+          architectureId={architectureToDelete.id}
+          architectureName={architectureToDelete.name}
           onClose={() => {
             setDeleteConfirmationOpen(false);
             setArchitectureToDelete(null);

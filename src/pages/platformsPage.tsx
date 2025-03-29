@@ -4,11 +4,14 @@ import { Header } from '../components/Header';
 import { CreatePlatformModal } from '../components/CreatePlatformModal';
 import { EditPlatformModal } from '../components/EditPlatformModal';
 import { PlatformCard } from '../components/PlatformCard';
+import { DeletePlatformConfirmationModal } from '../components/DeletePlatformConfirmationModal';
 import { usePlatformQuery, Platform } from '../hooks/use-query/usePlatformQuery';
 
 export const PlatformsPage = () => {
   const [createPlatformOpen, setCreatePlatformOpen] = React.useState(false);
   const [selectedPlatform, setSelectedPlatform] = React.useState<Platform | null>(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
+  const [platformToDelete, setPlatformToDelete] = React.useState<{ id: string; name: string } | null>(null);
 
   const openCreatePlatform = () => setCreatePlatformOpen(true);
   const closeCreatePlatform = () => setCreatePlatformOpen(false);
@@ -17,11 +20,20 @@ export const PlatformsPage = () => {
 
   const { platforms, deletePlatform } = usePlatformQuery();
 
-  const handleDelete = async (platformName: string) => {
-    try {
-      await deletePlatform(platformName);
-    } catch (error) {
-      console.error('Error deleting platform:', error);
+  const handleDelete = async (platformId: string, platformName: string) => {
+    setPlatformToDelete({ id: platformId, name: platformName });
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (platformToDelete) {
+      try {
+        await deletePlatform(platformToDelete.id);
+        setDeleteConfirmationOpen(false);
+        setPlatformToDelete(null);
+      } catch (error) {
+        console.error('Error deleting platform:', error);
+      }
     }
   };
 
@@ -41,7 +53,7 @@ export const PlatformsPage = () => {
                 key={platform.ID}
                 platform={{ name: platform.PlatformName }}
                 onClick={() => selectPlatform(platform)}
-                onDelete={() => handleDelete(platform.PlatformName)}
+                onDelete={() => handleDelete(platform.ID, platform.PlatformName)}
               />
             ))}
           </div>
@@ -56,6 +68,18 @@ export const PlatformsPage = () => {
         <EditPlatformModal
           platform={{ name: selectedPlatform.PlatformName }}
           onClose={() => setSelectedPlatform(null)}
+        />
+      )}
+
+      {deleteConfirmationOpen && platformToDelete && (
+        <DeletePlatformConfirmationModal
+          platformId={platformToDelete.id}
+          platformName={platformToDelete.name}
+          onClose={() => {
+            setDeleteConfirmationOpen(false);
+            setPlatformToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>

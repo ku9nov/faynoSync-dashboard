@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 interface DeleteChannelConfirmationModalProps {
+  channelId: string;
   channelName: string;
   onClose: () => void;
   onConfirm: () => void;

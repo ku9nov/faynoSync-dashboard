@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { DeleteArchitectureConfirmationModal } from './DeleteArchitectureConfirmationModal';
+import React from 'react';
 
 interface ArchitectureCardProps {
   archName: string;
@@ -12,18 +11,11 @@ export const ArchitectureCard: React.FC<ArchitectureCardProps> = ({
   onClick,
   onDelete,
 }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirm = () => {
     if (onDelete) {
       onDelete();
     }
-    setShowDeleteModal(false);
   };
 
   return (
@@ -38,14 +30,6 @@ export const ArchitectureCard: React.FC<ArchitectureCardProps> = ({
         className='absolute top-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors duration-200'>
         <i className='fas fa-trash'></i>
       </button>
-
-      {showDeleteModal && (
-        <DeleteArchitectureConfirmationModal
-          architectureName={archName}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteConfirm}
-        />
-      )}
     </div>
   );
 };

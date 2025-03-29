@@ -20,7 +20,7 @@ export const usePlatformQuery = () => {
 
   const deletePlatformMutation = useMutation({
     mutationFn: async (platformName: string) => {
-      await axiosInstance.delete(`/platform/${platformName}`);
+      await axiosInstance.delete(`/platform/delete?id=${platformName}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platforms'] });

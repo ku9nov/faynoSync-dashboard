@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { DeletePlatformConfirmationModal } from './DeletePlatformConfirmationModal';
+import React from 'react';
 
 interface Platform {
   name: string;
@@ -16,18 +15,11 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   onClick,
   onDelete,
 }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirm = () => {
     if (onDelete) {
       onDelete();
     }
-    setShowDeleteModal(false);
   };
 
   return (
@@ -42,14 +34,6 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
         className='absolute top-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors duration-200'>
         <i className='fas fa-trash'></i>
       </button>
-
-      {showDeleteModal && (
-        <DeletePlatformConfirmationModal
-          platformName={platform.name}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteConfirm}
-        />
-      )}
     </div>
   );
 }; 

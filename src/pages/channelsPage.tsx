@@ -4,12 +4,15 @@ import { Header } from '../components/Header';
 import { CreateChannelModal } from '../components/CreateChannelModal';
 import { EditChannelModal } from '../components/EditChannelModal';
 import { ChannelCard } from '../components/ChannelCard';
+import { DeleteChannelConfirmationModal } from '../components/DeleteChannelConfirmationModal';
 import { useChannelQuery, Channel } from '../hooks/use-query/useChannelQuery';
 
 export const ChannelsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
   const [selectedChannel, setSelectedChannel] = React.useState<Channel | null>(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
+  const [channelToDelete, setChannelToDelete] = React.useState<{ id: string; name: string } | null>(null);
 
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
@@ -24,11 +27,20 @@ export const ChannelsPage = () => {
 
   const { channels, deleteChannel } = useChannelQuery();
 
-  const handleDelete = async (channelName: string) => {
-    try {
-      await deleteChannel(channelName);
-    } catch (error) {
-      console.error('Error deleting channel:', error);
+  const handleDelete = async (channelId: string, channelName: string) => {
+    setChannelToDelete({ id: channelId, name: channelName });
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (channelToDelete) {
+      try {
+        await deleteChannel(channelToDelete.id);
+        setDeleteConfirmationOpen(false);
+        setChannelToDelete(null);
+      } catch (error) {
+        console.error('Error deleting channel:', error);
+      }
     }
   };
 
@@ -49,7 +61,7 @@ export const ChannelsPage = () => {
                 name={channel.ChannelName}
                 // description={`Last updated: ${new Date(channel.Updated_at).toLocaleDateString()}`}
                 onClick={() => openEditModal(channel)}
-                onDelete={() => handleDelete(channel.ChannelName)}
+                onDelete={() => handleDelete(channel.ID, channel.ChannelName)}
               />
             ))}
           </div>
@@ -64,6 +76,18 @@ export const ChannelsPage = () => {
         <EditChannelModal
           channelName={selectedChannel.ChannelName}
           onClose={closeEditModal}
+        />
+      )}
+
+      {deleteConfirmationOpen && channelToDelete && (
+        <DeleteChannelConfirmationModal
+          channelId={channelToDelete.id}
+          channelName={channelToDelete.name}
+          onClose={() => {
+            setDeleteConfirmationOpen(false);
+            setChannelToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>

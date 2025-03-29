@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 interface DeletePlatformConfirmationModalProps {
+  platformId: string;
   platformName: string;
   onClose: () => void;
   onConfirm: () => void;

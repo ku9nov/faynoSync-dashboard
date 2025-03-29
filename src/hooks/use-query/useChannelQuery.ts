@@ -20,7 +20,7 @@ export const useChannelQuery = () => {
 
   const deleteChannelMutation = useMutation({
     mutationFn: async (channelName: string) => {
-      await axiosInstance.delete(`/channel/${channelName}`);
+      await axiosInstance.delete(`/channel/delete?id=${channelName}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });

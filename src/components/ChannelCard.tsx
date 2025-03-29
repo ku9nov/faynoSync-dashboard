@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { DeleteChannelConfirmationModal } from './DeleteChannelConfirmationModal';
+import React from 'react';
 
 interface ChannelCardProps {
   name: string;
@@ -14,18 +13,11 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
   onClick,
   onDelete,
 }) => {
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteConfirm = () => {
     if (onDelete) {
       onDelete();
     }
-    setShowDeleteModal(false);
   };
 
   return (
@@ -42,14 +34,6 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
         className='absolute top-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors duration-200'>
         <i className='fas fa-trash'></i>
       </button>
-
-      {showDeleteModal && (
-        <DeleteChannelConfirmationModal
-          channelName={name}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteConfirm}
-        />
-      )}
     </div>
   );
 }; 
