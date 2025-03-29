@@ -71,21 +71,25 @@ export const useAppsQuery = (appName?: string, page: number = 1) => {
         Platform?: string;
         Arch?: string;
         File?: File;
+        app_name: string;
+        version: string;
+        channel: string;
       } 
     }) => {
       const formData = new FormData();
-      formData.append('publish', data.Published.toString());
-      formData.append('critical', data.Critical.toString());
-      formData.append('changelog', data.Changelog);
-      formData.append('id', id);
+      const dataObj = {
+        id,
+        app_name: data.app_name,
+        version: data.version,
+        channel: data.channel,
+        publish: data.Published,
+        critical: data.Critical,
+        platform: data.Platform,
+        arch: data.Arch,
+        changelog: data.Changelog
+      };
       
-      if (data.Platform) {
-        formData.append('platform', data.Platform);
-      }
-      
-      if (data.Arch) {
-        formData.append('arch', data.Arch);
-      }
+      formData.append('data', JSON.stringify(dataObj));
       
       if (data.File) {
         formData.append('file', data.File);
@@ -118,6 +122,9 @@ export const useAppsQuery = (appName?: string, page: number = 1) => {
     Platform?: string;
     Arch?: string;
     File?: File;
+    app_name: string;
+    version: string;
+    channel: string;
   }) => {
     await updateAppMutation.mutateAsync({ id, data });
   };

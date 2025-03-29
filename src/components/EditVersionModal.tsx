@@ -20,6 +20,9 @@ interface EditVersionModalProps {
     Platform?: string;
     Arch?: string;
     File?: File;
+    app_name: string;
+    version: string;
+    channel: string;
   }) => void;
 }
 
@@ -47,6 +50,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       File: selectedFile || undefined,
       Platform: selectedFile ? platform : undefined,
       Arch: selectedFile ? arch : undefined,
+      app_name: appName,
+      version: version,
+      channel: channel,
     });
   };
 
