@@ -1,57 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 
 interface CreatePlatformModalProps {
   onClose: () => void;
 }
 
 export const CreatePlatformModal: React.FC<CreatePlatformModalProps> = ({ onClose }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const [name, setName] = useState('');
+  const { createPlatform } = usePlatformQuery();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the platform creation logic
-    onClose();
+    if (name.trim()) {
+      await createPlatform(name.trim());
+      setName('');
+      onClose();
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-[500px] max-h-[80vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-4">Create Platform</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in">
+      <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4 text-white font-roboto">
+          Create Platform
+        </h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Platform Name"
-            name="platformName"
-            className="w-full p-2 mb-4 rounded"
-          />
-          <textarea
-            placeholder="Description"
-            name="description"
-            className="w-full p-2 mb-4 rounded"
-          />
           <div className="mb-4">
-            <label className="block text-white mb-2">
-              <input type="checkbox" name="active" className="mr-2" />
-              Active
+            <label htmlFor="name" className="block text-white mb-2 font-roboto">
+              Platform Name
             </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full p-2 rounded-lg font-roboto"
+              required
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Version"
-            name="version"
-            className="w-full p-2 mb-4 rounded"
-          />
           <div className="flex justify-end">
             <button
               type="button"
-              className="bg-purple-600 text-white px-4 py-2 rounded mr-2 hover:bg-purple-700 transition-colors"
               onClick={onClose}
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200"
             >
-              Save
+              Create
             </button>
           </div>
         </form>

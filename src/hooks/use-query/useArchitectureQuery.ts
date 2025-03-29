@@ -18,6 +18,26 @@ export const useArchitectureQuery = () => {
     },
   });
 
+  const createArchitectureMutation = useMutation({
+    mutationFn: async (archName: string) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ arch: archName }));
+      const response = await axiosInstance.post('/arch/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['architectures'] });
+    },
+  });
+
+  const createArchitecture = async (archName: string) => {
+    await createArchitectureMutation.mutateAsync(archName);
+  };
+
   const deleteArchitectureMutation = useMutation({
     mutationFn: async (archName: string) => {
       await axiosInstance.delete(`/arch/delete?id=${archName}`);
@@ -31,5 +51,5 @@ export const useArchitectureQuery = () => {
     await deleteArchitectureMutation.mutateAsync(archName);
   };
 
-  return { architectures, deleteArchitecture };
+  return { architectures, deleteArchitecture, createArchitecture };
 };

@@ -18,6 +18,26 @@ export const useChannelQuery = () => {
     },
   });
 
+  const createChannelMutation = useMutation({
+    mutationFn: async (channelName: string) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ channel: channelName }));
+      const response = await axiosInstance.post('/channel/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+  });
+
+  const createChannel = async (channelName: string) => {
+    await createChannelMutation.mutateAsync(channelName);
+  };
+
   const deleteChannelMutation = useMutation({
     mutationFn: async (channelName: string) => {
       await axiosInstance.delete(`/channel/delete?id=${channelName}`);
@@ -31,5 +51,5 @@ export const useChannelQuery = () => {
     await deleteChannelMutation.mutateAsync(channelName);
   };
 
-  return { channels, deleteChannel };
+  return { channels, deleteChannel, createChannel };
 }; 

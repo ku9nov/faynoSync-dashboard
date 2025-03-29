@@ -18,6 +18,26 @@ export const usePlatformQuery = () => {
     },
   });
 
+  const createPlatformMutation = useMutation({
+    mutationFn: async (platformName: string) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ platform: platformName }));
+      const response = await axiosInstance.post('/platform/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+    },
+  });
+
+  const createPlatform = async (platformName: string) => {
+    await createPlatformMutation.mutateAsync(platformName);
+  };
+
   const deletePlatformMutation = useMutation({
     mutationFn: async (platformName: string) => {
       await axiosInstance.delete(`/platform/delete?id=${platformName}`);
@@ -31,5 +51,5 @@ export const usePlatformQuery = () => {
     await deletePlatformMutation.mutateAsync(platformName);
   };
 
-  return { platforms, deletePlatform };
+  return { platforms, deletePlatform, createPlatform };
 }; 
