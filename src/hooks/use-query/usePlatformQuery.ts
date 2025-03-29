@@ -39,16 +39,16 @@ export const usePlatformQuery = () => {
   };
 
   const deletePlatformMutation = useMutation({
-    mutationFn: async (platformName: string) => {
-      await axiosInstance.delete(`/platform/delete?id=${platformName}`);
+    mutationFn: async (platformId: string) => {
+      await axiosInstance.delete(`/platform/delete?id=${platformId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['platforms'] });
     },
   });
 
-  const deletePlatform = async (platformName: string) => {
-    await deletePlatformMutation.mutateAsync(platformName);
+  const deletePlatform = async (platformId: string) => {
+    await deletePlatformMutation.mutateAsync(platformId);
   };
 
   const updatePlatformMutation = useMutation({

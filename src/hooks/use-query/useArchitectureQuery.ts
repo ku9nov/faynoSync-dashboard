@@ -39,16 +39,16 @@ export const useArchitectureQuery = () => {
   };
 
   const deleteArchitectureMutation = useMutation({
-    mutationFn: async (archName: string) => {
-      await axiosInstance.delete(`/arch/delete?id=${archName}`);
+    mutationFn: async (archId: string) => {
+      await axiosInstance.delete(`/arch/delete?id=${archId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['architectures'] });
     },
   });
 
-  const deleteArchitecture = async (archName: string) => {
-    await deleteArchitectureMutation.mutateAsync(archName);
+  const deleteArchitecture = async (archId: string) => {
+    await deleteArchitectureMutation.mutateAsync(archId);
   };
 
   const updateArchitectureMutation = useMutation({

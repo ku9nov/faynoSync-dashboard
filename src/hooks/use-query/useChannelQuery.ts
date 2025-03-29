@@ -39,16 +39,16 @@ export const useChannelQuery = () => {
   };
 
   const deleteChannelMutation = useMutation({
-    mutationFn: async (channelName: string) => {
-      await axiosInstance.delete(`/channel/delete?id=${channelName}`);
+    mutationFn: async (channelId: string) => {
+      await axiosInstance.delete(`/channel/delete?id=${channelId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channels'] });
     },
   });
 
-  const deleteChannel = async (channelName: string) => {
-    await deleteChannelMutation.mutateAsync(channelName);
+  const deleteChannel = async (channelId: string) => {
+    await deleteChannelMutation.mutateAsync(channelId);
   };
 
   const updateChannelMutation = useMutation({
