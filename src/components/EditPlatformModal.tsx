@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 
 interface Platform {
   name: string;
@@ -6,17 +7,26 @@ interface Platform {
 
 interface EditPlatformModalProps {
   platform: Platform;
+  platformId: string;
   onClose: () => void;
 }
 
 export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
   platform,
+  platformId,
   onClose,
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { updatePlatform } = usePlatformQuery();
+  const [newName, setNewName] = React.useState(platform.name);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the platform update logic
-    onClose();
+    try {
+      await updatePlatform(platformId, newName);
+      onClose();
+    } catch (error) {
+      console.error('Error updating platform:', error);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -46,7 +56,8 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
               id='rename'
               name='rename'
               className='w-full p-2 rounded-lg font-roboto'
-              defaultValue={platform.name}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
             />
           </div>
           <div className='flex justify-end'>

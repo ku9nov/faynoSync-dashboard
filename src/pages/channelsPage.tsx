@@ -75,6 +75,7 @@ export const ChannelsPage = () => {
       {isEditModalOpen && selectedChannel && (
         <EditChannelModal
           channelName={selectedChannel.ChannelName}
+          channelId={selectedChannel.ID}
           onClose={closeEditModal}
         />
       )}

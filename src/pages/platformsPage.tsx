@@ -67,6 +67,7 @@ export const PlatformsPage = () => {
       {selectedPlatform && (
         <EditPlatformModal
           platform={{ name: selectedPlatform.PlatformName }}
+          platformId={selectedPlatform.ID}
           onClose={() => setSelectedPlatform(null)}
         />
       )}

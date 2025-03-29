@@ -1,18 +1,28 @@
 import React from 'react';
+import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 
 interface EditArchitectureModalProps {
   archName: string;
+  archId: string;
   onClose: () => void;
 }
 
 export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
   archName,
+  archId,
   onClose,
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { updateArchitecture } = useArchitectureQuery();
+  const [newName, setNewName] = React.useState(archName);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the architecture update logic
-    onClose();
+    try {
+      await updateArchitecture(archId, newName);
+      onClose();
+    } catch (error) {
+      console.error('Error updating architecture:', error);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -42,7 +52,8 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
               id='rename'
               name='rename'
               className='w-full p-2 rounded-lg font-roboto'
-              defaultValue={archName}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
             />
           </div>
           <div className='flex justify-end'>

@@ -12,7 +12,7 @@ export const ArchitecturesPage = () => {
     React.useState(false);
 
   const [selectedArchitecture, setSelectedArchitecture] = React.useState<
-    string | null
+    { id: string; name: string } | null
   >(null);
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
@@ -21,8 +21,8 @@ export const ArchitecturesPage = () => {
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
 
-  const selectArchitecture = (architecture: string) =>
-    setSelectedArchitecture(architecture);
+  const selectArchitecture = (architecture: Architecture) =>
+    setSelectedArchitecture({ id: architecture.ID, name: architecture.ArchID });
 
   const { architectures, deleteArchitecture } = useArchitectureQuery();
 
@@ -58,7 +58,7 @@ export const ArchitecturesPage = () => {
               <ArchitectureCard
                 key={architecture.ID}
                 archName={architecture.ArchID}
-                onClick={() => selectArchitecture(architecture.ArchID)}
+                onClick={() => selectArchitecture(architecture)}
                 onDelete={() => handleDelete(architecture.ID, architecture.ArchID)}
               />
             ))}
@@ -72,7 +72,8 @@ export const ArchitecturesPage = () => {
 
       {selectedArchitecture && (
         <EditArchitectureModal
-          archName={selectedArchitecture}
+          archName={selectedArchitecture.name}
+          archId={selectedArchitecture.id}
           onClose={() => setSelectedArchitecture(null)}
         />
       )}

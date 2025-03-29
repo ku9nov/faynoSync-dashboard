@@ -51,5 +51,25 @@ export const useChannelQuery = () => {
     await deleteChannelMutation.mutateAsync(channelName);
   };
 
-  return { channels, deleteChannel, createChannel };
+  const updateChannelMutation = useMutation({
+    mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ id, channel: newName }));
+      const response = await axiosInstance.post('/channel/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+  });
+
+  const updateChannel = async (id: string, newName: string) => {
+    await updateChannelMutation.mutateAsync({ id, newName });
+  };
+
+  return { channels, deleteChannel, createChannel, updateChannel };
 }; 

@@ -51,5 +51,25 @@ export const usePlatformQuery = () => {
     await deletePlatformMutation.mutateAsync(platformName);
   };
 
-  return { platforms, deletePlatform, createPlatform };
+  const updatePlatformMutation = useMutation({
+    mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ id, platform: newName }));
+      const response = await axiosInstance.post('/platform/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+    },
+  });
+
+  const updatePlatform = async (id: string, newName: string) => {
+    await updatePlatformMutation.mutateAsync({ id, newName });
+  };
+
+  return { platforms, deletePlatform, createPlatform, updatePlatform };
 }; 

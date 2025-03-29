@@ -1,18 +1,28 @@
 import React from 'react';
+import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 
 interface EditChannelModalProps {
   channelName: string;
+  channelId: string;
   onClose: () => void;
 }
 
 export const EditChannelModal: React.FC<EditChannelModalProps> = ({
   channelName,
+  channelId,
   onClose,
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const { updateChannel } = useChannelQuery();
+  const [newName, setNewName] = React.useState(channelName);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here will be the channel update logic
-    onClose();
+    try {
+      await updateChannel(channelId, newName);
+      onClose();
+    } catch (error) {
+      console.error('Error updating channel:', error);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -42,7 +52,8 @@ export const EditChannelModal: React.FC<EditChannelModalProps> = ({
               id='rename'
               name='rename'
               className='w-full p-2 rounded-lg font-roboto'
-              defaultValue={channelName}
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
             />
           </div>
           <div className='flex justify-end'>

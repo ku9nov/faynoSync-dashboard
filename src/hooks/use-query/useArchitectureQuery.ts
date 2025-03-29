@@ -51,5 +51,25 @@ export const useArchitectureQuery = () => {
     await deleteArchitectureMutation.mutateAsync(archName);
   };
 
-  return { architectures, deleteArchitecture, createArchitecture };
+  const updateArchitectureMutation = useMutation({
+    mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({ id, arch: newName }));
+      const response = await axiosInstance.post('/arch/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['architectures'] });
+    },
+  });
+
+  const updateArchitecture = async (id: string, newName: string) => {
+    await updateArchitectureMutation.mutateAsync({ id, newName });
+  };
+
+  return { architectures, deleteArchitecture, createArchitecture, updateArchitecture };
 };
