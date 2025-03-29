@@ -24,6 +24,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   });
 
   const [previewChangelog, setPreviewChangelog] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { apps } = useAppsQuery();
@@ -56,7 +57,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     e.preventDefault();
     try {
       await upload(formData);
-      onClose();
+      setIsSuccess(true);
+      setTimeout(() => {
+        onClose();
+      }, 2000);
     } catch (error) {
       console.error('Upload failed:', error);
     }
@@ -83,16 +87,22 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     >
       <div className="bg-gradient-to-b from-purple-800 to-purple-400 rounded-lg p-8 w-[500px] max-h-[80vh] overflow-y-auto relative">
         {isLoading && (
-          <div className="absolute inset-0 -m-8 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
-              <p className="text-white font-roboto">Uploading files...</p>
-            </div>
+          <div className="fixed top-4 right-4 bg-purple-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+            <span className="font-roboto">Uploading files...</span>
+          </div>
+        )}
+        {isSuccess && (
+          <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="font-roboto">Files uploaded successfully!</span>
           </div>
         )}
         {error && (
-          <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg font-roboto">
-            Upload failed. Please try again.
+          <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <span className="font-roboto">Upload failed. Please try again.</span>
           </div>
         )}
         <h2 className="text-2xl font-bold text-white mb-4 font-roboto">Upload Application</h2>
