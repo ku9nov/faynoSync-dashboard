@@ -30,7 +30,9 @@ export type AppListItem = {
   ID: string;
   AppName: string;
   Logo: string;
+  Description: string;
   Updated_at: string;
+  isExpanded?: boolean;
 };
 
 export type PaginatedResponse<T> = {

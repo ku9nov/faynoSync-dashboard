@@ -28,6 +28,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showDownloadModal, setShowDownloadModal] = React.useState(false);
+  const [expandedApps, setExpandedApps] = React.useState<Record<string, boolean>>({});
 
   const appList = apps as AppListItem[];
   const paginatedVersions = apps as PaginatedResponse<AppVersion>;
@@ -316,7 +317,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
             <h3 className="text-xl font-semibold">{app.AppName}</h3>
           </div>
-          <p className="text-sm text-white/70">Last updated: {new Date(app.Updated_at).toLocaleDateString()}</p>
+          <div className="relative">
+            <div className="flex items-center gap-2">
+              <p className={`text-sm text-white/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'}`}>
+                {app.Description || 'No description available'}
+              </p>
+              {app.Description && app.Description.length > 50 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedApps(prev => ({
+                      ...prev,
+                      [app.ID]: !prev[app.ID]
+                    }));
+                  }}
+                  className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                  title={expandedApps[app.ID] ? 'Collapse' : 'Expand'}
+                >
+                  <i className={`fas ${expandedApps[app.ID] ? 'fa-chevron-up' : 'fa-chevron-down'} text-purple-300 text-xs`}></i>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>
