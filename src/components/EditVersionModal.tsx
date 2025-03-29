@@ -87,7 +87,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-white mb-2 font-roboto">
-              App File
+              Files
             </label>
             <input
               type="file"
@@ -143,7 +143,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
           <div>
             <label className="block text-white mb-2 font-roboto">
-              Changelog (Markdown)
+              Changelog
             </label>
             <div className="flex gap-2 mb-2">
               <button
@@ -155,14 +155,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               </button>
             </div>
             {isPreview ? (
-              <div className="bg-white/10 p-4 rounded-lg text-white prose prose-invert max-w-none">
+              <div className="bg-white p-4 rounded prose prose-sm max-w-none">
                 <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
               </div>
             ) : (
               <textarea
                 value={formData.Changelog}
                 onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full p-2 rounded-lg font-roboto h-32 bg-white/10 text-white"
+                className="w-full px-3 py-2 rounded font-roboto"
                 placeholder="Enter changelog in Markdown format..."
               />
             )}
