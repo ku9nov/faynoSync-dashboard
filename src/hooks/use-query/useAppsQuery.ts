@@ -42,11 +42,11 @@ export type PaginatedResponse<T> = {
   limit: number;
 };
 
-export const useAppsQuery = (appName?: string, page: number = 1) => {
+export const useAppsQuery = (appName?: string, page: number = 1, refreshKey: number = 0) => {
   const queryClient = useQueryClient();
 
   const { data: apps = [] } = useQuery<AppVersion[] | AppListItem[] | PaginatedResponse<AppVersion>>({
-    queryKey: ['apps', appName, page],
+    queryKey: ['apps', appName, page, refreshKey],
     queryFn: async () => {
       if (appName) {
         const response = await axiosInstance.get(`/search?app_name=${appName}&limit=9&page=${page}`);
