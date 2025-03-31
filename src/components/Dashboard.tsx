@@ -4,9 +4,11 @@ import { ActionIcons } from './ActionIcons';
 import { EditVersionModal } from './EditVersionModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { DownloadArtifactsModal } from './DownloadArtifactsModal';
+import { EditAppModal } from './EditAppModal';
+import { DeleteAppConfirmationModal } from './DeleteAppConfirmationModal';
 import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '../config/axios';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -25,12 +27,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const queryClient = useQueryClient();
   const { apps, updateApp, deleteApp } = useAppsQuery(selectedApp || undefined, currentPage, refreshKey);
   const [selectedVersion, setSelectedVersion] = React.useState<AppVersion | null>(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showDownloadModal, setShowDownloadModal] = React.useState(false);
   const [expandedApps, setExpandedApps] = React.useState<Record<string, boolean>>({});
+  const [showEditAppModal, setShowEditAppModal] = React.useState(false);
+  const [showDeleteAppModal, setShowDeleteAppModal] = React.useState(false);
+  const [selectedAppData, setSelectedAppData] = React.useState<AppListItem | null>(null);
 
   const appList = apps as AppListItem[];
   const paginatedVersions = apps as PaginatedResponse<AppVersion>;
@@ -70,6 +76,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setShowDeleteModal(true);
   };
 
+  const handleEditApp = (e: React.MouseEvent, app: AppListItem) => {
+    e.stopPropagation();
+    setSelectedAppData(app);
+    setShowEditAppModal(true);
+  };
+
+  const handleDeleteApp = (e: React.MouseEvent, app: AppListItem) => {
+    e.stopPropagation();
+    setSelectedAppData(app);
+    setShowDeleteAppModal(true);
+  };
+
   const handleEditSave = async (data: {
     Published: boolean;
     Critical: boolean;
@@ -85,6 +103,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       await updateApp(selectedVersion.ID, data);
       setShowEditModal(false);
       setSelectedVersion(null);
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
     }
   };
 
@@ -93,6 +112,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
       await deleteApp(selectedVersion.ID);
       setShowDeleteModal(false);
       setSelectedVersion(null);
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
+    }
+  };
+
+  const handleEditAppSave = async () => {
+    setShowEditAppModal(false);
+    setSelectedAppData(null);
+    queryClient.invalidateQueries({ queryKey: ['apps'] });
+  };
+
+  const handleDeleteAppConfirm = async () => {
+    if (selectedAppData) {
+      try {
+        await axiosInstance.delete(`/app/delete?id=${selectedAppData.ID}`);
+        setShowDeleteAppModal(false);
+        setSelectedAppData(null);
+        queryClient.invalidateQueries({ queryKey: ['apps'] });
+      } catch (error) {
+        console.error('Error deleting app:', error);
+      }
     }
   };
 
@@ -284,50 +323,68 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={() => onAppClick(app.AppName)}
             className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <div className="flex items-center gap-4 mb-4">
-              {app.Logo ? (
-                <div className="relative w-12 h-12">
-                  <img 
-                    src={app.Logo} 
-                    alt={`${app.AppName} logo`}
-                    className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
-                    loading="lazy"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.opacity = '0';
-                      setTimeout(() => {
-                        target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                {app.Logo ? (
+                  <div className="relative w-12 h-12">
+                    <img 
+                      src={app.Logo} 
+                      alt={`${app.AppName} logo`}
+                      className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.opacity = '0';
+                        setTimeout(() => {
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+                          target.style.opacity = '1';
+                        }, 300);
+                      }}
+                      onLoad={(e) => {
+                        const target = e.target as HTMLImageElement;
                         target.style.opacity = '1';
-                      }, 300);
-                    }}
-                    onLoad={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.opacity = '1';
-                    }}
-                  />
-                  <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
-                </div>
-              ) : (
-                <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="24" 
-                    height="24" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className="text-white/50"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <path d="M12 8v8"></path>
-                    <path d="M8 12h8"></path>
-                  </svg>
-                </div>
-              )}
-              <h3 className="text-xl font-semibold">{app.AppName}</h3>
+                      }}
+                    />
+                    <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="24" 
+                      height="24" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className="text-white/50"
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <path d="M12 8v8"></path>
+                      <path d="M8 12h8"></path>
+                    </svg>
+                  </div>
+                )}
+                <h3 className="text-xl font-semibold">{app.AppName}</h3>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => handleEditApp(e, app)}
+                  className="p-2 text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                  title="Edit app"
+                >
+                  <i className="fas fa-edit"></i>
+                </button>
+                <button
+                  onClick={(e) => handleDeleteApp(e, app)}
+                  className="p-2 text-red-500 hover:text-red-600 transition-colors duration-200"
+                  title="Delete app"
+                >
+                  <i className="fas fa-trash"></i>
+                </button>
+              </div>
             </div>
             <div className="relative">
               <div className="flex items-center gap-2">
@@ -353,6 +410,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
         ))
+      )}
+
+      {showEditAppModal && selectedAppData && (
+        <EditAppModal
+          onClose={() => {
+            setShowEditAppModal(false);
+            setSelectedAppData(null);
+          }}
+          onSuccess={handleEditAppSave}
+          appData={{
+            id: selectedAppData.ID,
+            app: selectedAppData.AppName,
+            description: selectedAppData.Description,
+            logo: selectedAppData.Logo
+          }}
+        />
+      )}
+
+      {showDeleteAppModal && selectedAppData && (
+        <DeleteAppConfirmationModal
+          appName={selectedAppData.AppName}
+          onClose={() => {
+            setShowDeleteAppModal(false);
+            setSelectedAppData(null);
+          }}
+          onConfirm={handleDeleteAppConfirm}
+        />
       )}
     </div>
   );
