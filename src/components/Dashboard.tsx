@@ -76,7 +76,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     Changelog: string;
     Platform?: string;
     Arch?: string;
-    File?: File;
+    Files?: File[];
+    app_name: string;
+    version: string;
+    channel: string;
   }) => {
     if (selectedVersion) {
       await updateApp(selectedVersion.ID, data);
@@ -230,9 +233,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             version={selectedVersion.Version}
             channel={selectedVersion.Channel}
             currentData={{
+              ID: selectedVersion.ID,
               Published: selectedVersion.Published,
               Critical: selectedVersion.Critical,
               Changelog: selectedVersion.Changelog[0]?.Changes || '',
+              Artifacts: selectedVersion.Artifacts
             }}
             onClose={() => {
               setShowEditModal(false);

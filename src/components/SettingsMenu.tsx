@@ -32,11 +32,11 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
     >
       <button className="w-full text-left px-4 py-2 hover:bg-purple-50 text-gray-700">
         <i className="fas fa-user mr-2"></i>
-        Profile
+        Profile(NIY)
       </button>
       <button className="w-full text-left px-4 py-2 hover:bg-purple-50 text-gray-700">
         <i className="fas fa-cog mr-2"></i>
-        Settings
+        Settings(NIY)
       </button>
       <div className="border-t border-gray-200 my-2"></div>
       <button 
