@@ -53,16 +53,22 @@ export const ArchitecturesPage = () => {
             onCreateClick={openCreateArchitecture}
             createButtonText='Create Architecture'
           />
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {architectures.map((architecture: Architecture) => (
-              <ArchitectureCard
-                key={architecture.ID}
-                archName={architecture.ArchID}
-                onClick={() => selectArchitecture(architecture)}
-                onDelete={() => handleDelete(architecture.ID, architecture.ArchID)}
-              />
-            ))}
-          </div>
+          {architectures.length === 0 ? (
+            <div className="text-center text-white text-xl mt-8">
+              No architecture has been created yet.
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {architectures.map((architecture: Architecture) => (
+                <ArchitectureCard
+                  key={architecture.ID}
+                  archName={architecture.ArchID}
+                  onClick={() => selectArchitecture(architecture)}
+                  onDelete={() => handleDelete(architecture.ID, architecture.ArchID)}
+                />
+              ))}
+            </div>
+          )}
         </main>
       </div>
 

@@ -53,7 +53,7 @@ export const useAppsQuery = (appName?: string, page: number = 1) => {
         return response.data;
       } else {
         const response = await axiosInstance.get('/app/list');
-        return response.data.apps;
+        return response.data.apps || [];
       }
     },
   });

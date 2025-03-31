@@ -14,7 +14,7 @@ export const useChannelQuery = () => {
     queryKey: ['channels'],
     queryFn: async () => {
       const response = await axiosInstance.get('/channel/list');
-      return response.data.channels;
+      return response.data.channels || [];
     },
   });
 

@@ -14,7 +14,7 @@ export const usePlatformQuery = () => {
     queryKey: ['platforms'],
     queryFn: async () => {
       const response = await axiosInstance.get('/platform/list');
-      return response.data.platforms;
+      return response.data.platforms || [];
     },
   });
 

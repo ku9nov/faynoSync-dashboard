@@ -14,7 +14,7 @@ export const useArchitectureQuery = () => {
     queryKey: ['architectures'],
     queryFn: async () => {
       const response = await axiosInstance.get('/arch/list');
-      return response.data.archs;
+      return response.data.archs || [];
     },
   });
 

@@ -47,6 +47,11 @@ export const PlatformsPage = () => {
             onCreateClick={openCreatePlatform}
             createButtonText="Create Platform"
           />
+          {platforms.length === 0 ? (
+            <div className="text-center text-white text-xl mt-8">
+              No platforms has been created yet.
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {platforms.map((platform) => (
               <PlatformCard
@@ -57,6 +62,7 @@ export const PlatformsPage = () => {
               />
             ))}
           </div>
+          )}
         </main>
       </div>
 
