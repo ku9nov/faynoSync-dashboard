@@ -58,9 +58,8 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
       if (onSuccess) {
         onSuccess();
       }
-      setTimeout(() => {
-        onClose();
-      }, 2000);
+      onClose();
+
     } catch (err) {
       setError('Failed to create application. Please try again.');
       console.error('Error creating app:', err);
