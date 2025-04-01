@@ -54,7 +54,7 @@ export const SignUpPage = () => {
         secretKey: e.secretKey,
       });
       toastSuccess('Signed Up successfully.');
-      navigate('/home');
+      navigate('/applications');
       resetForm();
     } catch (error: any) {
       setRespError(error);
@@ -97,7 +97,7 @@ export const SignUpPage = () => {
                   />
                   <AuthInputs
                     name='secretKey'
-                    type='text'
+                    type='password'
                     placeholder='secretKey'
                   />
                   <div className='w-full text-red-600 text-center'>

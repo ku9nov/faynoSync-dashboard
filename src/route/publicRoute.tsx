@@ -8,7 +8,7 @@ export const PublicRoute: FC<PropsWithChildren> = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [navigate, token]);
 
