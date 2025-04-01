@@ -111,7 +111,7 @@ export const useAppsQuery = (appName?: string, page: number = 1, refreshKey: num
 
   const deleteAppMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axiosInstance.delete(`/apps/${id}`);
+      await axiosInstance.delete(`/apps/delete?id=${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apps'] });
