@@ -33,6 +33,7 @@ export const PlatformsPage = () => {
         setPlatformToDelete(null);
       } catch (error) {
         console.error('Error deleting platform:', error);
+        throw error;
       }
     }
   };

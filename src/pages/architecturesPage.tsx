@@ -39,6 +39,7 @@ export const ArchitecturesPage = () => {
         setArchitectureToDelete(null);
       } catch (error) {
         console.error('Error deleting architecture:', error);
+        throw error;
       }
     }
   };

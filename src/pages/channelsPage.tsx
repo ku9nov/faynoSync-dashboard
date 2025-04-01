@@ -40,6 +40,7 @@ export const ChannelsPage = () => {
         setChannelToDelete(null);
       } catch (error) {
         console.error('Error deleting channel:', error);
+        throw error;
       }
     }
   };

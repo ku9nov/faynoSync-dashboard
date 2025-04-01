@@ -131,6 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         queryClient.invalidateQueries({ queryKey: ['apps'] });
       } catch (error) {
         console.error('Error deleting app:', error);
+        throw error;
       }
     }
   };
