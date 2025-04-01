@@ -45,6 +45,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [arch, setArch] = React.useState<string>('');
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSuccess, setIsSuccess] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { platforms } = usePlatformQuery();
@@ -54,19 +57,32 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   React.useEffect(() => {
   }, [currentData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const requestData = {
-      ...formData,
-      Files: selectedFiles,
-      Platform: selectedFiles.length > 0 ? platform : undefined,
-      Arch: selectedFiles.length > 0 ? arch : undefined,
-      app_name: appName,
-      version: version,
-      channel: channel,
-    };
+    setIsLoading(true);
+    setError(null);
+    try {
+      const requestData = {
+        ...formData,
+        Files: selectedFiles,
+        Platform: selectedFiles.length > 0 ? platform : undefined,
+        Arch: selectedFiles.length > 0 ? arch : undefined,
+        app_name: appName,
+        version: version,
+        channel: channel,
+      };
 
-    onSave(requestData);
+      await onSave(requestData);
+      setIsSuccess(true);
+      setTimeout(() => {
+        onClose();
+      }, 500);
+    } catch (err) {
+      setError('Failed to save changes. Please try again.');
+      console.error('Error saving changes:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -136,7 +152,26 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
         onClick={handleBackdropClick}
       >
-        <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+        <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto relative">
+          {isLoading && (
+            <div className="fixed top-4 right-4 bg-purple-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+              <span className="font-roboto">Saving changes...</span>
+            </div>
+          )}
+          {isSuccess && (
+            <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="font-roboto">Changes saved successfully!</span>
+            </div>
+          )}
+          {error && (
+            <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+              <span className="font-roboto">{error}</span>
+            </div>
+          )}
           <h2 className="text-2xl font-bold mb-4 text-white font-roboto">
             Edit Version {version}
           </h2>
