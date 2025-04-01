@@ -202,6 +202,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onDownload={() => handleDownload(app)}
                 onEdit={() => handleEdit(app)}
                 onDelete={() => handleDelete(app)}
+                showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
               />
               <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
               <p className="mb-4">Channel: {app.Channel}</p>
