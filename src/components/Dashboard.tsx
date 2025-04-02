@@ -28,7 +28,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const queryClient = useQueryClient();
-  const { apps, updateApp, deleteApp } = useAppsQuery(selectedApp || undefined, currentPage, refreshKey);
+  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(selectedApp || undefined, currentPage, refreshKey);
   const [selectedVersion, setSelectedVersion] = React.useState<AppVersion | null>(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
@@ -314,7 +314,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-      {!appList || appList.length === 0 ? (
+          {isLoading ? (
+            <div className="col-span-full flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          ) : !appList || appList.length === 0 ? (
         <div className="col-span-full text-center text-white text-xl">
           No applications has been created yet.
         </div>

@@ -10,7 +10,7 @@ export type Channel = {
 export const useChannelQuery = () => {
   const queryClient = useQueryClient();
 
-  const { data: channels = [] } = useQuery<Channel[]>({
+  const { data: channels = [], isLoading } = useQuery<Channel[]>({
     queryKey: ['channels'],
     queryFn: async () => {
       const response = await axiosInstance.get('/channel/list');
@@ -71,5 +71,5 @@ export const useChannelQuery = () => {
     await updateChannelMutation.mutateAsync({ id, newName });
   };
 
-  return { channels, deleteChannel, createChannel, updateChannel };
+  return { channels, deleteChannel, createChannel, updateChannel, isLoading };
 }; 

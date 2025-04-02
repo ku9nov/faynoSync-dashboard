@@ -25,7 +25,7 @@ export const ChannelsPage = () => {
     setIsEditModalOpen(false);
   };
 
-  const { channels, deleteChannel } = useChannelQuery();
+  const { channels, deleteChannel, isLoading } = useChannelQuery();
 
   const handleDelete = async (channelId: string, channelName: string) => {
     setChannelToDelete({ id: channelId, name: channelName });
@@ -55,7 +55,11 @@ export const ChannelsPage = () => {
             onCreateClick={openCreateModal}
             createButtonText="Create Channel"
           />
-          {channels.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          ) : channels.length === 0 ? (
             <div className="text-center text-white text-xl mt-8">
               No channels has been created yet.
             </div>

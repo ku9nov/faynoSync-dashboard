@@ -46,7 +46,7 @@ export type PaginatedResponse<T> = {
 export const useAppsQuery = (appName?: string, page: number = 1, refreshKey: number = 0) => {
   const queryClient = useQueryClient();
 
-  const { data: apps = [] } = useQuery<AppVersion[] | AppListItem[] | PaginatedResponse<AppVersion>>({
+  const { data: apps = [], isLoading } = useQuery<AppVersion[] | AppListItem[] | PaginatedResponse<AppVersion>>({
     queryKey: ['apps', appName, page, refreshKey],
     queryFn: async () => {
       if (appName) {
@@ -185,5 +185,5 @@ export const useAppsQuery = (appName?: string, page: number = 1, refreshKey: num
     return undefined;
   };
 
-  return { apps, updateApp, deleteApp, getVersionById, deleteArtifact };
+  return { apps, updateApp, deleteApp, getVersionById, deleteArtifact, isLoading };
 }; 

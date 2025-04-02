@@ -18,7 +18,7 @@ export const PlatformsPage = () => {
 
   const selectPlatform = (platform: Platform) => setSelectedPlatform(platform);
 
-  const { platforms, deletePlatform } = usePlatformQuery();
+  const { platforms, deletePlatform, isLoading } = usePlatformQuery();
 
   const handleDelete = async (platformId: string, platformName: string) => {
     setPlatformToDelete({ id: platformId, name: platformName });
@@ -48,7 +48,11 @@ export const PlatformsPage = () => {
             onCreateClick={openCreatePlatform}
             createButtonText="Create Platform"
           />
-          {platforms.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          ) : platforms.length === 0 ? (
             <div className="text-center text-white text-xl mt-8">
               No platforms has been created yet.
             </div>
