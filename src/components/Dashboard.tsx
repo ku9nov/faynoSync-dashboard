@@ -193,7 +193,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <h2 className="text-2xl font-bold text-white">{selectedApp}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {appVersions.map((app) => (
+
+        {isLoading ? (
+            <div className="col-span-full flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          ) :
+          appVersions.map((app) => (
             <div
               key={app.ID}
               className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors relative"
