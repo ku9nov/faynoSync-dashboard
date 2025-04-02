@@ -60,7 +60,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
-      }, 2000);
+      }, 500);
     } catch (error) {
       console.error('Upload failed:', error);
     }

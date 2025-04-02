@@ -24,7 +24,7 @@ export const ArchitecturesPage = () => {
   const selectArchitecture = (architecture: Architecture) =>
     setSelectedArchitecture({ id: architecture.ID, name: architecture.ArchID });
 
-  const { architectures, deleteArchitecture } = useArchitectureQuery();
+  const { architectures, deleteArchitecture, isLoading } = useArchitectureQuery();
 
   const handleDelete = async (archId: string, archName: string) => {
     setArchitectureToDelete({ id: archId, name: archName });
@@ -39,6 +39,7 @@ export const ArchitecturesPage = () => {
         setArchitectureToDelete(null);
       } catch (error) {
         console.error('Error deleting architecture:', error);
+        throw error;
       }
     }
   };
@@ -53,7 +54,11 @@ export const ArchitecturesPage = () => {
             onCreateClick={openCreateArchitecture}
             createButtonText='Create Architecture'
           />
-          {architectures.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            </div>
+          ) : architectures.length === 0 ? (
             <div className="text-center text-white text-xl mt-8">
               No architecture has been created yet.
             </div>
