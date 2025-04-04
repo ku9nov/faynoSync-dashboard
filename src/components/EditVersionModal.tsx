@@ -378,7 +378,8 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <button
                 type="submit"
                 className="bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200"
-                disabled={selectedFiles.length > 0 && (!platform || !arch)}
+                disabled={selectedFiles.length > 0 && 
+                  ((platforms.length > 0 && !platform) || (architectures.length > 0 && !arch))}
               >
                 Save
               </button>
