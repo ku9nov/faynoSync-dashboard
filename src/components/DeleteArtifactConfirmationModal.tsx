@@ -38,7 +38,7 @@ export const DeleteArtifactConfirmationModal: React.FC<DeleteArtifactConfirmatio
           Delete Confirmation
         </h2>
         <p className='text-white mb-4'>
-          To delete artifact {platform}/{arch} please enter its name:
+          To delete artifact please enter this {platform}/{arch}:
         </p>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
