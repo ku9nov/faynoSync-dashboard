@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Artifact } from '../hooks/use-query/useAppsQuery';
 
 interface DownloadArtifactsModalProps {
@@ -10,6 +10,8 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
   artifacts,
   onClose,
 }) => {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -19,6 +21,16 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
   const handleDownload = (artifact: Artifact) => {
     window.open(artifact.link, '_blank');
     onClose();
+  };
+
+  const handleCopyLink = async (link: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
   };
 
   return (
@@ -37,13 +49,41 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
               className="bg-white/10 p-4 rounded-lg text-white hover:bg-white/20 transition-colors cursor-pointer"
               onClick={() => handleDownload(artifact)}
             >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">{artifact.platform}</p>
-                  <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
-                  <p className="text-sm text-gray-300">Package: {artifact.package}</p>
+              <div className="flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="font-semibold">{artifact.platform}</p>
+                    <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
+                    <p className="text-sm text-gray-300">Package: {artifact.package}</p>
+                  </div>
+                  <i className="fas fa-download text-green-500 ml-4 flex-shrink-0"></i>
                 </div>
-                <i className="fas fa-download text-green-500"></i>
+                <div className="mt-3">
+                  <p className="text-sm text-gray-300 mb-1">Share link:</p>
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="overflow-x-auto pb-1" style={{
+                        maxWidth: 'calc(24rem - 64px)',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'rgb(107 114 128) transparent'
+                      }}>
+                        <p className="text-base text-gray-200 whitespace-nowrap pr-2 font-mono">
+                          {artifact.link}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopyLink(artifact.link, index);
+                      }}
+                      className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
+                      title="Copy link"
+                    >
+                      <i className={`fas ${copiedIndex === index ? 'fa-check text-green-500' : 'fa-copy text-gray-300'}`}></i>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

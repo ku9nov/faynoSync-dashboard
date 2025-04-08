@@ -17,6 +17,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
     app: '',
     description: '',
     file: null as File | null,
+    private: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -47,6 +48,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
       const data = {
         app: formData.app,
         description: formData.description,
+        ...(formData.private && { private: "true" }),
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -172,6 +174,20 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
               rows={4}
               placeholder="Enter app description"
             />
+          </div>
+
+          <div className="mb-4 flex items-start">
+            <input
+              type="checkbox"
+              id="private"
+              checked={formData.private}
+              onChange={(e) => setFormData(prev => ({ ...prev, private: e.target.checked }))}
+              className="mt-1 mr-2"
+            />
+            <label htmlFor="private" className="text-white font-roboto">
+              <div className="font-semibold">Lock app</div>
+              <div className="text-sm text-purple-200">If selected, the app will be stored in a private bucket</div>
+            </label>
           </div>
 
           <div className="mb-4">
