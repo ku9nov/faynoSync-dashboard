@@ -185,7 +185,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
               className="mt-1 mr-2"
             />
             <label htmlFor="private" className="text-white font-roboto">
-              <div className="font-semibold">Lock app</div>
+              <div className="font-semibold">Private app</div>
               <div className="text-sm text-purple-200">If selected, the app will be stored in a private bucket</div>
             </label>
           </div>
