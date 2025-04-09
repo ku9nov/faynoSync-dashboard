@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Artifact } from '../hooks/use-query/useAppsQuery';
+import axiosInstance from '../config/axios';
 
 interface DownloadArtifactsModalProps {
   artifacts: Artifact[];
@@ -19,8 +20,25 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
   };
 
   const handleDownload = (artifact: Artifact) => {
-    window.open(artifact.link, '_blank');
-    onClose();
+    // First try to fetch the link with authentication
+    axiosInstance.get(artifact.link)
+      .then(response => {
+        // Check if the response is JSON with a download_url
+        if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+          // If it's a JSON with download_url, use that URL
+          window.open(response.data.download_url, '_blank');
+        } else {
+          // Otherwise, it's a direct link to a file, use it directly
+          window.open(artifact.link, '_blank');
+        }
+        onClose();
+      })
+      .catch(() => {
+        // If there's an error (like 401), it might be a direct link to a public file
+        // In that case, just open the link directly
+        window.open(artifact.link, '_blank');
+        onClose();
+      });
   };
 
   const handleCopyLink = async (link: string, index: number) => {

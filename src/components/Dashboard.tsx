@@ -59,7 +59,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleDownload = (app: AppVersion) => {
     if (app.Artifacts.length === 1) {
-      window.open(app.Artifacts[0].link, '_blank');
+      // First try to fetch the link with authentication
+      axiosInstance.get(app.Artifacts[0].link)
+        .then(response => {
+          // Check if the response is JSON with a download_url
+          if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+            // If it's a JSON with download_url, use that URL
+            window.open(response.data.download_url, '_blank');
+          } else {
+            // Otherwise, it's a direct link to a file, use it directly
+            window.open(app.Artifacts[0].link, '_blank');
+          }
+        })
+        .catch(() => {
+          // If there's an error (like 401), it might be a direct link to a public file
+          // In that case, just open the link directly
+          window.open(app.Artifacts[0].link, '_blank');
+        });
     } else {
       setSelectedVersion(app);
       setShowDownloadModal(true);
@@ -209,6 +225,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onEdit={() => handleEdit(app)}
                 onDelete={() => handleDelete(app)}
                 showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
               />
               <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
               <p className="mb-4">Channel: {app.Channel}</p>
