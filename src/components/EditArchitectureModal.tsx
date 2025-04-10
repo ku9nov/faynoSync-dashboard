@@ -36,15 +36,15 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
       className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50'
       onClick={handleBackdropClick}
     >
-      <div className='bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96'>
-        <h2 className='text-2xl font-bold mb-4 text-white font-roboto'>
+      <div className='bg-theme-modal-gradient p-8 rounded-lg w-96'>
+        <h2 className='text-2xl font-bold mb-4 text-theme-primary font-roboto'>
           Edit Architecture
         </h2>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
             <label
               htmlFor='rename'
-              className='block text-white mb-2 font-roboto'>
+              className='block text-theme-primary mb-2 font-roboto'>
               Rename Architecture
             </label>
             <input
@@ -65,7 +65,7 @@ export const EditArchitectureModal: React.FC<EditArchitectureModalProps> = ({
             </button>
             <button
               type='submit'
-              className='bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200'>
+              className='bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200'>
               Save
             </button>
           </div>

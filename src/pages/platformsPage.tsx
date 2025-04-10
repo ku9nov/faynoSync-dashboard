@@ -39,7 +39,7 @@ export const PlatformsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-800 to-orange-500 font-roboto">
+    <div className="min-h-screen bg-theme-gradient font-roboto">
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-8">
@@ -50,10 +50,10 @@ export const PlatformsPage = () => {
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
           ) : platforms.length === 0 ? (
-            <div className="text-center text-white text-xl mt-8">
+            <div className="text-center text-theme-primary text-xl mt-8">
               No platforms has been created yet.
             </div>
           ) : (

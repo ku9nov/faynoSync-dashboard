@@ -2,7 +2,7 @@ import { FC, PropsWithChildren } from 'react';
 
 export const AuthWrapper: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <div className='flex h-screen max-h-full font-sans bg-gradient-to-b from-[#6a1b9a] to-[#ff8f00]'>
+    <div className='flex h-screen max-h-full font-sans bg-theme-auth-gradient'>
       <div className='flex-1 flex flex-col relative overflow-hidden'>
         <main className='flex-1 flex items-center justify-center'>
           {children}

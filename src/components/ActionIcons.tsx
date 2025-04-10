@@ -66,7 +66,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           {artifactLink && (
             <button
               onClick={handleCopyLink}
-              className="p-2 text-purple-500 hover:text-purple-600 transition-colors duration-200"
+              className="p-2 text-theme-secondary hover:text-theme-primary transition-colors duration-200"
               title={copied ? "Copied!" : "Copy link"}
             >
               <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`}></i>
@@ -79,7 +79,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onEdit();
         }}
-        className="p-2 text-blue-500 hover:text-blue-600 transition-colors duration-200"
+        className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
         title="Edit"
       >
         <i className="fas fa-edit"></i>
@@ -89,7 +89,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onDelete();
         }}
-        className="p-2 text-red-500 hover:text-red-600 transition-colors duration-200"
+        className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200"
         title="Delete"
       >
         <i className="fas fa-trash"></i>

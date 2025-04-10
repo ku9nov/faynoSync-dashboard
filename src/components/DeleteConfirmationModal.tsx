@@ -31,11 +31,11 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
       className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50'
       onClick={handleBackdropClick}
     >
-      <div className='bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96'>
-        <h2 className='text-2xl font-bold mb-4 text-white font-roboto'>
+      <div className='bg-theme-modal-gradient p-8 rounded-lg w-96'>
+        <h2 className='text-2xl font-bold mb-4 text-theme-primary font-roboto'>
           Delete Confirmation
         </h2>
-        <p className='text-white mb-4'>
+        <p className='text-theme-primary mb-4'>
           To confirm deletion of application version "{version}", please enter its current version:
         </p>
         <form onSubmit={handleSubmit}>
@@ -58,7 +58,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
             <button
               type='submit'
               disabled={confirmationText !== version}
-              className='bg-red-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
+              className='bg-red-600 text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
               Delete
             </button>
           </div>

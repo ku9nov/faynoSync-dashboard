@@ -18,12 +18,12 @@ export const AuthInputs: FC<AuthInputsProps> = ({
         name={name}
         type={type}
         placeholder={placeholder}
-        className='w-full px-4 py-3 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans'
+        className='w-full px-4 py-3 border border-theme-auth-input rounded-md focus:outline-none focus:ring-2 focus:ring-theme-auth-input font-sans'
       />
       <ErrorMessage
         name={name}
         component='div'
-        className='text-red-500 text-sm mt-1'
+        className='text-theme-danger text-sm mt-1'
       />
     </div>
   );

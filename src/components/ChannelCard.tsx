@@ -23,15 +23,15 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
   return (
     <div className='relative'>
       <div
-        className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors"
+        className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors"
         onClick={onClick}
       >
-        <h3 className="text-xl font-semibold mb-2 text-white">{name}</h3>
-        {/* <p className="text-purple-300">{description}</p> */}
+        <h3 className="text-xl font-semibold mb-2 text-theme-primary">{name}</h3>
+        {/* <p className="text-theme-primary">{description}</p> */}
       </div>
       <button
         onClick={handleDeleteClick}
-        className='absolute top-2 right-2 p-2 text-red-500 hover:text-red-600 transition-colors duration-200'>
+        className='absolute top-2 right-2 p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200'>
         <i className='fas fa-trash'></i>
       </button>
     </div>

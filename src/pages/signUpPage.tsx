@@ -65,8 +65,8 @@ export const SignUpPage = () => {
     <AuthWrapper>
       <div className='flex md:flex-row flex-col-reverse w-full'>
         <div className='w-full md:w-1/2 flex items-center justify-center p-8'>
-          <div className='bg-white bg-opacity-90  rounded-lg shadow-lg p-8 w-full max-w-md'>
-            <h2 className='text-4xl font-bold mb-8 text-center text-purple-800 font-sans'>
+          <div className='bg-theme-modal bg-opacity-90 rounded-lg shadow-lg p-8 w-full max-w-md'>
+            <h2 className='text-4xl font-bold mb-8 text-center text-theme-auth-title font-sans'>
               Register
             </h2>
             <Formik
@@ -100,7 +100,7 @@ export const SignUpPage = () => {
                     type='password'
                     placeholder='secretKey'
                   />
-                  <div className='w-full text-red-600 text-center'>
+                  <div className='w-full text-theme-danger text-center'>
                     {respError && respError}
                   </div>
                   <div className='flex flex-col gap-3 mt-4'>

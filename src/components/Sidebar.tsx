@@ -7,10 +7,10 @@ export const Sidebar: React.FC = () => {
   const currentPath = location.pathname.split('/')[1] || 'applications';
 
   const getButtonClass = (page: string) => {
-    const baseClass = "w-full text-left px-6 py-3 text-white flex items-center rounded-lg mb-2";
+    const baseClass = "w-full text-left px-6 py-3 text-theme-primary flex items-center rounded-lg mb-2";
     return page === currentPath
-      ? `${baseClass} bg-purple-600 bg-opacity-50 shadow-md`
-      : `${baseClass} hover:bg-purple-700 hover:bg-opacity-50 transition-colors duration-200`;
+      ? `${baseClass} bg-theme-button-primary bg-opacity-50 shadow-md`
+      : `${baseClass} hover:bg-theme-button-primary-hover hover:bg-opacity-50 transition-colors duration-200`;
   };
 
   const handleNavigation = (path: string) => {
@@ -18,9 +18,9 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-gradient-to-b from-purple-800 to-orange-500">
+    <aside className="w-64 min-h-screen bg-theme-gradient">
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-white mb-8">faynosync</h1>
+        <h1 className="text-2xl font-bold text-theme-primary mb-8">faynosync</h1>
         <nav>
           <button 
             className={getButtonClass('applications')}
