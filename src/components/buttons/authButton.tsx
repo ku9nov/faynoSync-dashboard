@@ -15,7 +15,7 @@ export const AuthButton: FC<AuthButtonProps> = ({
     <button
       type={type}
       onClick={onClick}
-      className='w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition duration-300'>
+      className='w-full bg-theme-button-primary text-theme-primary px-4 py-2 rounded-md hover:bg-theme-input transition duration-300'>
       {text}
     </button>
   );

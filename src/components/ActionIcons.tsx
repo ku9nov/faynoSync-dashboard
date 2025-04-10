@@ -79,7 +79,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onEdit();
         }}
-        className="p-2 text-blue-500 hover:text-blue-600 transition-colors duration-200"
+        className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
         title="Edit"
       >
         <i className="fas fa-edit"></i>
@@ -89,7 +89,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onDelete();
         }}
-        className="p-2 text-theme-danger hover:text-red-600 transition-colors duration-200"
+        className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200"
         title="Delete"
       >
         <i className="fas fa-trash"></i>

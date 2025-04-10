@@ -74,15 +74,15 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96">
-        <h2 className="text-2xl font-bold mb-4 text-white font-roboto">
+      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96">
+        <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
           Select Artifact to Download
         </h2>
         <div className="space-y-4">
           {artifacts.map((artifact, index) => (
             <div
               key={index}
-              className="bg-white/10 p-4 rounded-lg text-white hover:bg-white/20 transition-colors cursor-pointer"
+              className="bg-theme-card p-4 rounded-lg text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
               onClick={() => handleDownload(artifact)}
             >
               <div className="flex flex-col">
@@ -113,7 +113,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
                         e.stopPropagation();
                         handleCopyLink(artifact.link, index);
                       }}
-                      className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
+                      className="p-1 hover:bg-theme-card-hover rounded transition-colors flex-shrink-0"
                       title="Copy link"
                     >
                       <i className={`fas ${copiedIndex === index ? 'fa-check text-green-500' : 'fa-copy text-gray-300'}`}></i>

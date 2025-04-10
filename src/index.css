@@ -59,6 +59,14 @@ body {
   background-color: var(--button-secondary);
 }
 
+.bg-theme-button-submit {
+  background-color: var(--button-submit);
+}
+
+.bg-theme-button-submit:hover {
+  background-color: var(--button-submit-hover);
+}
+
 .bg-theme-input {
   background-color: var(--input-bg);
   color: var(--text-primary);
@@ -75,6 +83,14 @@ body {
 .bg-theme-modal {
   background-color: var(--modal-bg);
   color: var(--modal-text);
+}
+
+.bg-theme-modal-gradient {
+  background-image: linear-gradient(to bottom, var(--modal-gradient-start), var(--modal-gradient-end));
+}
+
+.dark .bg-theme-modal-gradient {
+  background-image: linear-gradient(to bottom, var(--modal-gradient-start), var(--modal-gradient-mid), var(--modal-gradient-end));
 }
 
 .hover-bg-theme-modal:hover {

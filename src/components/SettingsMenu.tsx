@@ -36,6 +36,10 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
         <i className="fas fa-user mr-2"></i>
         Profile(NIY)
       </button>
+      <button className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text">
+        <i className="fas fa-cog mr-2"></i>
+        Settings(NIY)
+      </button>
       <button 
         onClick={toggleTheme}
         className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text flex items-center justify-between"
@@ -44,10 +48,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
           <i className={`fas ${theme === 'dark' ? 'fa-moon' : 'fa-sun'} mr-2`}></i>
           {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
         </span>
-      </button>
-      <button className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text">
-        <i className="fas fa-cog mr-2"></i>
-        Settings(NIY)
       </button>
       <div className="border-t border-theme-modal my-2"></div>
       <button 

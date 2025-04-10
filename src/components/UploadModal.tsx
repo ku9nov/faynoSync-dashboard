@@ -85,15 +85,15 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-gradient-to-b from-purple-800 to-purple-400 rounded-lg p-8 w-[500px] max-h-[80vh] overflow-y-auto relative">
+      <div className="bg-theme-modal-gradient rounded-lg p-8 w-[500px] max-h-[80vh] overflow-y-auto relative">
         {isLoading && (
-          <div className="fixed top-4 right-4 bg-purple-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
-            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+          <div className="fixed top-4 right-4 bg-theme-button-primary text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-theme-primary"></div>
             <span className="font-roboto">Uploading files...</span>
           </div>
         )}
         {isSuccess && (
-          <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+          <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -101,19 +101,19 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           </div>
         )}
         {error && (
-          <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-50">
             <span className="font-roboto">Upload failed. Please try again.</span>
           </div>
         )}
-        <h2 className="text-2xl font-bold text-white mb-4 font-roboto">Upload Application</h2>
+        <h2 className="text-2xl font-bold text-theme-primary mb-4 font-roboto">Upload Application</h2>
         {!Array.isArray(apps) || apps.length === 0 ? (
-          <div className="text-white text-center py-8 font-roboto">
+          <div className="text-theme-primary text-center py-8 font-roboto">
             You don't have created applications, please create application and try again
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">App Name</label>
+              <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
               <select
                 name="app_name"
                 value={formData.app_name}
@@ -131,7 +131,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">Version</label>
+              <label className="block text-theme-primary mb-2 font-roboto">Version</label>
               <input
                 type="text"
                 name="version"
@@ -145,7 +145,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
             {channels.length > 0 && (
               <div className="mb-4">
-                <label className="block text-white mb-2 font-roboto">Channel</label>
+                <label className="block text-theme-primary mb-2 font-roboto">Channel</label>
                 <select
                   name="channel"
                   value={formData.channel}
@@ -165,7 +165,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
             {platforms.length > 0 && (
               <div className="mb-4">
-                <label className="block text-white mb-2 font-roboto">Platform</label>
+                <label className="block text-theme-primary mb-2 font-roboto">Platform</label>
                 <select
                   name="platform"
                   value={formData.platform}
@@ -185,7 +185,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
             {architectures.length > 0 && (
               <div className="mb-4">
-                <label className="block text-white mb-2 font-roboto">Architecture</label>
+                <label className="block text-theme-primary mb-2 font-roboto">Architecture</label>
                 <select
                   name="arch"
                   value={formData.arch}
@@ -204,7 +204,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             )}
 
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">Files</label>
+              <label className="block text-theme-primary mb-2 font-roboto">Files</label>
               <div className="relative">
                 <input
                   ref={fileInputRef}
@@ -217,7 +217,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 />
                 <label
                   htmlFor="file-upload"
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-roboto"
+                  className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -230,21 +230,21 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   {formData.files.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-purple-700 bg-opacity-50 p-3 rounded-lg"
+                      className="flex items-center justify-between bg-theme-input bg-opacity-50 p-3 rounded-lg"
                     >
                       <div className="flex items-center space-x-2">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <div>
-                          <div className="text-white font-roboto">{file.name}</div>
+                          <div className="text-theme-primary font-roboto">{file.name}</div>
                           <div className="text-purple-200 text-sm font-roboto">{formatFileSize(file.size)}</div>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
-                        className="text-white hover:text-red-300 transition-colors duration-200"
+                        className="text-theme-primary hover:text-red-300 transition-colors duration-200"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -257,7 +257,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">
+              <label className="block text-theme-primary mb-2 font-roboto">
                 <input
                   type="checkbox"
                   checked={formData.publish}
@@ -269,7 +269,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">
+              <label className="block text-theme-primary mb-2 font-roboto">
                 <input
                   type="checkbox"
                   checked={formData.critical}
@@ -281,18 +281,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-white mb-2 font-roboto">Changelog</label>
+              <label className="block text-theme-primary mb-2 font-roboto">Changelog</label>
               <div className="mb-2">
                 <button
                   type="button"
                   onClick={() => setPreviewChangelog(!previewChangelog)}
-                  className="text-white text-sm hover:text-purple-200"
+                  className="text-theme-primary text-sm hover:text-theme-primary-hover"
                 >
                   {previewChangelog ? 'Edit' : 'Preview'}
                 </button>
               </div>
               {previewChangelog ? (
-                <div className="bg-white p-4 rounded prose prose-sm max-w-none">
+                <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
                   <ReactMarkdown>{formData.changelog}</ReactMarkdown>
                 </div>
               ) : (
@@ -319,11 +319,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-theme-primary mr-2"></div>
                     Uploading...
                   </>
                 ) : (

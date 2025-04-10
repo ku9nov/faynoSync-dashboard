@@ -425,7 +425,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </button>
                 <button
                   onClick={(e) => handleDeleteApp(e, app)}
-                  className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
+                  className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200"
                   title="Delete app"
                 >
                   <i className="fas fa-trash"></i>

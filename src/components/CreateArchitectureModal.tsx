@@ -46,7 +46,7 @@ export const CreateArchitectureModal: React.FC<CreateArchitectureModalProps> = (
   return (
     <>
       {error && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
           <div className="flex items-center space-x-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -55,7 +55,7 @@ export const CreateArchitectureModal: React.FC<CreateArchitectureModalProps> = (
             {error.details && (
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-white hover:text-gray-200"
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
               >
                 <svg
                   className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
@@ -76,13 +76,13 @@ export const CreateArchitectureModal: React.FC<CreateArchitectureModalProps> = (
         </div>
       )}
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in">
-        <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
-          <h2 className="text-2xl font-bold mb-4 text-white font-roboto">
+        <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
+          <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
             Create Architecture
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="name" className="block text-white mb-2 font-roboto">
+              <label htmlFor="name" className="block text-theme-primary mb-2 font-roboto">
                 Architecture Name
               </label>
               <input
@@ -106,7 +106,7 @@ export const CreateArchitectureModal: React.FC<CreateArchitectureModalProps> = (
               </button>
               <button
                 type="submit"
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200"
+                className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
               >
                 Create
               </button>
