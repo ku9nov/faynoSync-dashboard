@@ -105,6 +105,26 @@ body {
   color: var(--danger-text);
 }
 
+.bg-theme-auth-gradient {
+  background-image: linear-gradient(to bottom, var(--auth-gradient-start), var(--auth-gradient-end));
+}
+
+.dark .bg-theme-auth-gradient {
+  background-image: linear-gradient(to bottom, var(--auth-gradient-start), var(--auth-gradient-mid), var(--auth-gradient-end));
+}
+
+.text-theme-auth-title {
+  color: var(--auth-title);
+}
+
+.border-theme-auth-input {
+  border-color: var(--auth-input-border);
+}
+
+.focus\:ring-theme-auth-input:focus {
+  --tw-ring-color: var(--auth-input-focus);
+}
+
 
 
 

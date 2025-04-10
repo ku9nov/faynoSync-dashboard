@@ -24,6 +24,13 @@
   /* Modal gradient */
   --modal-gradient-start: theme('colors.purple.800');
   --modal-gradient-end: theme('colors.purple.400');
+  
+  /* Auth page variables */
+  --auth-gradient-start: theme('colors.purple.800');
+  --auth-gradient-end: theme('colors.orange.500');
+  --auth-title: theme('colors.purple.800');
+  --auth-input-border: theme('colors.purple.300');
+  --auth-input-focus: theme('colors.purple.500');
 }
 
 .dark {
@@ -54,4 +61,12 @@
   --modal-gradient-start: theme('colors.gray.900');
   --modal-gradient-mid: theme('colors.indigo.900');
   --modal-gradient-end: theme('colors.indigo.800');
+  
+  /* Auth page variables */
+  --auth-gradient-start: theme('colors.gray.900');
+  --auth-gradient-mid: theme('colors.indigo.900');
+  --auth-gradient-end: theme('colors.black');
+  --auth-title: theme('colors.indigo.300');
+  --auth-input-border: theme('colors.indigo.700');
+  --auth-input-focus: theme('colors.indigo.500');
 } 
