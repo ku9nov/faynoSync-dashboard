@@ -159,7 +159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="mt-8">
         <button
           onClick={onBackClick}
-          className="mb-4 text-white hover:text-gray-200"
+          className="mb-4 text-theme-primary hover:text-theme-primary-hover"
         >
           ← Back
         </button>
@@ -169,7 +169,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <img 
                 src={appLogo} 
                 alt={`${selectedApp} logo`}
-                className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
+                className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -184,10 +184,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   target.style.opacity = '1';
                 }}
               />
-              <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
+              <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 width="24" 
@@ -198,7 +198,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                className="text-white/50"
+                className="text-theme-primary-hover"
               >
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <path d="M12 8v8"></path>
@@ -206,19 +206,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </svg>
             </div>
           )}
-          <h2 className="text-2xl font-bold text-white">{selectedApp}</h2>
+          <h2 className="text-2xl font-bold text-theme-primary">{selectedApp}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
         {isLoading ? (
             <div className="col-span-full flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
           ) :
           appVersions.map((app) => (
             <div
               key={app.ID}
-              className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors relative"
+              className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
             >
               <ActionIcons
                 onDownload={() => handleDownload(app)}
@@ -243,7 +243,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
               <button
                 onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                className="mt-4 text-sm text-purple-300 hover:text-purple-200"
+                className="mt-4 text-theme-primary hover:text-theme-primary-hover"
               >
                 View changelog
               </button>
@@ -256,7 +256,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               onClick={() => handlePageChange(1)}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg bg-theme-card text-theme-primary hover:bg-theme-card-hover disabled:opacity-50 disabled:cursor-not-allowed"
               title="First page"
             >
               <i className="fas fa-angle-double-left"></i>
@@ -264,18 +264,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg bg-theme-card text-theme-primary hover:bg-theme-card-hover disabled:opacity-50 disabled:cursor-not-allowed"
               title="Previous page"
             >
               <i className="fas fa-angle-left"></i>
             </button>
-            <span className="px-4 py-2 text-white">
+            <span className="px-4 py-2 text-theme-primary">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg bg-theme-card text-theme-primary hover:bg-theme-card-hover disabled:opacity-50 disabled:cursor-not-allowed"
               title="Next page"
             >
               <i className="fas fa-angle-right"></i>
@@ -283,7 +283,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <button
               onClick={() => handlePageChange(totalPages)}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg bg-theme-card text-theme-primary hover:bg-theme-card-hover disabled:opacity-50 disabled:cursor-not-allowed"
               title="Last page"
             >
               <i className="fas fa-angle-double-right"></i>
@@ -339,10 +339,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
           {isLoading ? (
             <div className="col-span-full flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
           ) : !appList || appList.length === 0 ? (
-        <div className="col-span-full text-center text-white text-xl">
+        <div className="col-span-full text-center text-theme-primary text-xl">
           No applications has been created yet.
         </div>
       ) : (
@@ -350,7 +350,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div
             key={app.ID}
             onClick={() => onAppClick(app.AppName)}
-            className="bg-white/10 backdrop-blur-lg rounded-lg p-6 text-white hover:bg-white/20 transition-colors cursor-pointer"
+            className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
@@ -359,7 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <img 
                       src={app.Logo} 
                       alt={`${app.AppName} logo`}
-                      className="w-full h-full rounded-lg object-contain bg-white/5 transition-opacity duration-300"
+                      className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
                       loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -374,11 +374,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         target.style.opacity = '1';
                       }}
                     />
-                    <div className="absolute inset-0 rounded-lg bg-white/5 animate-pulse" />
+                    <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
                     {app.Private && (
                       <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
                         <svg 
-                          className="w-3 h-3 text-white" 
+                          className="w-3 h-3 text-theme-primary" 
                           fill="none" 
                           stroke="currentColor" 
                           viewBox="0 0 24 24"
@@ -394,7 +394,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     )}
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="24" 
@@ -405,7 +405,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       strokeWidth="2" 
                       strokeLinecap="round" 
                       strokeLinejoin="round"
-                      className="text-white/50"
+                      className="text-theme-primary-hover"
                     >
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                       <path d="M12 8v8"></path>
@@ -418,14 +418,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex gap-2">
                 <button
                   onClick={(e) => handleEditApp(e, app)}
-                  className="p-2 text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                  className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
                   title="Edit app"
                 >
                   <i className="fas fa-edit"></i>
                 </button>
                 <button
                   onClick={(e) => handleDeleteApp(e, app)}
-                  className="p-2 text-red-500 hover:text-red-600 transition-colors duration-200"
+                  className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
                   title="Delete app"
                 >
                   <i className="fas fa-trash"></i>
@@ -434,7 +434,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="relative">
               <div className="flex items-center gap-2">
-                <p className={`text-sm text-white/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'}`}>
+                <p className={`text-sm text-theme-primary/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'}`}>
                   {app.Description || 'No description available'}
                 </p>
                 {app.Description && app.Description.length > 50 && (
@@ -446,10 +446,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         [app.ID]: !prev[app.ID]
                       }));
                     }}
-                    className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+                    className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-full bg-theme-card hover:bg-theme-card-hover transition-colors"
                     title={expandedApps[app.ID] ? 'Collapse' : 'Expand'}
                   >
-                    <i className={`fas ${expandedApps[app.ID] ? 'fa-chevron-up' : 'fa-chevron-down'} text-purple-300 text-xs`}></i>
+                    <i className={`fas ${expandedApps[app.ID] ? 'fa-chevron-up' : 'fa-chevron-down'} text-theme-primary text-xs`}></i>
                   </button>
                 )}
               </div>

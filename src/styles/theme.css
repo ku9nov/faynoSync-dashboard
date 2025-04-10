@@ -1,0 +1,44 @@
+:root {
+  /* Light theme variables */
+  --bg-gradient-start: theme('colors.purple.800');
+  --bg-gradient-end: theme('colors.orange.500');
+  --bg-card: rgba(255, 255, 255, 0.1);
+  --bg-card-hover: rgba(255, 255, 255, 0.2);
+  --text-primary: theme('colors.white');
+  --text-primary-hover: theme('colors.gray.200');
+  --text-secondary: theme('colors.purple.300');
+  --button-primary: theme('colors.purple.600');
+  --button-primary-hover: theme('colors.purple.700');
+  --button-secondary: theme('colors.purple.700');
+  --input-bg: theme('colors.purple.700');
+  --input-placeholder: theme('colors.purple.300');
+  --border-color: theme('colors.gray.200');
+  --modal-bg: theme('colors.white');
+  --modal-text: theme('colors.gray.700');
+  --modal-hover: theme('colors.purple.50');
+  --modal-border: theme('colors.gray.200');
+  --danger-text: theme('colors.red.600');
+}
+
+.dark {
+  /* Dark theme variables */
+  --bg-gradient-start: theme('colors.gray.900');
+  --bg-gradient-mid: theme('colors.indigo.900');
+  --bg-gradient-end: theme('colors.black');
+  --bg-card: rgba(0, 0, 0, 0.3);
+  --bg-card-hover: rgba(0, 0, 0, 0.4);
+  --text-primary: theme('colors.white');
+  --text-primary-hover: theme('colors.gray.300');
+  --text-secondary: theme('colors.indigo.300');
+  --button-primary: theme('colors.indigo.600');
+  --button-primary-hover: theme('colors.indigo.700');
+  --button-secondary: theme('colors.indigo.800');
+  --input-bg: theme('colors.indigo.900');
+  --input-placeholder: theme('colors.indigo.300');
+  --border-color: theme('colors.gray.700');
+  --modal-bg: theme('colors.gray.800');
+  --modal-text: theme('colors.gray.200');
+  --modal-hover: theme('colors.indigo.900');
+  --modal-border: theme('colors.gray.700');
+  --danger-text: theme('colors.red.400');
+} 

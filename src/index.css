@@ -1,5 +1,6 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 @import './styles/animations.css';
+@import './styles/theme.css';
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -12,6 +13,81 @@ body {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom utility classes using CSS variables */
+.bg-theme-gradient {
+  background-image: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
+}
+
+.dark .bg-theme-gradient {
+  background-image: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-mid), var(--bg-gradient-end));
+}
+
+.bg-theme-card {
+  background-color: var(--bg-card);
+}
+
+.bg-theme-card-hover:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-primary:hover {
+  color: var(--text-primary-hover);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.text-theme-modal-text {
+  color: var(--modal-text);
+}
+
+.bg-theme-button-primary {
+  background-color: var(--button-primary);
+}
+
+.bg-theme-button-primary:hover {
+  background-color: var(--button-primary-hover);
+}
+
+.bg-theme-button-secondary {
+  background-color: var(--button-secondary);
+}
+
+.bg-theme-input {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.bg-theme-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+.bg-theme-modal {
+  background-color: var(--modal-bg);
+  color: var(--modal-text);
+}
+
+.hover-bg-theme-modal:hover {
+  background-color: var(--modal-hover);
+}
+
+.border-theme-modal {
+  border-color: var(--modal-border);
+}
+
+.text-theme-danger {
+  color: var(--danger-text);
+}
 
 
 

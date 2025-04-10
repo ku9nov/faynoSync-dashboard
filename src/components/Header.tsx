@@ -33,18 +33,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <div className="flex justify-between items-center mb-8">
-      {title && <h2 className="text-3xl font-bold text-white">{title}</h2>}
+      {title && <h2 className="text-3xl font-bold text-theme-primary">{title}</h2>}
       <div className="flex items-center">
         <input
           type="text"
           placeholder="Search..."
-          className="px-4 py-2 rounded-lg bg-purple-700 text-white placeholder-purple-300 mr-4"
+          className="px-4 py-2 rounded-lg bg-theme-input text-theme-primary placeholder-theme-input-placeholder mr-4"
         />
         {additionalButton}
 
         <button
           onClick={onCreateClick}
-          className="bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200 flex items-center"
+          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center"
         >
           {renderIcon()}
           {createButtonText}
@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="relative ml-4">
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className="bg-purple-600 hover:bg-purple-700 p-2 rounded-lg transition-colors text-white h-10"
+            className="bg-theme-button-primary hover:bg-theme-button-primary-hover p-2 rounded-lg transition-colors text-theme-primary h-10"
           >
             <i className="fas fa-cog text-xl"></i>
           </button>
