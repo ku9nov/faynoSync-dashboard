@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axiosInstance from '../config/axios';
 
 interface ActionIconsProps {
   onDownload: () => void;
@@ -21,11 +22,29 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
     e.stopPropagation();
     if (artifactLink) {
       try {
-        await navigator.clipboard.writeText(artifactLink);
+        // First try to fetch the signed URL
+        const response = await axiosInstance.get(artifactLink);
+        
+        // Check if the response is JSON with a download_url
+        if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+          // If it's a JSON with download_url, copy that URL
+          await navigator.clipboard.writeText(response.data.download_url);
+        } else {
+          // Otherwise, copy the original link
+          await navigator.clipboard.writeText(artifactLink);
+        }
+        
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error('Failed to copy link:', err);
+        // If there's an error, copy the original link
+        try {
+          await navigator.clipboard.writeText(artifactLink);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (clipboardErr) {
+          console.error('Failed to copy link:', clipboardErr);
+        }
       }
     }
   };

@@ -43,11 +43,29 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
 
   const handleCopyLink = async (link: string, index: number) => {
     try {
-      await navigator.clipboard.writeText(link);
+      // First try to fetch the signed URL
+      const response = await axiosInstance.get(link);
+      
+      // Check if the response is JSON with a download_url
+      if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+        // If it's a JSON with download_url, copy that URL
+        await navigator.clipboard.writeText(response.data.download_url);
+      } else {
+        // Otherwise, copy the original link
+        await navigator.clipboard.writeText(link);
+      }
+      
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
     } catch (err) {
-      console.error('Failed to copy link:', err);
+      // If there's an error, copy the original link
+      try {
+        await navigator.clipboard.writeText(link);
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+      } catch (clipboardErr) {
+        console.error('Failed to copy link:', clipboardErr);
+      }
     }
   };
 
