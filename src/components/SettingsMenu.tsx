@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../providers/authProvider';
 import { useTheme } from '../providers/themeProvider';
+import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
 
 interface SettingsMenuProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { data: userData } = useUsersQuery();
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -32,6 +34,15 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
       ref={menuRef}
       className="absolute right-0 top-12 w-48 bg-theme-modal rounded-lg shadow-lg py-2 animate-fade-in z-50 border border-theme-modal"
     >
+      {userData && (
+        <>
+          <div className="px-4 py-2 text-theme-modal-text flex items-center">
+            <span className="font-medium">{userData.username}</span>
+            <i className={`fas ${userData.is_admin ? 'fa-crown text-yellow-500' : 'fa-user text-blue-500'} ml-2`}></i>
+          </div>
+          <div className="border-t border-theme-modal my-2"></div>
+        </>
+      )}
       <button className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text">
         <i className="fas fa-user mr-2"></i>
         Profile(NIY)
