@@ -1,9 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../../config/axios';
 
+interface Permission {
+  Create: boolean;
+  Delete: boolean;
+  Edit: boolean;
+  Download?: boolean;
+  Upload?: boolean;
+  Allowed: string[];
+}
+
+interface Permissions {
+  Apps?: Permission;
+  Channels?: Permission;
+  Platforms?: Permission;
+  Archs?: Permission;
+}
+
 interface UserData {
   username: string;
   is_admin: boolean;
+  owner?: string;
+  permissions?: Permissions;
 }
 
 export const useUsersQuery = () => {

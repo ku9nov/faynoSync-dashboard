@@ -10,7 +10,7 @@ export type Architecture = {
 export const useArchitectureQuery = () => {
   const queryClient = useQueryClient();
 
-  const { data: architectures = [], isLoading } = useQuery<Architecture[]>({
+  const { data: architectures = [], isLoading, refetch } = useQuery<Architecture[]>({
     queryKey: ['architectures'],
     queryFn: async () => {
       const response = await axiosInstance.get('/arch/list');
@@ -71,5 +71,5 @@ export const useArchitectureQuery = () => {
     await updateArchitectureMutation.mutateAsync({ id, newName });
   };
 
-  return { architectures, deleteArchitecture, createArchitecture, updateArchitecture, isLoading };
+  return { architectures, deleteArchitecture, createArchitecture, updateArchitecture, isLoading, refetch };
 };
