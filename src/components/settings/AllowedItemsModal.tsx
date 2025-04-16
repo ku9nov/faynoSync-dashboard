@@ -77,7 +77,7 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
             onClick={handleSave}
             className="px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg hover:bg-opacity-80"
           >
-            Save
+            Update List
           </button>
         </div>
       </div>

@@ -1,10 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUsersListQuery } from '../../hooks/use-query/useUsersListQuery';
 import { useAppsQuery } from '../../hooks/use-query/useAppsQuery';
 import { useChannelQuery } from '../../hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '../../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../../hooks/use-query/useArchitectureQuery';
 import { AllowedItemsModal } from './AllowedItemsModal';
+import { EditUserModal } from './EditUserModal';
+import axiosInstance from '../../config/axios';
+import { useQueryClient } from '@tanstack/react-query';
+import { DeleteUserConfirmationModal } from './DeleteUserConfirmationModal';
+import { CreateUserModal } from './CreateUserModal';
+
+// Add styles for checkboxes
+const checkboxStyles = `
+  .users-settings-checkbox {
+    accent-color: #93c5fd !important; /* blue-300 */
+  }
+`;
 
 export const UsersSettings: React.FC = () => {
   const { data: usersData, isLoading, error } = useUsersListQuery();
@@ -12,6 +24,7 @@ export const UsersSettings: React.FC = () => {
   const { channels } = useChannelQuery();
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
+  const queryClient = useQueryClient();
 
   // State for modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -20,6 +33,34 @@ export const UsersSettings: React.FC = () => {
   const [modalSelectedIds, setModalSelectedIds] = useState<string[]>([]);
   const [modalType, setModalType] = useState<'app' | 'channel' | 'platform' | 'arch'>('app');
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  
+  // State for tracking modified permissions
+  const [modifiedPermissions, setModifiedPermissions] = useState<Record<string, any>>({});
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
+  
+  // State for delete confirmation modal
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: string; username: string } | null>(null);
+  
+  // State for edit user modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<{ id: string; username: string } | null>(null);
+  
+  // State for create user modal
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Initialize modified permissions when users data is loaded
+  useEffect(() => {
+    if (usersData?.users) {
+      const initialPermissions: Record<string, any> = {};
+      usersData.users.forEach(user => {
+        initialPermissions[user.id] = {
+          permissions: { ...user.permissions }
+        };
+      });
+      setModifiedPermissions(initialPermissions);
+    }
+  }, [usersData]);
 
   // Helper function to get name by ID
   const getNameById = (id: string, type: 'app' | 'channel' | 'platform' | 'arch') => {
@@ -102,29 +143,291 @@ export const UsersSettings: React.FC = () => {
 
   // Function to handle saving allowed items
   const handleSaveAllowedItems = (selectedIds: string[]) => {
-    // Here you would typically update the user's permissions in your backend
-    console.log(`Saving ${selectedIds.length} allowed items for user ${currentUserId} and type ${modalType}`);
+    if (!currentUserId) return;
     
-    // For now, we'll just log the changes
-    // In a real implementation, you would call an API to update the user's permissions
+    // Update the modified permissions with the new allowed items
+    setModifiedPermissions(prev => {
+      const updated = { ...prev };
+      const userPermissions = { ...updated[currentUserId].permissions };
+      
+      if (modalType === 'app') {
+        userPermissions.Apps = { 
+          ...userPermissions.Apps, 
+          Allowed: selectedIds 
+        };
+      } else if (modalType === 'channel') {
+        userPermissions.Channels = { 
+          ...userPermissions.Channels, 
+          Allowed: selectedIds 
+        };
+      } else if (modalType === 'platform') {
+        userPermissions.Platforms = { 
+          ...userPermissions.Platforms, 
+          Allowed: selectedIds 
+        };
+      } else if (modalType === 'arch') {
+        userPermissions.Archs = { 
+          ...userPermissions.Archs, 
+          Allowed: selectedIds 
+        };
+      }
+      
+      updated[currentUserId] = {
+        ...updated[currentUserId],
+        permissions: userPermissions
+      };
+      
+      return updated;
+    });
+    
+    // Close the modal
+    setModalOpen(false);
+  };
+
+  // Function to handle permission checkbox change
+  const handlePermissionChange = (
+    userId: string, 
+    category: 'Apps' | 'Channels' | 'Platforms' | 'Archs', 
+    permission: 'Create' | 'Delete' | 'Edit' | 'Download' | 'Upload', 
+    checked: boolean
+  ) => {
+    setModifiedPermissions(prev => {
+      const updated = { ...prev };
+      const userPermissions = { ...updated[userId].permissions };
+      
+      if (!userPermissions[category]) {
+        userPermissions[category] = {
+          Create: false,
+          Delete: false,
+          Edit: false,
+          Allowed: []
+        };
+        
+        // Add optional permissions for Apps
+        if (category === 'Apps') {
+          userPermissions[category].Download = false;
+          userPermissions[category].Upload = false;
+        }
+      }
+      
+      userPermissions[category] = {
+        ...userPermissions[category],
+        [permission]: checked
+      };
+      
+      updated[userId] = {
+        ...updated[userId],
+        permissions: userPermissions
+      };
+      
+      return updated;
+    });
   };
 
   // Function to handle saving user permissions
-  const handleSaveUserPermissions = (userId: string) => {
-    console.log(`Saving permissions for user ${userId}`);
-    // Here you would implement the logic to save user permissions
+  const handleSaveUserPermissions = async (userId: string) => {
+    if (!modifiedPermissions[userId]) return;
+    
+    setIsSaving(prev => ({ ...prev, [userId]: true }));
+    
+    try {
+      const user = usersData?.users.find(u => u.id === userId);
+      if (!user) return;
+      
+      // Prepare the data for the API request
+      const permissions = modifiedPermissions[userId].permissions;
+      
+      const requestData = {
+        username: user.username,
+        permissions: {
+          apps: {
+            create: permissions.Apps?.Create || false,
+            delete: permissions.Apps?.Delete || false,
+            edit: permissions.Apps?.Edit || false,
+            download: permissions.Apps?.Download || false,
+            upload: permissions.Apps?.Upload || false,
+            allowed: permissions.Apps?.Allowed || []
+          },
+          channels: {
+            create: permissions.Channels?.Create || false,
+            delete: permissions.Channels?.Delete || false,
+            edit: permissions.Channels?.Edit || false,
+            allowed: permissions.Channels?.Allowed || []
+          },
+          platforms: {
+            create: permissions.Platforms?.Create || false,
+            delete: permissions.Platforms?.Delete || false,
+            edit: permissions.Platforms?.Edit || false,
+            allowed: permissions.Platforms?.Allowed || []
+          },
+          archs: {
+            create: permissions.Archs?.Create || false,
+            delete: permissions.Archs?.Delete || false,
+            edit: permissions.Archs?.Edit || false,
+            allowed: permissions.Archs?.Allowed || []
+          }
+        }
+      };
+      
+      // Send the request to the API
+      await axiosInstance.post('/user/update', requestData);
+      
+      // Invalidate the users list query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      
+    } catch (error) {
+      console.error('Error saving user permissions:', error);
+    } finally {
+      setIsSaving(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  // Function to open delete confirmation modal
+  const openDeleteModal = (userId: string, username: string) => {
+    setUserToDelete({ id: userId, username });
+    setDeleteModalOpen(true);
   };
 
   // Function to handle deleting user
-  const handleDeleteUser = (userId: string) => {
-    console.log(`Deleting user ${userId}`);
-    // Here you would implement the logic to delete a user
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      // Send the delete request to the API
+      await axiosInstance.delete('/user/delete', {
+        data: { id: userToDelete.id }
+      });
+      
+      // Invalidate the users list query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      
+      // Close the modal
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   };
 
-  // Add the handleEditUser function near other handler functions
+  // Function to open edit user modal
+  const openEditModal = (userId: string, username: string) => {
+    setUserToEdit({ id: userId, username });
+    setEditModalOpen(true);
+  };
+
+  // Function to handle saving user details
+  const handleSaveUserDetails = async (userId: string, newUsername: string, newPassword: string) => {
+    try {
+      // Find the user to get their current permissions
+      const user = usersData?.users.find(u => u.id === userId);
+      if (!user) return;
+      
+      // Prepare the data for the API request
+      const requestData: any = {
+        username: newUsername,
+        permissions: {
+          apps: {
+            create: user.permissions.Apps?.Create || false,
+            delete: user.permissions.Apps?.Delete || false,
+            edit: user.permissions.Apps?.Edit || false,
+            download: user.permissions.Apps?.Download || false,
+            upload: user.permissions.Apps?.Upload || false,
+            allowed: user.permissions.Apps?.Allowed || []
+          },
+          channels: {
+            create: user.permissions.Channels?.Create || false,
+            delete: user.permissions.Channels?.Delete || false,
+            edit: user.permissions.Channels?.Edit || false,
+            allowed: user.permissions.Channels?.Allowed || []
+          },
+          platforms: {
+            create: user.permissions.Platforms?.Create || false,
+            delete: user.permissions.Platforms?.Delete || false,
+            edit: user.permissions.Platforms?.Edit || false,
+            allowed: user.permissions.Platforms?.Allowed || []
+          },
+          archs: {
+            create: user.permissions.Archs?.Create || false,
+            delete: user.permissions.Archs?.Delete || false,
+            edit: user.permissions.Archs?.Edit || false,
+            allowed: user.permissions.Archs?.Allowed || []
+          }
+        }
+      };
+      
+      // Add password only if it's provided
+      if (newPassword) {
+        requestData.password = newPassword;
+      }
+      
+      // Send the request to the API
+      await axiosInstance.post('/user/update', requestData);
+      
+      // Invalidate the users list query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      
+    } catch (error) {
+      console.error('Error updating user details:', error);
+      throw error;
+    }
+  };
+
+  // Function to handle creating a new user
+  const handleCreateUser = async (username: string, password: string, permissions: any) => {
+    try {
+      // Prepare the data for the API request
+      const requestData = {
+        username,
+        password,
+        permissions: {
+          apps: {
+            create: permissions.apps.create,
+            delete: permissions.apps.delete,
+            edit: permissions.apps.edit,
+            download: permissions.apps.download,
+            upload: permissions.apps.upload,
+            allowed: permissions.apps.allowed
+          },
+          channels: {
+            create: permissions.channels.create,
+            delete: permissions.channels.delete,
+            edit: permissions.channels.edit,
+            allowed: permissions.channels.allowed
+          },
+          platforms: {
+            create: permissions.platforms.create,
+            delete: permissions.platforms.delete,
+            edit: permissions.platforms.edit,
+            allowed: permissions.platforms.allowed
+          },
+          archs: {
+            create: permissions.archs.create,
+            delete: permissions.archs.delete,
+            edit: permissions.archs.edit,
+            allowed: permissions.archs.allowed
+          }
+        }
+      };
+      
+      // Send the request to the API
+      await axiosInstance.post('/user/create', requestData);
+      
+      // Invalidate the users list query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['users-list'] });
+      
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  };
+
+  // Update the handleEditUser function
   const handleEditUser = (userId: string) => {
-    console.log(`Editing user ${userId}`);
-    // Here you would implement the logic to edit a user
+    const user = usersData?.users.find(u => u.id === userId);
+    if (user) {
+      openEditModal(userId, user.username);
+    }
   };
 
   if (isLoading) {
@@ -135,248 +438,342 @@ export const UsersSettings: React.FC = () => {
     return <div className="text-theme-danger">Error loading users data</div>;
   }
 
-  if (!usersData?.users) {
-    return <div className="text-theme-primary">No users found</div>;
-  }
-
   return (
     <div className="relative">
+      <style>{checkboxStyles}</style>
       <div className="overflow-hidden text-sm">
-        {/* Fixed Header Table */}
-        <div className="sticky top-0 z-10 bg-theme-background">
-          <table className="w-full table-fixed border border-theme-modal">
-            <colgroup>
-              <col className="w-[150px]" /> {/* Username */}
-              <col className="w-10" span={6} /> {/* Apps */}
-              <col className="w-10" span={4} /> {/* Channels */}
-              <col className="w-10" span={4} /> {/* Platforms */}
-              <col className="w-10" span={4} /> {/* Archs */}
-              <col className="w-[100px]" /> {/* Actions */}
-            </colgroup>
-            <thead>
-              <tr className="border-b border-theme-modal">
-                <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
-                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
-                  Apps
-                </th>
-                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-                  Channels
-                </th>
-                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-                  Platforms
-                </th>
-                <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
-                  Architectures
-                </th>
-                <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
-                  Actions
-                </th>
-              </tr>
-              <tr className="border-b border-theme-modal">
-                <th className="px-2 py-1 border-r border-theme-modal"></th>
-                {/* Apps subheaders */}
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                </th>
-                {/* Channels subheaders */}
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                </th>
-                {/* Platforms subheaders */}
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                </th>
-                {/* Archs subheaders */}
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                </th>
-                <th className="min-w-[40px] h-32 text-center text-theme-primary">
-                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                </th>
-                <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
-              </tr>
-            </thead>
-          </table>
+        {/* Add Create User button at the top - moved outside the conditional rendering */}
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+          >
+            <i className="fas fa-user-plus mr-2"></i>
+            Create User
+          </button>
         </div>
+        
+        {!usersData?.users || usersData.users.length === 0 ? (
+          <div className="text-theme-primary p-4 text-center">No users found</div>
+        ) : (
+          <>
+            {/* Fixed Header Table */}
+            <div className="sticky top-0 z-10 bg-theme-background">
+              <table className="w-full table-fixed border border-theme-modal">
+                <colgroup>
+                  <col className="w-[150px]" /> {/* Username */}
+                  <col className="w-10" span={6} /> {/* Apps */}
+                  <col className="w-10" span={4} /> {/* Channels */}
+                  <col className="w-10" span={4} /> {/* Platforms */}
+                  <col className="w-10" span={4} /> {/* Archs */}
+                  <col className="w-[100px]" /> {/* Actions */}
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-theme-modal">
+                    <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
+                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
+                      Apps
+                    </th>
+                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                      Channels
+                    </th>
+                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                      Platforms
+                    </th>
+                    <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
+                      Architectures
+                    </th>
+                    <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
+                      Actions
+                    </th>
+                  </tr>
+                  <tr className="border-b border-theme-modal">
+                    <th className="px-2 py-1 border-r border-theme-modal"></th>
+                    {/* Apps subheaders */}
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                    </th>
+                    {/* Channels subheaders */}
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                    </th>
+                    {/* Platforms subheaders */}
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                    </th>
+                    {/* Archs subheaders */}
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                    </th>
+                    <th className="min-w-[40px] h-32 text-center text-theme-primary">
+                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                    </th>
+                    <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
 
-        {/* Scrollable Body Table */}
-        <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
-          <table className="w-full table-fixed border border-t-0 border-theme-modal">
-            <colgroup>
-              <col className="w-[150px]" /> {/* Username */}
-              <col className="w-10" span={6} /> {/* Apps */}
-              <col className="w-10" span={4} /> {/* Channels */}
-              <col className="w-10" span={4} /> {/* Platforms */}
-              <col className="w-10" span={4} /> {/* Archs */}
-              <col className="w-[100px]" /> {/* Actions */}
-            </colgroup>
-            <tbody>
-              {usersData.users.map((user) => (
-                <tr key={user.id} className="border-b border-theme-modal">
-                  <td className="px-2 py-1 text-theme-primary border-r border-theme-modal">
-                    <div 
-                      className="truncate max-w-[300px]" 
-                      title={user.username}
-                    >
-                      {user.username}
-                    </div>
-                  </td>
-                  {/* Apps permissions */}
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Apps?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Apps?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Apps?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Apps?.Download ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Apps?.Upload ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <button 
-                      onClick={() => openAllowedModal(user.id, 'app', user.permissions.Apps?.Allowed || [])}
-                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                    >
-                      <i className="fas fa-search"></i>
-                      <span>{getAllowedCount(user.permissions.Apps?.Allowed)}</span>
-                    </button>
-                  </td>
-                  {/* Channels permissions */}
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Channels?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Channels?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Channels?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <button 
-                      onClick={() => openAllowedModal(user.id, 'channel', user.permissions.Channels?.Allowed || [])}
-                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                    >
-                      <i className="fas fa-search"></i>
-                      <span>{getAllowedCount(user.permissions.Channels?.Allowed)}</span>
-                    </button>
-                  </td>
-                  {/* Platforms permissions */}
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Platforms?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Platforms?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Platforms?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <button 
-                      onClick={() => openAllowedModal(
-                        user.id, 
-                        'platform', 
-                        user.permissions.Platforms?.Allowed || []
-                      )}
-                      className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
-                    >
-                      <i className="fas fa-search"></i>
-                      <span>{getAllowedCount(user.permissions.Platforms?.Allowed)}</span>
-                    </button>
-                  </td>
-                  {/* Archs permissions */}
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Archs?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Archs?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center border-r border-theme-modal">
-                    <i className={`fas fa-${user.permissions.Archs?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-                  </td>
-                  <td className="px-2 py-1 text-center">
-                    <button 
-                      onClick={() => openAllowedModal(user.id, 'arch', user.permissions.Archs?.Allowed || [])}
-                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                    >
-                      <i className="fas fa-search"></i>
-                      <span>{getAllowedCount(user.permissions.Archs?.Allowed)}</span>
-                    </button>
-                  </td>
-                  {/* Action buttons */}
-                  <td className="px-2 py-1 text-center border-l border-theme-modal">
-                    <div className="flex justify-center space-x-2">
-                      <button 
-                        onClick={() => handleSaveUserPermissions(user.id)}
-                        className="text-theme-primary hover:text-green-500"
-                        title="Save user permissions"
-                      >
-                        <i className="fas fa-save"></i>
-                      </button>
-                      <button 
-                        onClick={() => handleEditUser(user.id)}
-                        className="text-theme-primary hover:text-blue-500"
-                        title="Edit user"
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-theme-primary hover:text-red-500"
-                        title="Delete user"
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            {/* Scrollable Body Table */}
+            <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
+              <table className="w-full table-fixed border border-t-0 border-theme-modal">
+                <colgroup>
+                  <col className="w-[150px]" /> {/* Username */}
+                  <col className="w-10" span={6} /> {/* Apps */}
+                  <col className="w-10" span={4} /> {/* Channels */}
+                  <col className="w-10" span={4} /> {/* Platforms */}
+                  <col className="w-10" span={4} /> {/* Archs */}
+                  <col className="w-[100px]" /> {/* Actions */}
+                </colgroup>
+                <tbody>
+                  {usersData.users.map((user) => (
+                    <tr key={user.id} className="border-b border-theme-modal">
+                      <td className="px-2 py-1 text-theme-primary border-r border-theme-modal">
+                        <div 
+                          className="truncate max-w-[300px]" 
+                          title={user.username}
+                        >
+                          {user.username}
+                          {JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) && (
+                            <span className="ml-2 text-yellow-500" title="Unsaved changes">
+                              <i className="fas fa-exclamation-circle"></i>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      {/* Apps permissions */}
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Create || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Create', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Delete || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Delete', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Edit || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Edit', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Download || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Download', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Upload || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Upload', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <button 
+                          onClick={() => openAllowedModal(user.id, 'app', modifiedPermissions[user.id]?.permissions?.Apps?.Allowed || [])}
+                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                        >
+                          <i className="fas fa-search"></i>
+                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Apps?.Allowed)}</span>
+                        </button>
+                      </td>
+                      {/* Channels permissions */}
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Create || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Create', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Delete || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Delete', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Edit || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Edit', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <button 
+                          onClick={() => openAllowedModal(user.id, 'channel', modifiedPermissions[user.id]?.permissions?.Channels?.Allowed || [])}
+                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                        >
+                          <i className="fas fa-search"></i>
+                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Channels?.Allowed)}</span>
+                        </button>
+                      </td>
+                      {/* Platforms permissions */}
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Create || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Create', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Delete || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Delete', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Edit || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Edit', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <button 
+                          onClick={() => openAllowedModal(
+                            user.id, 
+                            'platform', 
+                            modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed || []
+                          )}
+                          className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
+                        >
+                          <i className="fas fa-search"></i>
+                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed)}</span>
+                        </button>
+                      </td>
+                      {/* Archs permissions */}
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Create || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Create', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Delete || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Delete', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center border-r border-theme-modal">
+                        <input 
+                          type="checkbox" 
+                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Edit || false}
+                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Edit', e.target.checked)}
+                          className="users-settings-checkbox w-4 h-4"
+                        />
+                      </td>
+                      <td className="px-2 py-1 text-center">
+                        <button 
+                          onClick={() => openAllowedModal(user.id, 'arch', modifiedPermissions[user.id]?.permissions?.Archs?.Allowed || [])}
+                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                        >
+                          <i className="fas fa-search"></i>
+                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Archs?.Allowed)}</span>
+                        </button>
+                      </td>
+                      {/* Action buttons */}
+                      <td className="px-2 py-1 text-center border-l border-theme-modal">
+                        <div className="flex justify-center space-x-2">
+                          <button 
+                            onClick={() => handleSaveUserPermissions(user.id)}
+                            className={`text-theme-primary hover:text-green-500 ${isSaving[user.id] ? 'opacity-50 cursor-not-allowed' : ''} ${JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) ? 'text-yellow-500' : ''}`}
+                            title="Save user permissions"
+                            disabled={isSaving[user.id]}
+                          >
+                            {isSaving[user.id] ? (
+                              <i className="fas fa-spinner fa-spin"></i>
+                            ) : (
+                              <i className="fas fa-save"></i>
+                            )}
+                          </button>
+                          <button 
+                            onClick={() => handleEditUser(user.id)}
+                            className="text-theme-primary hover:text-blue-500"
+                            title="Edit user"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button 
+                            onClick={() => openDeleteModal(user.id, user.username)}
+                            className="text-theme-primary hover:text-red-500"
+                            title="Delete user"
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal for editing allowed items */}
@@ -387,6 +784,41 @@ export const UsersSettings: React.FC = () => {
         items={modalItems}
         selectedIds={modalSelectedIds}
         onSave={handleSaveAllowedItems}
+      />
+      
+      {/* Delete confirmation modal */}
+      {userToDelete && (
+        <DeleteUserConfirmationModal
+          userId={userToDelete.id}
+          username={userToDelete.username}
+          isOpen={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setUserToDelete(null);
+          }}
+          onConfirm={handleDeleteUser}
+        />
+      )}
+      
+      {/* Edit user modal */}
+      {userToEdit && (
+        <EditUserModal
+          userId={userToEdit.id}
+          username={userToEdit.username}
+          isOpen={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setUserToEdit(null);
+          }}
+          onSave={handleSaveUserDetails}
+        />
+      )}
+      
+      {/* Create user modal */}
+      <CreateUserModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSave={handleCreateUser}
       />
     </div>
   );
