@@ -5,6 +5,7 @@ import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { Artifact, useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { DeleteArtifactConfirmationModal } from './DeleteArtifactConfirmationModal';
 import { AxiosError } from 'axios';
+import axiosInstance from '../config/axios';
 
 interface EditVersionModalProps {
   appName: string;
@@ -53,8 +54,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [deleteError, setDeleteError] = useState<{ error: string; details?: string } | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
-  // const [error, setError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showDownloadModal, setShowDownloadModal] = React.useState(false);
+  const [selectedArtifact, setSelectedArtifact] = React.useState<Artifact | null>(null);
 
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
@@ -179,6 +181,26 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
            );
   }, [formData.Artifacts]);
 
+  const handleDownload = (artifact: Artifact) => {
+    // First try to fetch the link with authentication
+    axiosInstance.get(artifact.link)
+      .then(response => {
+        // Check if the response is JSON with a download_url
+        if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+          // If it's a JSON with download_url, use that URL
+          window.open(response.data.download_url, '_blank');
+        } else {
+          // Otherwise, it's a direct link to a file, use it directly
+          window.open(artifact.link, '_blank');
+        }
+      })
+      .catch(() => {
+        // If there's an error (like 401), it might be a direct link to a public file
+        // In that case, just open the link directly
+        window.open(artifact.link, '_blank');
+      });
+  };
+
   return (
     <>
       <div 
@@ -255,9 +277,12 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         <p className="text-sm text-gray-300">Package: {artifact.package}</p>
                       </div>
                       <div className="flex items-center">
-                        <a href={artifact.link} target="_blank" rel="noopener noreferrer" className="text-green-500 hover:text-green-400">
+                        <button 
+                          onClick={() => handleDownload(artifact)} 
+                          className="text-green-500 hover:text-green-400"
+                        >
                           <i className="fas fa-download"></i>
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
                           className="text-theme-danger hover:text-red-400 ml-4"
