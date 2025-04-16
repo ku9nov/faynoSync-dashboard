@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { Artifact, useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { DeleteArtifactConfirmationModal } from './DeleteArtifactConfirmationModal';
+import { AxiosError } from 'axios';
 
 interface EditVersionModalProps {
   appName: string;
@@ -29,7 +30,10 @@ interface EditVersionModalProps {
     channel: string;
   }) => void;
 }
-
+interface ErrorResponse {
+  error: string;
+  details?: string;
+}
 export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   appName,
   version,
@@ -47,13 +51,16 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{ error: string; details?: string } | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  // const [error, setError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
   const { deleteArtifact } = useAppsQuery();
-
+  const [error, setError] = useState<{ error: string; details?: string } | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   React.useEffect(() => {
   }, [currentData]);
 
@@ -78,8 +85,18 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         onClose();
       }, 500);
     } catch (err) {
-      setError('Failed to save changes. Please try again.');
-      console.error('Error saving changes:', err);
+      const axiosError = err as AxiosError<ErrorResponse>;
+      if (axiosError.response?.data) {
+        setError({
+          error: axiosError.response.data.error || 'Failed to update',
+          details: axiosError.response.data.details
+        });
+      } else {
+        setError({
+          error: 'Failed to update',
+          details: axiosError.message
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -125,13 +142,29 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const confirmDeleteArtifact = async () => {
     if (artifactToDelete) {
       try {
+        setDeleteError(null);
         await deleteArtifact(currentData.ID, appName, version, artifactToDelete.index);
         setFormData(prev => ({
           ...prev,
           Artifacts: prev.Artifacts.filter((_, i) => i !== artifactToDelete.index)
         }));
+        setDeleteSuccess(true);
+        setTimeout(() => {
+          setDeleteSuccess(false);
+        }, 3000);
       } catch (error) {
-        console.error('Error deleting artifact:', error);
+        const axiosError = error as AxiosError<ErrorResponse>;
+        if (axiosError.response?.data) {
+          setDeleteError({
+            error: axiosError.response.data.error || 'Failed to delete artifact',
+            details: axiosError.response.data.details
+          });
+        } else {
+          setDeleteError({
+            error: 'Failed to delete artifact',
+            details: axiosError.message
+          });
+        }
       }
       setShowDeleteConfirmation(false);
       setArtifactToDelete(null);
@@ -167,11 +200,36 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <span className="font-roboto">Changes saved successfully!</span>
             </div>
           )}
-          {error && (
-            <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-50">
-              <span className="font-roboto">{error}</span>
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {error.error}</span>
+            {error.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {showDetails && error.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {error.details}
             </div>
           )}
+        </div>
+      )}
           <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
             Edit Version {version}
           </h2>
@@ -395,9 +453,50 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           onClose={() => {
             setShowDeleteConfirmation(false);
             setArtifactToDelete(null);
+            setDeleteError(null);
           }}
           onConfirm={confirmDeleteArtifact}
         />
+      )}
+
+      {deleteSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-roboto">Artifact deleted successfully!</span>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {deleteError.error}</span>
+            {deleteError.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {showDetails && deleteError.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {deleteError.details}
+            </div>
+          )}
+        </div>
       )}
     </>
   );
