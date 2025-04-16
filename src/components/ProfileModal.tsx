@@ -28,6 +28,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     refetchChannels();
     refetchPlatforms();
     refetchArchitectures();
+
   }, [refetchUser, refetchApps, refetchChannels, refetchPlatforms, refetchArchitectures]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -96,7 +97,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-theme-modal-gradient rounded-lg p-8 w-[600px] max-h-[80vh] overflow-y-auto relative">
+      <div className="bg-theme-modal-gradient rounded-lg p-8 w-[600px] max-h-[80vh] overflow-y-auto relative z-[99999]">
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-theme-primary hover:text-theme-primary-hover"

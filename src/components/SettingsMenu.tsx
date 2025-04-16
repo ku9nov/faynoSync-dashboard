@@ -3,6 +3,7 @@ import { useAuth } from '../providers/authProvider';
 import { useTheme } from '../providers/themeProvider';
 import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
 import { ProfileModal } from './ProfileModal';
+import { SettingsModal } from './SettingsModal';
 
 interface SettingsMenuProps {
   onClose: () => void;
@@ -14,9 +15,14 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   const { theme, toggleTheme } = useTheme();
   const { data: userData } = useUsersQuery();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (showProfileModal || showSettingsModal) {
+        return;
+      }
+      
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
@@ -24,7 +30,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  }, [onClose, showProfileModal, showSettingsModal]);
 
   const handleLogout = () => {
     logout();
@@ -33,6 +39,10 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
 
   const handleProfileClick = () => {
     setShowProfileModal(true);
+  };
+
+  const handleSettingsClick = () => {
+    setShowSettingsModal(true);
   };
 
   return (
@@ -57,10 +67,15 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
           <i className="fas fa-user mr-2"></i>
           Profile
         </button>
-        <button className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text">
-          <i className="fas fa-cog mr-2"></i>
-          Settings(NIY)
-        </button>
+        {userData?.is_admin && (
+          <button 
+            onClick={handleSettingsClick}
+            className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+          >
+            <i className="fas fa-cog mr-2"></i>
+            Settings
+          </button>
+        )}
         <button 
           onClick={toggleTheme}
           className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text flex items-center justify-between"
@@ -81,6 +96,9 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
       </div>
       {showProfileModal && (
         <ProfileModal onClose={() => setShowProfileModal(false)} />
+      )}
+      {showSettingsModal && (
+        <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
     </>
   );
