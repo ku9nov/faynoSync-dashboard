@@ -70,8 +70,8 @@ export const UsersSettings: React.FC = () => {
 
   // Function to truncate username if it's longer than 9 characters
   const truncateUsername = (username: string): string => {
-    if (username.length > 9) {
-      return username.substring(0, 9) + '...';
+    if (username.length > 12) {
+      return username.substring(0, 12) + '...';
     }
     return username;
   };
@@ -140,217 +140,244 @@ export const UsersSettings: React.FC = () => {
   }
 
   return (
-    <div className="overflow-x-auto text-sm">
-      <table className="min-w-full rounded-lg border border-theme-modal">
-        <thead>
-          <tr className="border-b border-theme-modal">
-            <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
-            <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
-              Apps
-            </th>
-            <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-              Channels
-            </th>
-            <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-              Platforms
-            </th>
-            <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
-              Archs
-            </th>
-            <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
-              Actions
-            </th>
-          </tr>
-          <tr className="border-b border-theme-modal">
-            <th className="px-2 py-1 border-r border-theme-modal"></th>
-            {/* Apps subheaders */}
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-            </th>
-            {/* Channels subheaders */}
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-            </th>
-            {/* Platforms subheaders */}
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-            </th>
-            {/* Archs subheaders */}
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary border-r border-theme-modal">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-            </th>
-            <th className="min-w-[40px] w-10 h-32 text-center text-theme-primary">
-              <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-            </th>
-            <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {usersData.users.map((user) => (
-            <tr key={user.id} className="border-b border-theme-modal">
-              <td className="px-2 py-1 text-theme-primary border-r border-theme-modal">
-                <div 
-                  className="truncate max-w-[100px]" 
-                  title={user.username}
-                >
-                  {truncateUsername(user.username)}
-                </div>
-              </td>
-              {/* Apps permissions */}
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Apps?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Apps?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Apps?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Apps?.Download ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Apps?.Upload ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <button 
-                  onClick={() => openAllowedModal(user.id, 'app', user.permissions.Apps?.Allowed || [])}
-                  className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                >
-                  <i className="fas fa-search"></i>
-                  <span>{getAllowedCount(user.permissions.Apps?.Allowed)}</span>
-                </button>
-              </td>
-              {/* Channels permissions */}
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Channels?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Channels?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Channels?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <button 
-                  onClick={() => openAllowedModal(user.id, 'channel', user.permissions.Channels?.Allowed || [])}
-                  className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                >
-                  <i className="fas fa-search"></i>
-                  <span>{getAllowedCount(user.permissions.Channels?.Allowed)}</span>
-                </button>
-              </td>
-              {/* Platforms permissions */}
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Platforms?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Platforms?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Platforms?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <button 
-                  onClick={() => openAllowedModal(
-                    user.id, 
-                    'platform', 
-                    user.permissions.Platforms?.Allowed || []
-                  )}
-                  className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
-                >
-                  <i className="fas fa-search"></i>
-                  <span>{getAllowedCount(user.permissions.Platforms?.Allowed)}</span>
-                </button>
-              </td>
-              {/* Archs permissions */}
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Archs?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Archs?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center border-r border-theme-modal">
-                <i className={`fas fa-${user.permissions.Archs?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
-              </td>
-              <td className="w-10 px-2 py-1 text-center">
-                <button 
-                  onClick={() => openAllowedModal(user.id, 'arch', user.permissions.Archs?.Allowed || [])}
-                  className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                >
-                  <i className="fas fa-search"></i>
-                  <span>{getAllowedCount(user.permissions.Archs?.Allowed)}</span>
-                </button>
-              </td>
-              {/* Action buttons */}
-              <td className="px-2 py-1 text-center border-l border-theme-modal">
-                <div className="flex justify-center space-x-2">
-                  <button 
-                    onClick={() => handleSaveUserPermissions(user.id)}
-                    className="text-theme-primary hover:text-green-500"
-                    title="Save user permissions"
-                  >
-                    <i className="fas fa-save"></i>
-                  </button>
-                  <button 
-                    onClick={() => handleEditUser(user.id)}
-                    className="text-theme-primary hover:text-blue-500"
-                    title="Edit user"
-                  >
-                    <i className="fas fa-edit"></i>
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="text-theme-primary hover:text-red-500"
-                    title="Delete user"
-                  >
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="relative">
+      <div className="overflow-hidden text-sm">
+        {/* Fixed Header Table */}
+        <div className="sticky top-0 z-10 bg-theme-background">
+          <table className="w-full table-fixed border border-theme-modal">
+            <colgroup>
+              <col className="w-[150px]" /> {/* Username */}
+              <col className="w-10" span={6} /> {/* Apps */}
+              <col className="w-10" span={4} /> {/* Channels */}
+              <col className="w-10" span={4} /> {/* Platforms */}
+              <col className="w-10" span={4} /> {/* Archs */}
+              <col className="w-[100px]" /> {/* Actions */}
+            </colgroup>
+            <thead>
+              <tr className="border-b border-theme-modal">
+                <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
+                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
+                  Apps
+                </th>
+                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                  Channels
+                </th>
+                <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                  Platforms
+                </th>
+                <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
+                  Architectures
+                </th>
+                <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
+                  Actions
+                </th>
+              </tr>
+              <tr className="border-b border-theme-modal">
+                <th className="px-2 py-1 border-r border-theme-modal"></th>
+                {/* Apps subheaders */}
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                </th>
+                {/* Channels subheaders */}
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                </th>
+                {/* Platforms subheaders */}
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                </th>
+                {/* Archs subheaders */}
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                </th>
+                <th className="min-w-[40px] h-32 text-center text-theme-primary">
+                  <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                </th>
+                <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+
+        {/* Scrollable Body Table */}
+        <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
+          <table className="w-full table-fixed border border-t-0 border-theme-modal">
+            <colgroup>
+              <col className="w-[150px]" /> {/* Username */}
+              <col className="w-10" span={6} /> {/* Apps */}
+              <col className="w-10" span={4} /> {/* Channels */}
+              <col className="w-10" span={4} /> {/* Platforms */}
+              <col className="w-10" span={4} /> {/* Archs */}
+              <col className="w-[100px]" /> {/* Actions */}
+            </colgroup>
+            <tbody>
+              {usersData.users.map((user) => (
+                <tr key={user.id} className="border-b border-theme-modal">
+                  <td className="px-2 py-1 text-theme-primary border-r border-theme-modal">
+                    <div 
+                      className="truncate max-w-[300px]" 
+                      title={user.username}
+                    >
+                      {user.username}
+                    </div>
+                  </td>
+                  {/* Apps permissions */}
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Apps?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Apps?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Apps?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Apps?.Download ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Apps?.Upload ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <button 
+                      onClick={() => openAllowedModal(user.id, 'app', user.permissions.Apps?.Allowed || [])}
+                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                    >
+                      <i className="fas fa-search"></i>
+                      <span>{getAllowedCount(user.permissions.Apps?.Allowed)}</span>
+                    </button>
+                  </td>
+                  {/* Channels permissions */}
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Channels?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Channels?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Channels?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <button 
+                      onClick={() => openAllowedModal(user.id, 'channel', user.permissions.Channels?.Allowed || [])}
+                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                    >
+                      <i className="fas fa-search"></i>
+                      <span>{getAllowedCount(user.permissions.Channels?.Allowed)}</span>
+                    </button>
+                  </td>
+                  {/* Platforms permissions */}
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Platforms?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Platforms?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Platforms?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <button 
+                      onClick={() => openAllowedModal(
+                        user.id, 
+                        'platform', 
+                        user.permissions.Platforms?.Allowed || []
+                      )}
+                      className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
+                    >
+                      <i className="fas fa-search"></i>
+                      <span>{getAllowedCount(user.permissions.Platforms?.Allowed)}</span>
+                    </button>
+                  </td>
+                  {/* Archs permissions */}
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Archs?.Create ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Archs?.Delete ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center border-r border-theme-modal">
+                    <i className={`fas fa-${user.permissions.Archs?.Edit ? 'check text-green-500' : 'times text-red-500'}`}></i>
+                  </td>
+                  <td className="px-2 py-1 text-center">
+                    <button 
+                      onClick={() => openAllowedModal(user.id, 'arch', user.permissions.Archs?.Allowed || [])}
+                      className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                    >
+                      <i className="fas fa-search"></i>
+                      <span>{getAllowedCount(user.permissions.Archs?.Allowed)}</span>
+                    </button>
+                  </td>
+                  {/* Action buttons */}
+                  <td className="px-2 py-1 text-center border-l border-theme-modal">
+                    <div className="flex justify-center space-x-2">
+                      <button 
+                        onClick={() => handleSaveUserPermissions(user.id)}
+                        className="text-theme-primary hover:text-green-500"
+                        title="Save user permissions"
+                      >
+                        <i className="fas fa-save"></i>
+                      </button>
+                      <button 
+                        onClick={() => handleEditUser(user.id)}
+                        className="text-theme-primary hover:text-blue-500"
+                        title="Edit user"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-theme-primary hover:text-red-500"
+                        title="Delete user"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Modal for editing allowed items */}
       <AllowedItemsModal
