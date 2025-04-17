@@ -62,31 +62,9 @@ export const UsersSettings: React.FC = () => {
     }
   }, [usersData]);
 
-  // Helper function to get name by ID
-  const getNameById = (id: string, type: 'app' | 'channel' | 'platform' | 'arch') => {
-    let items: any[] = [];
-    
-    if (type === 'app' && Array.isArray(apps)) {
-      items = apps;
-      return items.find(item => item.ID === id)?.AppName || id;
-    } else if (type === 'channel' && Array.isArray(channels)) {
-      items = channels;
-      return items.find(item => item.ID === id)?.ChannelName || id;
-    } else if (type === 'platform' && Array.isArray(platforms)) {
-      items = platforms;
-      return items.find(item => item.ID === id)?.PlatformName || id;
-    } else if (type === 'arch' && Array.isArray(architectures)) {
-      items = architectures;
-      return items.find(item => item.ID === id)?.ArchID || id;
-    }
-    
-    return id;
-  };
 
   // Helper function to get all items for a specific type
-  const getAllItemsForType = (type: 'app' | 'channel' | 'platform' | 'arch') => {
-    let items: any[] = [];
-    
+  const getAllItemsForType = (type: 'app' | 'channel' | 'platform' | 'arch') => {    
     if (type === 'app' && Array.isArray(apps)) {
       return apps.map(app => ({ id: app.ID, name: app.AppName }));
     } else if (type === 'channel' && Array.isArray(channels)) {
@@ -107,14 +85,6 @@ export const UsersSettings: React.FC = () => {
     // Filter out empty strings
     const validItems = allowed.filter(id => id && id.trim() !== '');
     return validItems.length;
-  };
-
-  // Function to truncate username if it's longer than 9 characters
-  const truncateUsername = (username: string): string => {
-    if (username.length > 12) {
-      return username.substring(0, 12) + '...';
-    }
-    return username;
   };
 
   // Function to open the modal
@@ -572,12 +542,12 @@ export const UsersSettings: React.FC = () => {
                           className="truncate max-w-[300px]" 
                           title={user.username}
                         >
-                          {user.username}
                           {JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) && (
-                            <span className="ml-2 text-yellow-500" title="Unsaved changes">
+                            <span className="ml-2 text-yellow-500" title="Unsaved changes" style={{ marginRight: '5px' }}>
                               <i className="fas fa-exclamation-circle"></i>
                             </span>
                           )}
+                          {user.username}
                         </div>
                       </td>
                       {/* Apps permissions */}

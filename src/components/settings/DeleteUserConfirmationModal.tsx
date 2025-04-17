@@ -9,7 +9,6 @@ interface DeleteUserConfirmationModalProps {
 }
 
 export const DeleteUserConfirmationModal: React.FC<DeleteUserConfirmationModalProps> = ({
-  userId,
   username,
   isOpen,
   onClose,

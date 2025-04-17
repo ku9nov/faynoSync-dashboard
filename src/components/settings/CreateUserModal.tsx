@@ -202,7 +202,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     });
   };
   
-  const handleAllowedItemSelect = (category: string, itemId: string, itemName: string) => {
+  const handleAllowedItemSelect = (category: string, itemId: string) => {
     setPermissions(prev => {
       const updated = { ...prev };
       if (category === 'apps') {
@@ -418,7 +418,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                           <div 
                             key={app.ID}
                             className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('apps', app.ID, app.AppName)}
+                            onClick={() => handleAllowedItemSelect('apps', app.ID)}
                           >
                             <input
                               type='checkbox'
@@ -508,7 +508,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                           <div 
                             key={channel.ID}
                             className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('channels', channel.ID, channel.ChannelName)}
+                            onClick={() => handleAllowedItemSelect('channels', channel.ID)}
                           >
                             <input
                               type='checkbox'
@@ -598,7 +598,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                           <div 
                             key={platform.ID}
                             className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('platforms', platform.ID, platform.PlatformName)}
+                            onClick={() => handleAllowedItemSelect('platforms', platform.ID)}
                           >
                             <input
                               type='checkbox'
@@ -688,7 +688,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                           <div 
                             key={arch.ID}
                             className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('archs', arch.ID, arch.ArchID)}
+                            onClick={() => handleAllowedItemSelect('archs', arch.ID)}
                           >
                             <input
                               type='checkbox'
