@@ -55,8 +55,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [deleteError, setDeleteError] = useState<{ error: string; details?: string } | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [showDownloadModal, setShowDownloadModal] = React.useState(false);
-  const [selectedArtifact, setSelectedArtifact] = React.useState<Artifact | null>(null);
 
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
