@@ -208,6 +208,7 @@ export const UsersSettings: React.FC = () => {
       const permissions = modifiedPermissions[userId].permissions;
       
       const requestData = {
+        id: userId,
         username: user.username,
         permissions: {
           apps: {
@@ -295,6 +296,7 @@ export const UsersSettings: React.FC = () => {
       
       // Prepare the data for the API request
       const requestData: any = {
+        id: userId,
         username: newUsername,
         permissions: {
           apps: {
