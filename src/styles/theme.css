@@ -19,7 +19,7 @@
   --modal-text: theme('colors.gray.700');
   --modal-hover: theme('colors.purple.50');
   --modal-border: theme('colors.gray.200');
-  --danger-text: theme('colors.red.600');
+  --danger-text: theme('colors.red.400');
   
   /* Modal gradient */
   --modal-gradient-start: theme('colors.purple.800');
