@@ -27,7 +27,12 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
       <div
         className='bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors'
         onClick={onClick}>
-        <h3 className='text-xl font-semibold mb-2 text-theme-primary'>{platform.name}</h3>
+        <h3 
+          className='text-xl font-semibold mb-2 text-theme-primary truncate max-w-[200px] overflow-hidden' 
+          title={platform.name}
+        >
+          {platform.name}
+        </h3>
       </div>
       <button
         onClick={handleDeleteClick}

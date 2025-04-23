@@ -26,7 +26,12 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
         className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors"
         onClick={onClick}
       >
-        <h3 className="text-xl font-semibold mb-2 text-theme-primary">{name}</h3>
+        <h3 
+          className="text-xl font-semibold mb-2 text-theme-primary truncate max-w-[200px] overflow-hidden" 
+          title={name}
+        >
+          {name}
+        </h3>
         {/* <p className="text-theme-primary">{description}</p> */}
       </div>
       <button

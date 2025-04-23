@@ -206,7 +206,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </svg>
             </div>
           )}
-          <h2 className="text-2xl font-bold text-theme-primary">{selectedApp}</h2>
+          <h2 
+            className="text-2xl font-bold text-theme-primary" 
+            title={selectedApp}
+          >
+            {selectedApp}
+          </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
@@ -413,7 +418,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </svg>
                   </div>
                 )}
-                <h3 className="text-xl font-semibold">{app.AppName}</h3>
+                <h3 
+                  className="text-xl font-semibold truncate max-w-[200px] overflow-hidden" 
+                  title={app.AppName}
+                >
+                  {app.AppName}
+                </h3>
               </div>
               <div className="flex gap-2">
                 <button
