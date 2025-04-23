@@ -1,16 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import { PropsWithChildren, useEffect, FC } from 'react';
+import { PropsWithChildren, FC } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../providers/authProvider.tsx';
 
 export const PublicRoute: FC<PropsWithChildren> = ({ children }) => {
   const { token } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    if (token) {
-      navigate('/', { replace: true });
-    }
-  }, [navigate, token]);
+  if (token) {
+    const from = location.state?.from || '/';
+    return <Navigate to={from} replace />;
+  }
 
   return children;
 };

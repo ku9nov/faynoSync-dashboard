@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import { AuthWrapper } from '../components/auth-wrapper/authWrapper.tsx';
 import { AuthLogo } from '../components/auth-logo/authLogo.tsx';
@@ -17,6 +17,7 @@ export const SignInPage = () => {
   const [respError, setRespError] = useState<string>('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const initialValues: FormValues = {
     username: '',
@@ -38,7 +39,9 @@ export const SignInPage = () => {
     }
     try {
       await login({ username: e.username, password: e.password });
-      navigate('/applications');
+      // Use the 'from' state if available, otherwise default to '/applications'
+      const from = location.state?.from || '/applications';
+      navigate(from);
     } catch (error: any) {
       setRespError(error);
     }
