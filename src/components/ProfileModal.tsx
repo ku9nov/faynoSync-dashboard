@@ -4,6 +4,7 @@ import { useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
+import { useAdminUpdateQuery } from '../hooks/use-query/useAdminUpdateQuery';
 
 interface ProfileModalProps {
   onClose: () => void;
@@ -15,11 +16,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const { channels, refetch: refetchChannels } = useChannelQuery();
   const { platforms, refetch: refetchPlatforms } = usePlatformQuery();
   const { architectures, refetch: refetchArchitectures } = useArchitectureQuery();
-  const [currentPassword, setCurrentPassword] = useState('');
+  const { updateAdmin, isLoading: isUpdatingAdmin } = useAdminUpdateQuery();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   // Refresh data when modal is opened
   useEffect(() => {
@@ -37,7 +39,33 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const generatePassword = () => {
+    const length = 32;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let generatedPassword = '';
+    
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      generatedPassword += charset[randomIndex];
+    }
+    
+    setNewPassword(generatedPassword);
+    setConfirmPassword(generatedPassword);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopySuccess('Password copied to clipboard!');
+        setTimeout(() => setCopySuccess(null), 2000);
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+      }
+    );
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError(null);
     setPasswordSuccess(null);
@@ -52,11 +80,29 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
       return;
     }
 
-    // This is a placeholder for the actual password change functionality
-    setPasswordSuccess('Password change functionality is not implemented yet');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    try {
+      if (!userData) {
+        setPasswordError('User data not available');
+        return;
+      }
+
+      await updateAdmin({
+        id: userData.id,
+        username: userData.username,
+        password: newPassword
+      });
+
+      setPasswordSuccess('Password changed successfully');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Close the modal after a short delay to allow the user to see the success message
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error: any) {
+      setPasswordError(error.message || 'Failed to change password');
+    }
   };
 
   // Helper function to get name by ID
@@ -133,24 +179,32 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <h3 className="text-lg font-semibold text-theme-primary mb-3">Change Password</h3>
                 <form onSubmit={handlePasswordChange}>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto">Current Password</label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded bg-theme-input text-theme-primary font-roboto"
-                      required
-                    />
-                  </div>
-                  <div className="mb-3">
                     <label className="block text-theme-primary mb-1 font-roboto">New Password</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded bg-theme-input text-theme-primary font-roboto"
-                      required
-                    />
+                    <div className="flex">
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-3 py-2 rounded bg-theme-input text-theme-primary font-roboto"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={generatePassword}
+                        className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                      >
+                        Generate
+                      </button>
+                      {newPassword && (
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(newPassword)}
+                          className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                        >
+                          <i className="fas fa-copy"></i>
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <div className="mb-3">
                     <label className="block text-theme-primary mb-1 font-roboto">Confirm New Password</label>
@@ -168,11 +222,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                   {passwordSuccess && (
                     <div className="mb-3 text-green-500">{passwordSuccess}</div>
                   )}
+                  {copySuccess && (
+                    <div className="mb-3 text-green-500">{copySuccess}</div>
+                  )}
                   <button
                     type="submit"
                     className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200"
+                    disabled={isUpdatingAdmin}
                   >
-                    Change Password
+                    {isUpdatingAdmin ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                        Changing Password...
+                      </>
+                    ) : (
+                      'Change Password'
+                    )}
                   </button>
                 </form>
               </div>

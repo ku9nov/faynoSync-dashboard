@@ -18,6 +18,7 @@ interface Permissions {
 }
 
 interface UserData {
+  id: string;
   username: string;
   is_admin: boolean;
   owner?: string;

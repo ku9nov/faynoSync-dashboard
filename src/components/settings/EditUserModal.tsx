@@ -20,6 +20,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -27,6 +28,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
       setNewUsername(username);
       setNewPassword('');
       setError(null);
+      setCopySuccess(null);
     }
   }, [isOpen, username]);
 
@@ -60,6 +62,18 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
     }
     
     setNewPassword(password);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopySuccess('Password copied to clipboard!');
+        setTimeout(() => setCopySuccess(null), 2000);
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+      }
+    );
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -137,10 +151,22 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               >
                 Generate
               </button>
+              {newPassword && (
+                <button
+                  type='button'
+                  onClick={() => copyToClipboard(newPassword)}
+                  className='ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200'
+                >
+                  <i className='fas fa-copy'></i>
+                </button>
+              )}
             </div>
             <p className='text-sm text-gray-400 mt-1'>
               Leave empty to keep current password
             </p>
+            {copySuccess && (
+              <p className='text-sm text-green-500 mt-1'>{copySuccess}</p>
+            )}
           </div>
           <div className='flex justify-end'>
             <button
