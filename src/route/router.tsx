@@ -10,86 +10,44 @@ import { PublicRoute } from './publicRoute.tsx';
 import { AuthProvider } from '../providers/authProvider.tsx';
 import { ToastContainer } from 'react-toastify';
 
+const RootLayout = ({ children }: { children: React.ReactNode }) => (
+  <AuthProvider>
+    <ToastContainer />
+    {children}
+  </AuthProvider>
+);
+
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: (
-      <AuthProvider>
-        <ToastContainer />
-        <PrivateRoute>
-          <HomePage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><HomePage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/applications',
-    element: (
-      <AuthProvider>
-        <PrivateRoute>
-          <HomePage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><HomePage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/applications/:appName',
-    element: (
-      <AuthProvider>
-        <PrivateRoute>
-          <HomePage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><HomePage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/channels',
-    element: (
-      <AuthProvider>
-        <PrivateRoute>
-          <ChannelsPage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><ChannelsPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/platforms',
-    element: (
-      <AuthProvider>
-        <PrivateRoute>
-          <PlatformsPage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><PlatformsPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/architectures',
-    element: (
-      <AuthProvider>
-        <PrivateRoute>
-          <ArchitecturesPage />
-        </PrivateRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PrivateRoute><ArchitecturesPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/signin',
-    element: (
-      <AuthProvider>
-        <PublicRoute>
-          <SignInPage />
-        </PublicRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PublicRoute><SignInPage /></PublicRoute></RootLayout>,
   },
   {
     path: '/signup',
-    element: (
-      <AuthProvider>
-        <PublicRoute>
-          <SignUpPage />
-        </PublicRoute>
-      </AuthProvider>
-    ),
+    element: <RootLayout><PublicRoute><SignUpPage /></PublicRoute></RootLayout>,
   },
 ]);

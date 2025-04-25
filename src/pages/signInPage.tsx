@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as Yup from 'yup';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form } from 'formik';
 import { AuthWrapper } from '../components/auth-wrapper/authWrapper.tsx';
 import { AuthLogo } from '../components/auth-logo/authLogo.tsx';
@@ -17,6 +17,7 @@ export const SignInPage = () => {
   const [respError, setRespError] = useState<string>('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const initialValues: FormValues = {
     username: '',
@@ -38,7 +39,9 @@ export const SignInPage = () => {
     }
     try {
       await login({ username: e.username, password: e.password });
-      navigate('/applications');
+      // Use the 'from' state if available, otherwise default to '/applications'
+      const from = location.state?.from || '/applications';
+      navigate(from);
     } catch (error: any) {
       setRespError(error);
     }
@@ -48,8 +51,8 @@ export const SignInPage = () => {
     <AuthWrapper>
       <div className='flex md:flex-row flex-col-reverse w-full'>
         <div className='w-full md:w-1/2 flex items-center justify-center p-8'>
-          <div className='bg-white bg-opacity-90  rounded-lg shadow-lg p-8 w-full max-w-md'>
-            <h2 className='text-4xl font-bold mb-8 text-center text-purple-800 font-sans'>
+          <div className='bg-theme-modal bg-opacity-90 rounded-lg shadow-lg p-8 w-full max-w-md'>
+            <h2 className='text-4xl font-bold mb-8 text-center text-theme-auth-title font-sans'>
               SignIn
             </h2>
             <Formik
@@ -70,7 +73,7 @@ export const SignInPage = () => {
                     type='Password'
                     placeholder='password'
                   />
-                  <div className='w-full text-red-600 text-center'>
+                  <div className='w-full text-theme-danger text-center'>
                     {respError && respError}
                   </div>
                   <div className='flex flex-col gap-3 mt-4'>

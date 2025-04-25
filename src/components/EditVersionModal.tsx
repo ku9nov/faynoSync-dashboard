@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { Artifact, useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { DeleteArtifactConfirmationModal } from './DeleteArtifactConfirmationModal';
+import { AxiosError } from 'axios';
+import axiosInstance from '../config/axios';
 
 interface EditVersionModalProps {
   appName: string;
@@ -29,7 +31,10 @@ interface EditVersionModalProps {
     channel: string;
   }) => void;
 }
-
+interface ErrorResponse {
+  error: string;
+  details?: string;
+}
 export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   appName,
   version,
@@ -47,13 +52,15 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{ error: string; details?: string } | null>(null);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
   const { deleteArtifact } = useAppsQuery();
-
+  const [error, setError] = useState<{ error: string; details?: string } | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   React.useEffect(() => {
   }, [currentData]);
 
@@ -78,8 +85,18 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         onClose();
       }, 500);
     } catch (err) {
-      setError('Failed to save changes. Please try again.');
-      console.error('Error saving changes:', err);
+      const axiosError = err as AxiosError<ErrorResponse>;
+      if (axiosError.response?.data) {
+        setError({
+          error: axiosError.response.data.error || 'Failed to update',
+          details: axiosError.response.data.details
+        });
+      } else {
+        setError({
+          error: 'Failed to update',
+          details: axiosError.message
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -125,13 +142,29 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const confirmDeleteArtifact = async () => {
     if (artifactToDelete) {
       try {
+        setDeleteError(null);
         await deleteArtifact(currentData.ID, appName, version, artifactToDelete.index);
         setFormData(prev => ({
           ...prev,
           Artifacts: prev.Artifacts.filter((_, i) => i !== artifactToDelete.index)
         }));
+        setDeleteSuccess(true);
+        setTimeout(() => {
+          setDeleteSuccess(false);
+        }, 3000);
       } catch (error) {
-        console.error('Error deleting artifact:', error);
+        const axiosError = error as AxiosError<ErrorResponse>;
+        if (axiosError.response?.data) {
+          setDeleteError({
+            error: axiosError.response.data.error || 'Failed to delete artifact',
+            details: axiosError.response.data.details
+          });
+        } else {
+          setDeleteError({
+            error: 'Failed to delete artifact',
+            details: axiosError.message
+          });
+        }
       }
       setShowDeleteConfirmation(false);
       setArtifactToDelete(null);
@@ -146,49 +179,94 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
            );
   }, [formData.Artifacts]);
 
+  const handleDownload = (artifact: Artifact) => {
+    // First try to fetch the link with authentication
+    axiosInstance.get(artifact.link)
+      .then(response => {
+        // Check if the response is JSON with a download_url
+        if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
+          // If it's a JSON with download_url, use that URL
+          window.open(response.data.download_url, '_blank');
+        } else {
+          // Otherwise, it's a direct link to a file, use it directly
+          window.open(artifact.link, '_blank');
+        }
+      })
+      .catch(() => {
+        // If there's an error (like 401), it might be a direct link to a public file
+        // In that case, just open the link directly
+        window.open(artifact.link, '_blank');
+      });
+  };
+
   return (
     <>
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
         onClick={handleBackdropClick}
       >
-        <div className="bg-gradient-to-b from-purple-800 to-purple-400 p-8 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto relative">
+        <div className="bg-theme-modal-gradient p-8 rounded-lg w-[800px] max-h-[90vh] overflow-y-auto relative">
           {isLoading && (
-            <div className="fixed top-4 right-4 bg-purple-900 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+            <div className="fixed top-4 right-4 bg-theme-button-primary text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-theme-primary"></div>
               <span className="font-roboto">Saving changes...</span>
             </div>
           )}
           {isSuccess && (
-            <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+            <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
               <span className="font-roboto">Changes saved successfully!</span>
             </div>
           )}
-          {error && (
-            <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-              <span className="font-roboto">{error}</span>
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {error.error}</span>
+            {error.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {showDetails && error.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {error.details}
             </div>
           )}
-          <h2 className="text-2xl font-bold mb-4 text-white font-roboto">
+        </div>
+      )}
+          <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
             Edit Version {version}
           </h2>
           <div className="mb-4">
-            <p className="text-white">App Name: {appName}</p>
-            <p className="text-white">Version: {version}</p>
-            <p className="text-white">Channel: {channel}</p>
+            <p className="text-theme-primary">App Name: {appName}</p>
+            <p className="text-theme-primary">Version: {version}</p>
+            <p className="text-theme-primary">Channel: {channel}</p>
           </div>
 
           {hasValidArtifacts ? (
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-3 text-white font-roboto">Existing Artifacts</h3>
+              <h3 className="text-xl font-bold mb-3 text-theme-primary font-roboto">Existing Artifacts</h3>
               <div className="space-y-4">
                 {formData.Artifacts.map((artifact, index) => (
                   <div
                     key={index}
-                    className="bg-white/10 p-4 rounded-lg text-white hover:bg-white/20 transition-colors"
+                    className="bg-theme-card p-4 rounded-lg text-theme-primary hover:bg-theme-card-hover transition-colors"
                   >
                     <div className="flex justify-between items-center">
                       <div>
@@ -197,12 +275,15 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         <p className="text-sm text-gray-300">Package: {artifact.package}</p>
                       </div>
                       <div className="flex items-center">
-                        <a href={artifact.link} target="_blank" rel="noopener noreferrer" className="text-green-500 hover:text-green-400">
+                        <button 
+                          onClick={() => handleDownload(artifact)} 
+                          className="text-green-500 hover:text-green-400"
+                        >
                           <i className="fas fa-download"></i>
-                        </a>
+                        </button>
                         <button
                           onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
-                          className="text-red-500 hover:text-red-400 ml-4"
+                          className="text-theme-danger hover:text-red-400 ml-4"
                         >
                           <i className="fas fa-times"></i>
                         </button>
@@ -222,7 +303,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-white mb-2 font-roboto">
+              <label className="block text-theme-primary mb-2 font-roboto">
                 Add New Files
               </label>
               <div className="relative">
@@ -236,7 +317,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 />
                 <label
                   htmlFor="file-upload"
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center font-roboto"
+                  className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -249,21 +330,21 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                   {selectedFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between bg-purple-700 bg-opacity-50 p-3 rounded-lg"
+                      className="flex items-center justify-between bg-theme-input bg-opacity-50 p-3 rounded-lg"
                     >
                       <div className="flex items-center space-x-2">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <div>
-                          <div className="text-white font-roboto">{file.name}</div>
+                          <div className="text-theme-primary font-roboto">{file.name}</div>
                           <div className="text-purple-200 text-sm font-roboto">{formatFileSize(file.size)}</div>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
-                        className="text-white hover:text-red-300 transition-colors duration-200"
+                        className="text-theme-primary hover:text-red-300 transition-colors duration-200"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -277,7 +358,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   {platforms.length > 0 && (
                     <div>
-                      <label className="block text-white mb-2 font-roboto">
+                      <label className="block text-theme-primary mb-2 font-roboto">
                         Platform
                       </label>
                       <select
@@ -297,7 +378,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                   )}
                   {architectures.length > 0 && (
                     <div>
-                      <label className="block text-white mb-2 font-roboto">
+                      <label className="block text-theme-primary mb-2 font-roboto">
                         Architecture
                       </label>
                       <select
@@ -320,20 +401,20 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-white mb-2 font-roboto">
+              <label className="block text-theme-primary mb-2 font-roboto">
                 Changelog
               </label>
               <div className="flex gap-2 mb-2">
                 <button
                   type="button"
                   onClick={() => setIsPreview(!isPreview)}
-                  className="text-white text-sm hover:text-gray-300"
+                  className="text-theme-primary text-sm hover:text-gray-300"
                 >
                   {isPreview ? 'Edit' : 'Preview'}
                 </button>
               </div>
               {isPreview ? (
-                <div className="bg-white p-4 rounded prose prose-sm max-w-none">
+                <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
                   <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
                 </div>
               ) : (
@@ -347,7 +428,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             </div>
 
             <div className="flex gap-4">
-              <label className="flex items-center text-white font-roboto">
+              <label className="flex items-center text-theme-primary font-roboto">
                 <input
                   type="checkbox"
                   checked={formData.Published}
@@ -356,7 +437,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 />
                 Published
               </label>
-              <label className="flex items-center text-white font-roboto">
+              <label className="flex items-center text-theme-primary font-roboto">
                 <input
                   type="checkbox"
                   checked={formData.Critical}
@@ -377,8 +458,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-700 transition-colors duration-200"
-                disabled={selectedFiles.length > 0 && (!platform || !arch)}
+                className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
+                disabled={selectedFiles.length > 0 && 
+                  ((platforms.length > 0 && !platform) || (architectures.length > 0 && !arch))}
               >
                 Save
               </button>
@@ -394,9 +476,50 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           onClose={() => {
             setShowDeleteConfirmation(false);
             setArtifactToDelete(null);
+            setDeleteError(null);
           }}
           onConfirm={confirmDeleteArtifact}
         />
+      )}
+
+      {deleteSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-roboto">Artifact deleted successfully!</span>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {deleteError.error}</span>
+            {deleteError.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {showDetails && deleteError.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {deleteError.details}
+            </div>
+          )}
+        </div>
       )}
     </>
   );
