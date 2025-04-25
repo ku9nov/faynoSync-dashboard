@@ -10,7 +10,7 @@ export type Platform = {
 export const usePlatformQuery = () => {
   const queryClient = useQueryClient();
 
-  const { data: platforms = [], isLoading } = useQuery<Platform[]>({
+  const { data: platforms = [], isLoading, refetch } = useQuery<Platform[]>({
     queryKey: ['platforms'],
     queryFn: async () => {
       const response = await axiosInstance.get('/platform/list');
@@ -71,5 +71,5 @@ export const usePlatformQuery = () => {
     await updatePlatformMutation.mutateAsync({ id, newName });
   };
 
-  return { platforms, deletePlatform, createPlatform, updatePlatform, isLoading };
+  return { platforms, deletePlatform, createPlatform, updatePlatform, isLoading, refetch };
 }; 

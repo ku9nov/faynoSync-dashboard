@@ -2,6 +2,13 @@
 
 ![demo-quality](https://github.com/user-attachments/assets/40a80baa-142b-466a-8e5b-c2153dac5cae)
 
+### 🧠 This frontend was built entirely with CursorAI
+
+The entire UI was created with the help of [CursorAI](https://www.cursor.sh/) — an AI assistant in VSCode that made this possible, since I'm a **DevOps engineer**, not a frontend developer 😅
+
+I did my best, but if you see anything that can be improved — **any suggestions, feedback, or corrections are more than welcome!** 🙌
+
+
 ## Description 📄
 
 This frontend is designed to work with the [FaynoSync API](https://github.com/ku9nov/faynoSync), providing seamless service updates.

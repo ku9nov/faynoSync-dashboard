@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axiosInstance from '../config/axios';
+import { AxiosError } from 'axios';
 
 interface EditAppModalProps {
   onClose: () => void;
@@ -12,6 +13,11 @@ interface EditAppModalProps {
   };
 }
 
+interface ErrorResponse {
+  error: string;
+  details?: string;
+}
+
 export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, appData }) => {
   const [formData, setFormData] = useState({
     app: appData.app,
@@ -20,7 +26,8 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ error: string; details?: string } | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,8 +75,18 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
       onClose();
 
     } catch (err) {
-      setError('Failed to update application. Please try again.');
-      console.error('Error updating app:', err);
+      const axiosError = err as AxiosError<ErrorResponse>;
+      if (axiosError.response?.data) {
+        setError({
+          error: axiosError.response.data.error || 'Failed to update application',
+          details: axiosError.response.data.details
+        });
+      } else {
+        setError({
+          error: 'Failed to update application',
+          details: axiosError.message
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,11 +126,36 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
             <span className="font-roboto">Application updated successfully!</span>
           </div>
         )}
-        {error && (
-          <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-50">
-            <span className="font-roboto">{error}</span>
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {error.error}</span>
+            {error.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
           </div>
-        )}
+          {showDetails && error.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {error.details}
+            </div>
+          )}
+        </div>
+      )}
         <h2 className="text-2xl font-bold text-theme-primary mb-4 font-roboto">Edit Application</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

@@ -23,7 +23,12 @@ export const ArchitectureCard: React.FC<ArchitectureCardProps> = ({
       <div
         className='bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors'
         onClick={onClick}>
-        <h2 className='text-xl font-semibold mb-2 text-theme-primary'>{archName}</h2>
+        <h2 
+          className='text-xl font-semibold mb-2 text-theme-primary truncate max-w-[200px] overflow-hidden' 
+          title={archName}
+        >
+          {archName}
+        </h2>
       </div>
       <button
         onClick={handleDeleteClick}
