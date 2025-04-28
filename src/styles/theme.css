@@ -35,9 +35,9 @@
 
 .dark {
   /* Dark theme variables */
-  --bg-gradient-start: theme('colors.gray.900');
+  --bg-gradient-start: theme('colors.gray.800');
   --bg-gradient-mid: theme('colors.indigo.900');
-  --bg-gradient-end: theme('colors.black');
+  --bg-gradient-end: theme('colors.gray.900');
   --bg-card: rgba(0, 0, 0, 0.3);
   --bg-card-hover: rgba(0, 0, 0, 0.4);
   --text-primary: theme('colors.gray.200');
