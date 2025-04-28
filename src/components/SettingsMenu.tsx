@@ -12,10 +12,11 @@ interface SettingsMenuProps {
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, themeMode, setThemeMode } = useTheme();
   const { data: userData } = useUsersQuery();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,6 +44,19 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
 
   const handleSettingsClick = () => {
     setShowSettingsModal(true);
+  };
+
+  const getThemeIcon = () => {
+    switch (themeMode) {
+      case 'dark':
+        return 'fa-moon';
+      case 'light':
+        return 'fa-sun';
+      case 'auto':
+        return 'fa-clock';
+      default:
+        return 'fa-sun';
+    }
   };
 
   return (
@@ -76,15 +90,48 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
             Settings
           </button>
         )}
-        <button 
-          onClick={toggleTheme}
-          className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text flex items-center justify-between"
-        >
-          <span>
-            <i className={`fas ${theme === 'dark' ? 'fa-moon' : 'fa-sun'} mr-2`}></i>
-            {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-          </span>
-        </button>
+        <div className="relative">
+          <button 
+            onMouseEnter={() => setShowThemeMenu(true)}
+            onMouseLeave={() => setShowThemeMenu(false)}
+            className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text flex items-center justify-between"
+          >
+            <span>
+              <i className={`fas ${getThemeIcon()} mr-2`}></i>
+              Theme
+            </span>
+            {/* <i className="fas fa-chevron-right"></i> */}
+          </button>
+          {showThemeMenu && (
+            <div 
+              className="absolute right-full top-0 w-32 bg-theme-modal rounded-lg shadow-lg py-2 border border-theme-modal"
+              onMouseEnter={() => setShowThemeMenu(true)}
+              onMouseLeave={() => setShowThemeMenu(false)}
+            >
+              <button 
+                onClick={() => setThemeMode('light')}
+                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+              >
+                <i className="fas fa-sun mr-2"></i>
+                Light
+              </button>
+              <button 
+                onClick={() => setThemeMode('dark')}
+                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+              >
+                <i className="fas fa-moon mr-2"></i>
+                Dark
+              </button>
+              <button 
+                onClick={() => setThemeMode('auto')}
+                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+              >
+                <i className="fas fa-clock mr-2"></i>
+                Auto
+              </button>
+            </div>
+          )}
+        </div>
         <div className="border-t border-theme-modal my-2"></div>
         <button 
           onClick={handleLogout}
