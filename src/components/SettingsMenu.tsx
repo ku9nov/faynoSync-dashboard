@@ -12,7 +12,7 @@ interface SettingsMenuProps {
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
-  const { theme, themeMode, setThemeMode } = useTheme();
+  const { themeMode, setThemeMode } = useTheme();
   const { data: userData } = useUsersQuery();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
