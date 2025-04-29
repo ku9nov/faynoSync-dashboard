@@ -1,19 +1,25 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { SignInPage } from '../pages/signInPage.tsx';
-import { SignUpPage } from '../pages/signUpPage.tsx';
-import { HomePage } from '../pages/homePage.tsx';
-import { ChannelsPage } from '../pages/channelsPage.tsx';
-import { PlatformsPage } from '../pages/platformsPage.tsx';
-import { ArchitecturesPage } from '../pages/architecturesPage.tsx';
+import { lazy, Suspense } from 'react';
 import { PrivateRoute } from './privateRoute.tsx';
 import { PublicRoute } from './publicRoute.tsx';
 import { AuthProvider } from '../providers/authProvider.tsx';
 import { ToastContainer } from 'react-toastify';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+
+// Lazy load page components
+const SignInPage = lazy(() => import('../pages/signInPage.tsx').then(module => ({ default: module.SignInPage })));
+const SignUpPage = lazy(() => import('../pages/signUpPage.tsx').then(module => ({ default: module.SignUpPage })));
+const HomePage = lazy(() => import('../pages/homePage.tsx').then(module => ({ default: module.HomePage })));
+const ChannelsPage = lazy(() => import('../pages/channelsPage.tsx').then(module => ({ default: module.ChannelsPage })));
+const PlatformsPage = lazy(() => import('../pages/platformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
+const ArchitecturesPage = lazy(() => import('../pages/architecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
     <ToastContainer />
-    {children}
+    <Suspense fallback={<LoadingSpinner />}>
+      {children}
+    </Suspense>
   </AuthProvider>
 );
 
