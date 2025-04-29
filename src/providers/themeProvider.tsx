@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
+type ThemeMode = 'light' | 'dark' | 'auto';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -17,27 +19,42 @@ export const useTheme = () => {
   return context;
 };
 
+const isNightTime = (): boolean => {
+  const currentHour = new Date().getHours();
+  return currentHour >= 20 || currentHour < 6; // Consider night time from 8 PM to 6 AM
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const savedMode = localStorage.getItem('themeMode') as ThemeMode;
+    return savedMode || 'auto';
+  });
+
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check if theme is stored in localStorage
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      return savedTheme;
+    if (themeMode === 'auto') {
+      if (isNightTime()) {
+        return 'dark';
+      }
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+      return 'light';
     }
-    
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    
-    return 'light';
+    return themeMode;
   });
 
   useEffect(() => {
-    // Save theme to localStorage
-    localStorage.setItem('theme', theme);
+    localStorage.setItem('themeMode', themeMode);
     
-    // Apply theme to document
+    if (themeMode === 'auto') {
+      const shouldBeDark = isNightTime();
+      setTheme(shouldBeDark ? 'dark' : 'light');
+    } else {
+      setTheme(themeMode);
+    }
+  }, [themeMode]);
+
+  useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
@@ -45,12 +62,22 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
+  // Check time periodically and update theme only in auto mode
+  useEffect(() => {
+    if (themeMode !== 'auto') return;
+
+    const checkTimeAndUpdateTheme = () => {
+      const shouldBeDark = isNightTime();
+      setTheme(shouldBeDark ? 'dark' : 'light');
+    };
+
+    checkTimeAndUpdateTheme();
+    const interval = setInterval(checkTimeAndUpdateTheme, 60000);
+    return () => clearInterval(interval);
+  }, [themeMode]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, themeMode, setThemeMode }}>
       {children}
     </ThemeContext.Provider>
   );
