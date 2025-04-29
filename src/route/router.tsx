@@ -4,6 +4,7 @@ import { PrivateRoute } from './privateRoute.tsx';
 import { PublicRoute } from './publicRoute.tsx';
 import { AuthProvider } from '../providers/authProvider.tsx';
 import { ToastContainer } from 'react-toastify';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 // Lazy load page components
 const SignInPage = lazy(() => import('../pages/signInPage.tsx').then(module => ({ default: module.SignInPage })));
@@ -13,13 +14,10 @@ const ChannelsPage = lazy(() => import('../pages/channelsPage.tsx').then(module 
 const PlatformsPage = lazy(() => import('../pages/platformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
 const ArchitecturesPage = lazy(() => import('../pages/architecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
 
-// Loading component
-const PageLoader = () => <div>Loading...</div>;
-
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
     <ToastContainer />
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<LoadingSpinner />}>
       {children}
     </Suspense>
   </AuthProvider>
