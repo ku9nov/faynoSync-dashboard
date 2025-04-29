@@ -19,8 +19,19 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="w-64 min-h-screen bg-theme-gradient">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-theme-primary mb-8">faynosync</h1>
+      <div className="p-6 pt-3">
+        <div className="mb-3 flex items-center justify-center w-full">
+          <div 
+            onClick={() => navigate('/applications')}
+            className="w-full cursor-pointer"
+          >
+            <img
+              src="/banner-small.png"
+              alt="FaynoSync Logo"
+              className="w-full h-[80px] object-contain rounded-lg "
+            />
+          </div>
+        </div>
         <nav>
           <button 
             className={getButtonClass('applications')}
