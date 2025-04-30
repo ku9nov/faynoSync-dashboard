@@ -37,6 +37,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
   
   // Default permissions with proper typing
   const [permissions, setPermissions] = useState<Permissions>({
@@ -86,6 +87,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       setUsername('');
       setPassword('');
       setError(null);
+      setCopySuccess(null);
       setPermissions({
         apps: {
           create: false,
@@ -172,6 +174,18 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     }
     
     setPassword(generatedPassword);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopySuccess('Password copied to clipboard!');
+        setTimeout(() => setCopySuccess(null), 2000);
+      },
+      (err) => {
+        console.error('Could not copy text: ', err);
+      }
+    );
   };
 
   const handlePermissionChange = (category: string, permission: string, checked: boolean) => {
@@ -340,7 +354,19 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   >
                     Generate
                   </button>
+                  {password && (
+                    <button
+                      type='button'
+                      onClick={() => copyToClipboard(password)}
+                      className='ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200'
+                    >
+                      <i className='fas fa-copy'></i>
+                    </button>
+                  )}
                 </div>
+                {copySuccess && (
+                  <p className='text-sm text-green-500 mt-1'>{copySuccess}</p>
+                )}
               </div>
             </div>
             
@@ -414,21 +440,30 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     
                     {showAppsDropdown && (
                       <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                        {Array.isArray(apps) && apps.map(app => (
-                          <div 
-                            key={app.ID}
-                            className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('apps', app.ID)}
-                          >
-                            <input
-                              type='checkbox'
-                              checked={permissions.apps.allowed.includes(app.ID)}
-                              onChange={() => {}}
-                              className='mr-2'
-                            />
-                            <span className='text-theme-text'>{app.AppName}</span>
-                          </div>
-                        ))}
+                        {Array.isArray(apps) && apps.map(app => {
+                          const isSelected = permissions.apps.allowed.includes(app.ID);
+                          return (
+                            <div 
+                              key={app.ID}
+                              className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                              onClick={() => {
+                                if (isSelected) {
+                                  handleRemoveAllowedItem('apps', app.ID);
+                                } else {
+                                  handleAllowedItemSelect('apps', app.ID);
+                                }
+                              }}
+                            >
+                              <input
+                                type='checkbox'
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className='mr-2'
+                              />
+                              <span className='text-theme-text'>{app.AppName}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

@@ -74,11 +74,11 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96">
+      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] flex flex-col">
         <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
           Select Artifact to Download
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           {artifacts.map((artifact, index) => (
             <div
               key={index}

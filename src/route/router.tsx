@@ -18,7 +18,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
     <ToastContainer />
     <Suspense fallback={<LoadingSpinner />}>
-      {children}
+    {children}
     </Suspense>
   </AuthProvider>
 );
