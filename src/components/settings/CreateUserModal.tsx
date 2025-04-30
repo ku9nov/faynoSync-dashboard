@@ -414,21 +414,30 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     
                     {showAppsDropdown && (
                       <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
-                        {Array.isArray(apps) && apps.map(app => (
-                          <div 
-                            key={app.ID}
-                            className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
-                            onClick={() => handleAllowedItemSelect('apps', app.ID)}
-                          >
-                            <input
-                              type='checkbox'
-                              checked={permissions.apps.allowed.includes(app.ID)}
-                              onChange={() => {}}
-                              className='mr-2'
-                            />
-                            <span className='text-theme-text'>{app.AppName}</span>
-                          </div>
-                        ))}
+                        {Array.isArray(apps) && apps.map(app => {
+                          const isSelected = permissions.apps.allowed.includes(app.ID);
+                          return (
+                            <div 
+                              key={app.ID}
+                              className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                              onClick={() => {
+                                if (isSelected) {
+                                  handleRemoveAllowedItem('apps', app.ID);
+                                } else {
+                                  handleAllowedItemSelect('apps', app.ID);
+                                }
+                              }}
+                            >
+                              <input
+                                type='checkbox'
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className='mr-2'
+                              />
+                              <span className='text-theme-text'>{app.AppName}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
