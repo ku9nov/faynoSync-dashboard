@@ -19,6 +19,7 @@ export const HomePage = () => {
   const [selectedVersion, setSelectedVersion] = React.useState<string | null>(null);
   const [selectedChangelog, setSelectedChangelog] = React.useState<ChangelogEntry[]>([]);
   const [refreshKey, setRefreshKey] = React.useState(0);
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   React.useEffect(() => {
     setSelectedApp(appName || null);
@@ -58,6 +59,10 @@ export const HomePage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+  };
+
   return (
     <div className="min-h-screen bg-theme-gradient font-roboto">
       <div className="flex">
@@ -78,6 +83,7 @@ export const HomePage = () => {
                 Create app
               </button>
             }
+            onSearchChange={handleSearchChange}
           />
           <Dashboard 
             selectedApp={selectedApp}
@@ -85,6 +91,7 @@ export const HomePage = () => {
             onChangelogClick={handleChangelogClick}
             onBackClick={handleBackClick}
             refreshKey={refreshKey}
+            searchTerm={searchTerm}
           />
         </main>
       </div>

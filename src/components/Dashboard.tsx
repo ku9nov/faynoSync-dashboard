@@ -9,6 +9,7 @@ import { DeleteAppConfirmationModal } from './DeleteAppConfirmationModal';
 import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '../config/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearch } from '../hooks/useSearch.ts';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -16,6 +17,7 @@ interface DashboardProps {
   onChangelogClick: (version: string, changelog: ChangelogEntry[]) => void;
   onBackClick: () => void;
   refreshKey?: number;
+  searchTerm: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -24,6 +26,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onChangelogClick,
   onBackClick,
   refreshKey = 0,
+  searchTerm
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
@@ -38,9 +41,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showDeleteAppModal, setShowDeleteAppModal] = React.useState(false);
   const [selectedAppData, setSelectedAppData] = React.useState<AppListItem | null>(null);
 
-  const appList = apps as AppListItem[];
-  const paginatedVersions = apps as PaginatedResponse<AppVersion>;
-  const appVersions = paginatedVersions?.items || [];
+  const appList = React.useMemo(() => {
+    if (!apps) return [];
+    if (Array.isArray(apps)) {
+      return apps as AppListItem[];
+    }
+    if ('items' in apps) {
+      return (apps as PaginatedResponse<AppVersion>).items;
+    }
+    return [];
+  }, [apps]);
+
+  const paginatedVersions = React.useMemo(() => {
+    if (!apps) return { items: [], total: 0, page: 1, limit: 9 };
+    if ('items' in apps) {
+      return apps as PaginatedResponse<AppVersion>;
+    }
+    return { items: [], total: 0, page: 1, limit: 9 };
+  }, [apps]);
+
+  const appVersions = paginatedVersions.items || [];
+
+  const filteredAppList = useSearch(appList, searchTerm) as AppListItem[];
 
   const { data: appLogo } = useQuery({
     queryKey: ['appLogo', selectedApp],
@@ -214,46 +236,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        {isLoading ? (
+          {isLoading ? (
             <div className="col-span-full flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
-          ) :
-          appVersions.map((app) => (
-            <div
-              key={app.ID}
-              className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
-            >
-              <ActionIcons
-                onDownload={() => handleDownload(app)}
-                onEdit={() => handleEdit(app)}
-                onDelete={() => handleDelete(app)}
-                showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-              />
-              <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
-              <p className="mb-4">Channel: {app.Channel}</p>
-              <div className="flex gap-2">
-                <span className={`px-2 py-1 rounded text-sm ${
-                  app.Published ? 'bg-green-500' : 'bg-red-500'
-                }`}>
-                  {app.Published ? 'Published' : 'Not published'}
-                </span>
-                {app.Critical && (
-                  <span className="px-2 py-1 rounded text-sm bg-red-500">
-                    Critical
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                className="mt-4 text-theme-primary hover:text-theme-primary-hover"
-              >
-                View changelog
-              </button>
+          ) : appVersions.length === 0 ? (
+            <div className="col-span-full text-center text-theme-primary text-xl">
+              No versions have been uploaded yet.
             </div>
-          ))}
+          ) : (
+            appVersions.map((app) => (
+              <div
+                key={app.ID}
+                className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
+              >
+                <ActionIcons
+                  onDownload={() => handleDownload(app)}
+                  onEdit={() => handleEdit(app)}
+                  onDelete={() => handleDelete(app)}
+                  showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                  artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                />
+                <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
+                <p className="mb-4">Channel: {app.Channel}</p>
+                <div className="flex gap-2">
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    app.Published ? 'bg-green-500' : 'bg-red-500'
+                  }`}>
+                    {app.Published ? 'Published' : 'Not published'}
+                  </span>
+                  {app.Critical && (
+                    <span className="px-2 py-1 rounded text-sm bg-red-500">
+                      Critical
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                  className="mt-4 text-theme-primary hover:text-theme-primary-hover"
+                >
+                  View changelog
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
         {totalPages > 1 && (
@@ -342,16 +368,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {isLoading ? (
-            <div className="col-span-full flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
-            </div>
-          ) : !appList || appList.length === 0 ? (
+      {isLoading ? (
+        <div className="col-span-full flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
+        </div>
+      ) : !filteredAppList || filteredAppList.length === 0 ? (
         <div className="col-span-full text-center text-theme-primary text-xl">
-          No applications has been created yet.
+          {searchTerm ? 'No applications found matching your search.' : 'No applications have been created yet.'}
         </div>
       ) : (
-        appList.map((app) => (
+        filteredAppList.map((app) => (
           <div
             key={app.ID}
             onClick={() => onAppClick(app.AppName)}

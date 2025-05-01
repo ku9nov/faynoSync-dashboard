@@ -6,6 +6,7 @@ import { EditArchitectureModal } from '../components/EditArchitectureModal';
 import { ArchitectureCard } from '../components/ArchitectureCard';
 import { DeleteArchitectureConfirmationModal } from '../components/DeleteArchitectureConfirmationModal';
 import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
+import { useSearch } from '../hooks/useSearch.ts';
 
 export const ArchitecturesPage = () => {
   const [createArchitectureOpen, setCreateArchitectureOpen] =
@@ -17,6 +18,7 @@ export const ArchitecturesPage = () => {
 
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
   const [architectureToDelete, setArchitectureToDelete] = React.useState<{ id: string; name: string } | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
@@ -25,6 +27,8 @@ export const ArchitecturesPage = () => {
     setSelectedArchitecture({ id: architecture.ID, name: architecture.ArchID });
 
   const { architectures, deleteArchitecture, isLoading } = useArchitectureQuery();
+
+  const filteredArchitectures = useSearch(architectures, searchTerm) as Architecture[];
 
   const handleDelete = async (archId: string, archName: string) => {
     setArchitectureToDelete({ id: archId, name: archName });
@@ -53,18 +57,19 @@ export const ArchitecturesPage = () => {
             title='Architectures'
             onCreateClick={openCreateArchitecture}
             createButtonText='Create Architecture'
+            onSearchChange={setSearchTerm}
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
-          ) : architectures.length === 0 ? (
+          ) : filteredArchitectures.length === 0 ? (
             <div className="text-center text-theme-primary text-xl mt-8">
-              No architecture has been created yet.
+              {searchTerm ? 'No architectures found matching your search.' : 'No architectures have been created yet.'}
             </div>
           ) : (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-              {architectures.map((architecture: Architecture) => (
+              {filteredArchitectures.map((architecture: Architecture) => (
                 <ArchitectureCard
                   key={architecture.ID}
                   archName={architecture.ArchID}
