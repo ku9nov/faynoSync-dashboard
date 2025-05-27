@@ -250,14 +250,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 key={app.ID}
                 className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
               >
-                <ActionIcons
-                  onDownload={() => handleDownload(app)}
-                  onEdit={() => handleEdit(app)}
-                  onDelete={() => handleDelete(app)}
-                  showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                  artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-                />
-                <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <h3 className="text-xl font-semibold truncate min-w-0" title={`Version ${app.Version}`}>
+                    Version {app.Version}
+                  </h3>
+                  <ActionIcons
+                    onDownload={() => handleDownload(app)}
+                    onEdit={() => handleEdit(app)}
+                    onDelete={() => handleDelete(app)}
+                    showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                    artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                  />
+                </div>
                 <p className="mb-4">Channel: {app.Channel}</p>
                 <div className="flex gap-2">
                   <span className={`px-2 py-1 rounded text-sm ${
@@ -384,9 +388,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 min-w-0">
                 {app.Logo ? (
-                  <div className="relative w-12 h-12">
+                  <div className="relative w-12 h-12 flex-shrink-0">
                     <img 
                       src={app.Logo} 
                       alt={`${app.AppName} logo`}
@@ -451,7 +455,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {app.AppName}
                 </h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={(e) => handleEditApp(e, app)}
                   className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"

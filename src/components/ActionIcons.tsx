@@ -50,7 +50,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
   };
 
   return (
-    <div className="absolute top-2 right-2 flex gap-2">
+    <div className="flex gap-2 flex-shrink-0">
       {showDownload && (
         <>
           <button
@@ -58,7 +58,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
               e.stopPropagation();
               onDownload();
             }}
-            className="p-2 text-green-500 hover:text-green-600 transition-colors duration-200"
+            className="p-2 text-green-500 hover:text-green-600 transition-colors duration-200 flex-shrink-0"
             title="Download"
           >
             <i className="fas fa-download"></i>
@@ -66,7 +66,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           {artifactLink && (
             <button
               onClick={handleCopyLink}
-              className="p-2 text-theme-secondary hover:text-theme-primary transition-colors duration-200"
+              className="p-2 text-theme-secondary hover:text-theme-primary transition-colors duration-200 flex-shrink-0"
               title={copied ? "Copied!" : "Copy link"}
             >
               <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`}></i>
@@ -79,7 +79,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onEdit();
         }}
-        className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
+        className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200 flex-shrink-0"
         title="Edit"
       >
         <i className="fas fa-edit"></i>
@@ -89,7 +89,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onDelete();
         }}
-        className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200"
+        className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200 flex-shrink-0"
         title="Delete"
       >
         <i className="fas fa-trash"></i>
