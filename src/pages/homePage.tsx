@@ -84,6 +84,7 @@ export const HomePage = () => {
               </button>
             }
             onSearchChange={handleSearchChange}
+            hideSearch={!!selectedApp}
           />
           <Dashboard 
             selectedApp={selectedApp}
