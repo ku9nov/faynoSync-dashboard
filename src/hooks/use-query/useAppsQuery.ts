@@ -44,14 +44,42 @@ export type PaginatedResponse<T> = {
   limit: number;
 };
 
-export const useAppsQuery = (appName?: string, page: number = 1, refreshKey: number = 0) => {
+export interface VersionFilters {
+  channel: string;
+  published: boolean | null;
+  critical: boolean | null;
+  platform: string;
+  arch: string;
+}
+
+export const useAppsQuery = (
+  appName?: string, 
+  page: number = 1, 
+  refreshKey: number = 0,
+  filters?: VersionFilters
+) => {
   const queryClient = useQueryClient();
 
   const { data: apps = [], isLoading, refetch } = useQuery<AppVersion[] | AppListItem[] | PaginatedResponse<AppVersion>>({
-    queryKey: ['apps', appName, page, refreshKey],
+    queryKey: ['apps', appName, page, refreshKey, filters],
     queryFn: async () => {
       if (appName) {
-        const response = await axiosInstance.get(`/search?app_name=${appName}&limit=9&page=${page}`);
+        const params = new URLSearchParams({
+          app_name: appName,
+          limit: '9',
+          page: page.toString()
+        });
+
+        // Add filters to params if they exist
+        if (filters) {
+          if (filters.channel) params.append('channel', filters.channel);
+          if (filters.published !== null) params.append('published', filters.published.toString());
+          if (filters.critical !== null) params.append('critical', filters.critical.toString());
+          if (filters.platform) params.append('platform', filters.platform);
+          if (filters.arch) params.append('arch', filters.arch);
+        }
+
+        const response = await axiosInstance.get(`/search?${params.toString()}`);
         return response.data;
       } else {
         const response = await axiosInstance.get('/app/list');

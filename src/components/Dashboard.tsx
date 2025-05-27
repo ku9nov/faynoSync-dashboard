@@ -10,6 +10,9 @@ import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '../config/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearch } from '../hooks/useSearch.ts';
+import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
+import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -18,6 +21,14 @@ interface DashboardProps {
   onBackClick: () => void;
   refreshKey?: number;
   searchTerm: string;
+}
+
+interface VersionFilters {
+  channel: string;
+  published: boolean | null;
+  critical: boolean | null;
+  platform: string;
+  arch: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -31,7 +42,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const queryClient = useQueryClient();
-  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(selectedApp || undefined, currentPage, refreshKey);
+  const [filters, setFilters] = React.useState<VersionFilters>({
+    channel: '',
+    published: null,
+    critical: null,
+    platform: '',
+    arch: ''
+  });
+
+  const { platforms } = usePlatformQuery();
+  const { architectures } = useArchitectureQuery();
+  const { channels } = useChannelQuery();
+
+  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(
+    selectedApp || undefined, 
+    currentPage, 
+    refreshKey,
+    filters
+  );
   const [selectedVersion, setSelectedVersion] = React.useState<AppVersion | null>(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
@@ -235,6 +263,197 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {selectedApp}
           </h2>
         </div>
+
+        {/* Filters Section */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="relative">
+              <select
+                value={filters.channel}
+                onChange={(e) => setFilters(prev => ({ ...prev, channel: e.target.value }))}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 appearance-none"
+              >
+                <option value="">All Channels</option>
+                {channels.map(channel => (
+                  <option key={channel.ID} value={channel.ChannelName}>
+                    {channel.ChannelName}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative">
+              <select
+                value={filters.platform}
+                onChange={(e) => setFilters(prev => ({ ...prev, platform: e.target.value }))}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 appearance-none"
+              >
+                <option value="">All Platforms</option>
+                {platforms.map(platform => (
+                  <option key={platform.ID} value={platform.PlatformName}>
+                    {platform.PlatformName}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative">
+              <select
+                value={filters.arch}
+                onChange={(e) => setFilters(prev => ({ ...prev, arch: e.target.value }))}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 appearance-none"
+              >
+                <option value="">All Architectures</option>
+                {architectures.map(arch => (
+                  <option key={arch.ID} value={arch.ArchID}>
+                    {arch.ArchID}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative">
+              <select
+                value={filters.published === null ? '' : filters.published ? 'true' : 'false'}
+                onChange={(e) => setFilters(prev => ({ 
+                  ...prev, 
+                  published: e.target.value === '' ? null : e.target.value === 'true' 
+                }))}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 appearance-none"
+              >
+                <option value="">Publication Status</option>
+                <option value="true">Published</option>
+                <option value="false">Not Published</option>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative">
+              <select
+                value={filters.critical === null ? '' : filters.critical ? 'true' : 'false'}
+                onChange={(e) => setFilters(prev => ({ 
+                  ...prev, 
+                  critical: e.target.value === '' ? null : e.target.value === 'true' 
+                }))}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 appearance-none"
+              >
+                <option value="">Critical Status</option>
+                <option value="true">Critical</option>
+                <option value="false">Not Critical</option>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Filters Button */}
+          {(filters.channel || filters.platform || filters.arch || filters.published !== null || filters.critical !== null) && (
+            <button
+              onClick={() => setFilters({
+                channel: '',
+                published: null,
+                critical: null,
+                platform: '',
+                arch: ''
+              })}
+              className="flex items-center gap-2 px-4 py-2 bg-theme-card hover:bg-theme-card-hover text-theme-primary rounded-lg transition-colors"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Reset Filters
+            </button>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading ? (
             <div className="col-span-full flex justify-center items-center h-64">
