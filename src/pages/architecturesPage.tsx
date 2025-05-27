@@ -49,7 +49,7 @@ export const ArchitecturesPage = () => {
   };
 
   return (
-    <div className='min-h-screen bg-theme-gradient font-roboto'>
+    <div className='min-h-screen bg-theme-gradient font-sans'>
       <div className='flex'>
         <Sidebar />
         <main className='flex-1 p-8'>

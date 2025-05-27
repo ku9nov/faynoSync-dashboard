@@ -6,6 +6,9 @@ export default {
     extend: {
       colors: {
       },
+      fontFamily: {
+        sans: ['Urbanist', 'sans-serif'],
+      },
     },
   },
   plugins: [
