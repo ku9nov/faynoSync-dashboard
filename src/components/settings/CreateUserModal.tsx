@@ -333,7 +333,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   type='text'
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className='w-full p-2 rounded-lg font-roboto'
+                  className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                   placeholder='Enter username'
                 />
               </div>
@@ -344,7 +344,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     type='text'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className='w-full p-2 rounded-lg font-roboto'
+                    className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                     placeholder='Enter password'
                   />
                   <button
