@@ -47,6 +47,12 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
     }
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <>
       {error && (
@@ -79,7 +85,10 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
           )}
         </div>
       )}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in">
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
+        onClick={handleBackdropClick}
+      >
         <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-theme-primary font-roboto">
