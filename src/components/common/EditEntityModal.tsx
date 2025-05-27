@@ -113,7 +113,7 @@ export const EditModal: React.FC<EditModalProps> = ({
                 type='text'
                 id='rename'
                 name='rename'
-                className='w-full p-2 rounded-lg font-roboto'
+                className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
               />

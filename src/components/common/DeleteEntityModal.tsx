@@ -151,7 +151,7 @@ export const DeleteEntityModal: React.FC<DeleteEntityModalProps> = ({
                 type='text'
                 value={confirmationText}
                 onChange={(e) => setConfirmationText(e.target.value)}
-                className='w-full p-2 rounded-lg font-roboto'
+                className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                 placeholder={getPlaceholder()}
               />
             </div>

@@ -234,7 +234,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                 <textarea
                   value={changelogValue}
                   onChange={(e) => onChangelogChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded font-roboto"
+                  className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
                   rows={4}
                   placeholder="# Changes in this version&#10;- Added new feature&#10;- Fixed bug"
                 />

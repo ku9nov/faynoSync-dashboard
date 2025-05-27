@@ -114,7 +114,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
                 name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 rounded-lg font-roboto"
+                className="w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary"
                 required
               />
             </div>

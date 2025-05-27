@@ -118,7 +118,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
             type="text"
             value={formData.app}
             onChange={(e) => setFormData(prev => ({ ...prev, app: e.target.value }))}
-            className="w-full px-3 py-2 rounded font-roboto"
+            className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
             required
             placeholder="Enter app name"
           />
@@ -129,7 +129,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
           <textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full px-3 py-2 rounded font-roboto"
+            className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
             rows={4}
             placeholder="Enter app description"
           />
