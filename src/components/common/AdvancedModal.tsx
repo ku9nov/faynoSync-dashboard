@@ -227,7 +227,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                 </button>
               </div>
               {showChangelogPreview ? (
-                <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
+                <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
                   <ReactMarkdown>{changelogValue}</ReactMarkdown>
                 </div>
               ) : (

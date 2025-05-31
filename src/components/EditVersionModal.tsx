@@ -450,7 +450,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               </button>
             </div>
             {isPreview ? (
-              <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
+              <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
                 <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
               </div>
             ) : (
