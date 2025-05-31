@@ -195,6 +195,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setShowEditModal(false);
       setSelectedVersion(null);
       queryClient.invalidateQueries({ queryKey: ['apps'] });
+      // Force a refetch to ensure we have the latest data
+      await queryClient.refetchQueries({ queryKey: ['apps'] });
     }
   };
 

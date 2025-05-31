@@ -172,9 +172,10 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       try {
         setDeleteError(null);
         await deleteArtifact(currentData.ID, appName, version, artifactToDelete.index);
+        const updatedArtifacts = formData.Artifacts.filter((_, i) => i !== artifactToDelete.index);
         setFormData(prev => ({
           ...prev,
-          Artifacts: prev.Artifacts.filter((_, i) => i !== artifactToDelete.index)
+          Artifacts: updatedArtifacts
         }));
         setDeleteSuccess(true);
         setTimeout(() => {

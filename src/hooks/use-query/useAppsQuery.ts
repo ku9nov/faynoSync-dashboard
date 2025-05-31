@@ -174,8 +174,10 @@ export const useAppsQuery = (
         },
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['apps'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to ensure we have the latest data
+      await queryClient.invalidateQueries({ queryKey: ['apps'] });
+      await queryClient.refetchQueries({ queryKey: ['apps'] });
     },
   });
 
