@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../config/axios';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface ActionIconsProps {
   onDownload: () => void;
@@ -17,40 +18,65 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
   artifactLink,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
+
+  // Cleanup function to remove any temporary elements
+  useEffect(() => {
+    return () => {
+      const tempElements = document.querySelectorAll('.temp-clipboard-element');
+      tempElements.forEach(el => el.remove());
+    };
+  }, []);
 
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    setCopyError(null);
     if (artifactLink) {
       try {
         // First try to fetch the signed URL
         const response = await axiosInstance.get(artifactLink);
         
         // Check if the response is JSON with a download_url
-        if (response.data && typeof response.data === 'object' && 'download_url' in response.data) {
-          // If it's a JSON with download_url, copy that URL
-          await navigator.clipboard.writeText(response.data.download_url);
-        } else {
-          // Otherwise, copy the original link
-          await navigator.clipboard.writeText(artifactLink);
-        }
+        const urlToCopy = response.data && typeof response.data === 'object' && 'download_url' in response.data
+          ? response.data.download_url
+          : artifactLink;
         
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        // If there's an error, copy the original link
-        try {
-          await navigator.clipboard.writeText(artifactLink);
+        const success = await copyToClipboard(urlToCopy);
+        
+        if (success) {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
+        } else {
+          setCopyError('Failed to copy link. Please try selecting and copying manually.');
+          setTimeout(() => setCopyError(null), 3000);
+        }
+      } catch (err) {
+        // If there's an error, try to copy the original link
+        try {
+          const success = await copyToClipboard(artifactLink);
+          if (success) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } else {
+            setCopyError('Failed to copy link. Please try selecting and copying manually.');
+            setTimeout(() => setCopyError(null), 3000);
+          }
         } catch (clipboardErr) {
           console.error('Failed to copy link:', clipboardErr);
+          setCopyError('Failed to copy link. Please try selecting and copying manually.');
+          setTimeout(() => setCopyError(null), 3000);
         }
       }
     }
   };
 
   return (
-    <div className="flex gap-2 flex-shrink-0">
+    <div className="flex gap-2 flex-shrink-0 relative">
+      {copyError && (
+        <div className="absolute bottom-full mb-2 p-2 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500 text-sm whitespace-nowrap">
+          {copyError}
+        </div>
+      )}
       {showDownload && (
         <>
           <button
