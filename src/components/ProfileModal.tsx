@@ -185,7 +185,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-3 py-2 rounded bg-theme-input text-theme-primary font-roboto"
+                        className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
                         required
                       />
                       <button
@@ -212,7 +212,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded bg-theme-input text-theme-primary font-roboto"
+                      className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
                       required
                     />
                   </div>
