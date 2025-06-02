@@ -136,7 +136,18 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
             )}
           </div>
         )}
-        <h2 className="text-2xl font-bold text-theme-primary mb-4 font-roboto">{title}</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-theme-primary font-roboto">{title}</h2>
+          <button
+            onClick={onClose}
+            className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
+            disabled={isLoading}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         
         <form onSubmit={(e) => {
           e.preventDefault();
@@ -216,14 +227,14 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                 </button>
               </div>
               {showChangelogPreview ? (
-                <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
+                <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
                   <ReactMarkdown>{changelogValue}</ReactMarkdown>
                 </div>
               ) : (
                 <textarea
                   value={changelogValue}
                   onChange={(e) => onChangelogChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded font-roboto"
+                  className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
                   rows={4}
                   placeholder="# Changes in this version&#10;- Added new feature&#10;- Fixed bug"
                 />

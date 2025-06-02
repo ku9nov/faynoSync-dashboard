@@ -333,7 +333,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   type='text'
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className='w-full p-2 rounded-lg font-roboto'
+                  className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                   placeholder='Enter username'
                 />
               </div>
@@ -344,7 +344,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     type='text'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className='w-full p-2 rounded-lg font-roboto'
+                    className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                     placeholder='Enter password'
                   />
                   <button
@@ -428,24 +428,37 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <button
                       type='button'
                       onClick={() => setShowAppsDropdown(!showAppsDropdown)}
-                      className='w-full text-left p-2 border border-theme-modal rounded-lg flex justify-between items-center'
+                      className='w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors'
                     >
                       <span className='text-theme-primary'>
                         {permissions.apps.allowed.length > 0 
                           ? `${permissions.apps.allowed.length} items selected` 
                           : 'Select allowed apps'}
                       </span>
-                      <i className={`fas fa-chevron-${showAppsDropdown ? 'up' : 'down'}`}></i>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform ${showAppsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
                     </button>
                     
                     {showAppsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full bg-theme-card backdrop-blur-lg rounded-lg shadow-lg border border-theme-card-hover max-h-60 overflow-y-auto'>
                         {Array.isArray(apps) && apps.map(app => {
                           const isSelected = permissions.apps.allowed.includes(app.ID);
                           return (
                             <div 
                               key={app.ID}
-                              className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                              className='p-2 hover:bg-theme-card-hover cursor-pointer flex items-center'
                               onClick={() => {
                                 if (isSelected) {
                                   handleRemoveAllowedItem('apps', app.ID);
@@ -460,7 +473,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 onChange={() => {}}
                                 className='mr-2'
                               />
-                              <span className='text-theme-text'>{app.AppName}</span>
+                              <span className='text-theme-primary'>{app.AppName}</span>
                             </div>
                           );
                         })}
@@ -527,22 +540,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <button
                       type='button'
                       onClick={() => setShowChannelsDropdown(!showChannelsDropdown)}
-                      className='w-full text-left p-2 border border-theme-modal rounded-lg flex justify-between items-center'
+                      className='w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors'
                     >
                       <span className='text-theme-primary'>
                         {permissions.channels.allowed.length > 0 
                           ? `${permissions.channels.allowed.length} items selected` 
                           : 'Select allowed channels'}
                       </span>
-                      <i className={`fas fa-chevron-${showChannelsDropdown ? 'up' : 'down'}`}></i>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform ${showChannelsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
                     </button>
                     
                     {showChannelsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full bg-theme-card backdrop-blur-lg rounded-lg shadow-lg border border-theme-card-hover max-h-60 overflow-y-auto'>
                         {Array.isArray(channels) && channels.map(channel => (
                           <div 
                             key={channel.ID}
-                            className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                            className='p-2 hover:bg-theme-card-hover cursor-pointer flex items-center'
                             onClick={() => handleAllowedItemSelect('channels', channel.ID)}
                           >
                             <input
@@ -551,7 +577,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                               onChange={() => {}}
                               className='mr-2'
                             />
-                            <span className='text-theme-text'>{channel.ChannelName}</span>
+                            <span className='text-theme-primary'>{channel.ChannelName}</span>
                           </div>
                         ))}
                       </div>
@@ -617,22 +643,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <button
                       type='button'
                       onClick={() => setShowPlatformsDropdown(!showPlatformsDropdown)}
-                      className='w-full text-left p-2 border border-theme-modal rounded-lg flex justify-between items-center'
+                      className='w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors'
                     >
                       <span className='text-theme-primary'>
                         {permissions.platforms.allowed.length > 0 
                           ? `${permissions.platforms.allowed.length} items selected` 
                           : 'Select allowed platforms'}
                       </span>
-                      <i className={`fas fa-chevron-${showPlatformsDropdown ? 'up' : 'down'}`}></i>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform ${showPlatformsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
                     </button>
                     
                     {showPlatformsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full bg-theme-card backdrop-blur-lg rounded-lg shadow-lg border border-theme-card-hover max-h-60 overflow-y-auto'>
                         {Array.isArray(platforms) && platforms.map(platform => (
                           <div 
                             key={platform.ID}
-                            className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                            className='p-2 hover:bg-theme-card-hover cursor-pointer flex items-center'
                             onClick={() => handleAllowedItemSelect('platforms', platform.ID)}
                           >
                             <input
@@ -641,7 +680,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                               onChange={() => {}}
                               className='mr-2'
                             />
-                            <span className='text-theme-text'>{platform.PlatformName}</span>
+                            <span className='text-theme-primary'>{platform.PlatformName}</span>
                           </div>
                         ))}
                       </div>
@@ -707,22 +746,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <button
                       type='button'
                       onClick={() => setShowArchsDropdown(!showArchsDropdown)}
-                      className='w-full text-left p-2 border border-theme-modal rounded-lg flex justify-between items-center'
+                      className='w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors'
                     >
                       <span className='text-theme-primary'>
                         {permissions.archs.allowed.length > 0 
                           ? `${permissions.archs.allowed.length} items selected` 
                           : 'Select allowed architectures'}
                       </span>
-                      <i className={`fas fa-chevron-${showArchsDropdown ? 'up' : 'down'}`}></i>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform ${showArchsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
                     </button>
                     
                     {showArchsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-background border border-theme-modal rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full bg-theme-card backdrop-blur-lg rounded-lg shadow-lg border border-theme-card-hover max-h-60 overflow-y-auto'>
                         {Array.isArray(architectures) && architectures.map(arch => (
                           <div 
                             key={arch.ID}
-                            className='p-2 hover:bg-theme-button-primary-hover cursor-pointer flex items-center bg-theme-modal'
+                            className='p-2 hover:bg-theme-card-hover cursor-pointer flex items-center'
                             onClick={() => handleAllowedItemSelect('archs', arch.ID)}
                           >
                             <input
@@ -731,7 +783,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                               onChange={() => {}}
                               className='mr-2'
                             />
-                            <span className='text-theme-text'>{arch.ArchID}</span>
+                            <span className='text-theme-primary'>{arch.ArchID}</span>
                           </div>
                         ))}
                       </div>

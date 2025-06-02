@@ -22,6 +22,31 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     changelog: '',
   });
 
+  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
+
+  const handleDropdownClick = (dropdownName: string) => {
+    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+  };
+
+  const handleOptionClick = (dropdownName: string, value: string) => {
+    setFormData(prev => ({ ...prev, [dropdownName]: value }));
+    setOpenDropdown(null);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const [previewChangelog, setPreviewChangelog] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [files, setFiles] = useState<{ file: File; id: string }[]>([]);
@@ -34,23 +59,20 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     try {
-      // Create a FormData object
       const formDataToSend = new FormData();
       
-      // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== '') {
           formDataToSend.append(key, value.toString());
         }
       });
       
-      // Add files
       files.forEach(fileInfo => {
         formDataToSend.append('files', fileInfo.file);
       });
       
-      // Convert FormData to a regular object for the upload function
       const uploadData = {
         app_name: formData.app_name,
         version: formData.version,
@@ -102,20 +124,43 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         <>
           <div className="mb-4">
             <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
-            <select
-              name="app_name"
-              value={formData.app_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, app_name: e.target.value }))}
-              className="w-full px-3 py-2 rounded font-roboto"
-              required
-            >
-              <option value="">Select an app</option>
-              {apps.map((app) => (
-                <option key={app.ID} value={app.AppName}>
-                  {app.AppName}
-                </option>
-              ))}
-            </select>
+            <div className="relative dropdown-container">
+              <button
+                type="button"
+                onClick={() => handleDropdownClick('app_name')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>{formData.app_name || 'Select an app'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'app_name' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'app_name' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  {apps.map((app) => (
+                    <button
+                      key={app.ID}
+                      type="button"
+                      onClick={() => handleOptionClick('app_name', app.AppName)}
+                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                    >
+                      {app.AppName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mb-4">
@@ -125,7 +170,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
               name="version"
               value={formData.version}
               onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-              className="w-full px-3 py-2 rounded font-roboto"
+              className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
               placeholder="e.g., 0.0.1.0"
               required
             />
@@ -134,65 +179,134 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           {channels.length > 0 && (
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Channel</label>
-              <select
-                name="channel"
-                value={formData.channel}
-                onChange={(e) => setFormData(prev => ({ ...prev, channel: e.target.value }))}
-                className="w-full px-3 py-2 rounded font-roboto"
-                required
-              >
-                <option value="">Select a channel</option>
-                {channels.map((channel) => (
-                  <option key={channel.ID} value={channel.ChannelName}>
-                    {channel.ChannelName}
-                  </option>
-                ))}
-              </select>
+              <div className="relative dropdown-container">
+                <button
+                  type="button"
+                  onClick={() => handleDropdownClick('channel')}
+                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                >
+                  <span>{formData.channel || 'Select a channel'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`text-theme-primary transition-transform ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                {openDropdown === 'channel' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                    {channels.map((channel) => (
+                      <button
+                        key={channel.ID}
+                        type="button"
+                        onClick={() => handleOptionClick('channel', channel.ChannelName)}
+                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {channel.ChannelName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {platforms.length > 0 && (
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Platform</label>
-              <select
-                name="platform"
-                value={formData.platform}
-                onChange={(e) => setFormData(prev => ({ ...prev, platform: e.target.value }))}
-                className="w-full px-3 py-2 rounded font-roboto"
-                required
-              >
-                <option value="">Select a platform</option>
-                {platforms.map((platform) => (
-                  <option key={platform.ID} value={platform.PlatformName}>
-                    {platform.PlatformName}
-                  </option>
-                ))}
-              </select>
+              <div className="relative dropdown-container">
+                <button
+                  type="button"
+                  onClick={() => handleDropdownClick('platform')}
+                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                >
+                  <span>{formData.platform || 'Select a platform'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                {openDropdown === 'platform' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                    {platforms.map((platform) => (
+                      <button
+                        key={platform.ID}
+                        type="button"
+                        onClick={() => handleOptionClick('platform', platform.PlatformName)}
+                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {platform.PlatformName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {architectures.length > 0 && (
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Architecture</label>
-              <select
-                name="arch"
-                value={formData.arch}
-                onChange={(e) => setFormData(prev => ({ ...prev, arch: e.target.value }))}
-                className="w-full px-3 py-2 rounded font-roboto"
-                required
-              >
-                <option value="">Select an architecture</option>
-                {architectures.map((arch) => (
-                  <option key={arch.ID} value={arch.ArchID}>
-                    {arch.ArchID}
-                  </option>
-                ))}
-              </select>
+              <div className="relative dropdown-container">
+                <button
+                  type="button"
+                  onClick={() => handleDropdownClick('arch')}
+                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                >
+                  <span>{formData.arch || 'Select an architecture'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                {openDropdown === 'arch' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                    {architectures.map((arch) => (
+                      <button
+                        key={arch.ID}
+                        type="button"
+                        onClick={() => handleOptionClick('arch', arch.ArchID)}
+                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {arch.ArchID}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-roboto">
+            <label className="flex items-center text-theme-primary font-roboto">
               <input
                 type="checkbox"
                 checked={formData.publish}
@@ -204,7 +318,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-roboto">
+            <label className="flex items-center text-theme-primary font-roboto">
               <input
                 type="checkbox"
                 checked={formData.critical}

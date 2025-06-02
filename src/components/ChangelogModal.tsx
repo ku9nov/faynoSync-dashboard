@@ -33,7 +33,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
               <p className="text-gray-600 mb-2">
                 Date: {new Date(currentVersionChangelog.Date).toLocaleDateString()}
               </p>
-              <div className="prose prose-sm max-w-none">
+              <div className="prose prose-sm max-w-none bg-white dark:bg-white rounded p-4">
                 <ReactMarkdown>{currentVersionChangelog.Changes || 'No changes description'}</ReactMarkdown>
               </div>
             </>

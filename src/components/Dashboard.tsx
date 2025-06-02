@@ -9,6 +9,10 @@ import { DeleteAppConfirmationModal } from './DeleteAppConfirmationModal';
 import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '../config/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearch } from '../hooks/useSearch.ts';
+import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
+import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -16,6 +20,15 @@ interface DashboardProps {
   onChangelogClick: (version: string, changelog: ChangelogEntry[]) => void;
   onBackClick: () => void;
   refreshKey?: number;
+  searchTerm: string;
+}
+
+interface VersionFilters {
+  channel: string;
+  published: boolean | null;
+  critical: boolean | null;
+  platform: string;
+  arch: string;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -24,11 +37,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onChangelogClick,
   onBackClick,
   refreshKey = 0,
+  searchTerm
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const queryClient = useQueryClient();
-  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(selectedApp || undefined, currentPage, refreshKey);
+  const [filters, setFilters] = React.useState<VersionFilters>({
+    channel: '',
+    published: null,
+    critical: null,
+    platform: '',
+    arch: ''
+  });
+
+  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
+
+  const handleDropdownClick = (dropdownName: string) => {
+    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+  };
+
+  const handleOptionClick = (dropdownName: string, value: any) => {
+    setFilters(prev => ({ ...prev, [dropdownName]: value }));
+    setOpenDropdown(null);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const { platforms } = usePlatformQuery();
+  const { architectures } = useArchitectureQuery();
+  const { channels } = useChannelQuery();
+
+  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(
+    selectedApp || undefined, 
+    currentPage, 
+    refreshKey,
+    filters
+  );
   const [selectedVersion, setSelectedVersion] = React.useState<AppVersion | null>(null);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
@@ -38,9 +94,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showDeleteAppModal, setShowDeleteAppModal] = React.useState(false);
   const [selectedAppData, setSelectedAppData] = React.useState<AppListItem | null>(null);
 
-  const appList = apps as AppListItem[];
-  const paginatedVersions = apps as PaginatedResponse<AppVersion>;
-  const appVersions = paginatedVersions?.items || [];
+  const appList = React.useMemo(() => {
+    if (!apps) return [];
+    if (Array.isArray(apps)) {
+      return apps as AppListItem[];
+    }
+    if ('items' in apps) {
+      return (apps as PaginatedResponse<AppVersion>).items;
+    }
+    return [];
+  }, [apps]);
+
+  const paginatedVersions = React.useMemo(() => {
+    if (!apps) return { items: [], total: 0, page: 1, limit: 9 };
+    if ('items' in apps) {
+      return apps as PaginatedResponse<AppVersion>;
+    }
+    return { items: [], total: 0, page: 1, limit: 9 };
+  }, [apps]);
+
+  const appVersions = paginatedVersions.items || [];
+
+  const filteredAppList = useSearch(appList, searchTerm) as AppListItem[];
 
   const { data: appLogo } = useQuery({
     queryKey: ['appLogo', selectedApp],
@@ -120,6 +195,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setShowEditModal(false);
       setSelectedVersion(null);
       queryClient.invalidateQueries({ queryKey: ['apps'] });
+      // Force a refetch to ensure we have the latest data
+      await queryClient.refetchQueries({ queryKey: ['apps'] });
     }
   };
 
@@ -213,47 +290,313 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {selectedApp}
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {isLoading ? (
+        {/* Filters Section */}
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => handleDropdownClick('channel')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>{filters.channel || 'All Channels'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'channel' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <button
+                    onClick={() => handleOptionClick('channel', '')}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                  >
+                    All Channels
+                  </button>
+                  {channels.map(channel => (
+                    <button
+                      key={channel.ID}
+                      onClick={() => handleOptionClick('channel', channel.ChannelName)}
+                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                    >
+                      {channel.ChannelName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => handleDropdownClick('platform')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>{filters.platform || 'All Platforms'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'platform' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <button
+                    onClick={() => handleOptionClick('platform', '')}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                  >
+                    All Platforms
+                  </button>
+                  {platforms.map(platform => (
+                    <button
+                      key={platform.ID}
+                      onClick={() => handleOptionClick('platform', platform.PlatformName)}
+                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                    >
+                      {platform.PlatformName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => handleDropdownClick('arch')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>{filters.arch || 'All Architectures'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'arch' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <button
+                    onClick={() => handleOptionClick('arch', '')}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                  >
+                    All Architectures
+                  </button>
+                  {architectures.map(arch => (
+                    <button
+                      key={arch.ID}
+                      onClick={() => handleOptionClick('arch', arch.ArchID)}
+                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                    >
+                      {arch.ArchID}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => handleDropdownClick('published')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>
+                  {filters.published === null ? 'Publication Status' :
+                   filters.published ? 'Published' : 'Not Published'}
+                </span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'published' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'published' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <button
+                    onClick={() => handleOptionClick('published', null)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                  >
+                    Publication Status
+                  </button>
+                  <button
+                    onClick={() => handleOptionClick('published', true)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
+                  >
+                    Published
+                  </button>
+                  <button
+                    onClick={() => handleOptionClick('published', false)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                  >
+                    Not Published
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => handleDropdownClick('critical')}
+                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+              >
+                <span>
+                  {filters.critical === null ? 'Critical Status' :
+                   filters.critical ? 'Critical' : 'Not Critical'}
+                </span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`text-theme-primary transition-transform ${openDropdown === 'critical' ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              {openDropdown === 'critical' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <button
+                    onClick={() => handleOptionClick('critical', null)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                  >
+                    Critical Status
+                  </button>
+                  <button
+                    onClick={() => handleOptionClick('critical', true)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
+                  >
+                    Critical
+                  </button>
+                  <button
+                    onClick={() => handleOptionClick('critical', false)}
+                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                  >
+                    Not Critical
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Reset Filters Button */}
+          {(filters.channel || filters.platform || filters.arch || filters.published !== null || filters.critical !== null) && (
+            <button
+              onClick={() => setFilters({
+                channel: '',
+                published: null,
+                critical: null,
+                platform: '',
+                arch: ''
+              })}
+              className="flex items-center gap-2 px-4 py-2 bg-theme-card hover:bg-theme-card-hover text-theme-primary rounded-lg transition-colors"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Reset Filters
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
             <div className="col-span-full flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
-          ) :
-          appVersions.map((app) => (
-            <div
-              key={app.ID}
-              className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
-            >
-              <ActionIcons
-                onDownload={() => handleDownload(app)}
-                onEdit={() => handleEdit(app)}
-                onDelete={() => handleDelete(app)}
-                showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-              />
-              <h3 className="text-xl font-semibold mb-2">Version {app.Version}</h3>
-              <p className="mb-4">Channel: {app.Channel}</p>
-              <div className="flex gap-2">
-                <span className={`px-2 py-1 rounded text-sm ${
-                  app.Published ? 'bg-green-500' : 'bg-red-500'
-                }`}>
-                  {app.Published ? 'Published' : 'Not published'}
-                </span>
-                {app.Critical && (
-                  <span className="px-2 py-1 rounded text-sm bg-red-500">
-                    Critical
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                className="mt-4 text-theme-primary hover:text-theme-primary-hover"
-              >
-                View changelog
-              </button>
+          ) : appVersions.length === 0 ? (
+            <div className="col-span-full text-center text-theme-primary text-xl">
+              No versions have been uploaded yet.
             </div>
-          ))}
+          ) : (
+            appVersions.map((app) => (
+              <div
+                key={app.ID}
+                className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
+              >
+                <div className="flex items-center justify-between mb-2 gap-2">
+                  <h3 className="text-xl font-semibold truncate min-w-0" title={`Version ${app.Version}`}>
+                    Version {app.Version}
+                  </h3>
+                  <ActionIcons
+                    onDownload={() => handleDownload(app)}
+                    onEdit={() => handleEdit(app)}
+                    onDelete={() => handleDelete(app)}
+                    showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                    artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                  />
+                </div>
+                <p className="mb-4">Channel: {app.Channel}</p>
+                <div className="flex gap-2">
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    app.Published ? 'bg-green-500' : 'bg-red-500'
+                  }`}>
+                    {app.Published ? 'Published' : 'Not published'}
+                  </span>
+                  {app.Critical && (
+                    <span className="px-2 py-1 rounded text-sm bg-red-500">
+                      Critical
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                  className="mt-4 text-theme-primary hover:text-theme-primary-hover"
+                >
+                  View changelog
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
         {totalPages > 1 && (
@@ -342,25 +685,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {isLoading ? (
-            <div className="col-span-full flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
-            </div>
-          ) : !appList || appList.length === 0 ? (
+      {isLoading ? (
+        <div className="col-span-full flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
+        </div>
+      ) : !filteredAppList || filteredAppList.length === 0 ? (
         <div className="col-span-full text-center text-theme-primary text-xl">
-          No applications has been created yet.
+          {searchTerm ? 'No applications found matching your search.' : 'No applications have been created yet.'}
         </div>
       ) : (
-        appList.map((app) => (
+        filteredAppList.map((app) => (
           <div
             key={app.ID}
             onClick={() => onAppClick(app.AppName)}
             className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
           >
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 min-w-0">
                 {app.Logo ? (
-                  <div className="relative w-12 h-12">
+                  <div className="relative w-12 h-12 flex-shrink-0">
                     <img 
                       src={app.Logo} 
                       alt={`${app.AppName} logo`}
@@ -425,7 +768,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {app.AppName}
                 </h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={(e) => handleEditApp(e, app)}
                   className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"

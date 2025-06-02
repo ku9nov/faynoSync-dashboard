@@ -19,6 +19,7 @@ export const HomePage = () => {
   const [selectedVersion, setSelectedVersion] = React.useState<string | null>(null);
   const [selectedChangelog, setSelectedChangelog] = React.useState<ChangelogEntry[]>([]);
   const [refreshKey, setRefreshKey] = React.useState(0);
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   React.useEffect(() => {
     setSelectedApp(appName || null);
@@ -58,8 +59,12 @@ export const HomePage = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+  };
+
   return (
-    <div className="min-h-screen bg-theme-gradient font-roboto">
+    <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-8">
@@ -70,7 +75,7 @@ export const HomePage = () => {
             additionalButton={
               <button
                 onClick={toggleCreateAppModal}
-                className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center mr-4"
+                className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-sans hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center mr-4"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -78,6 +83,8 @@ export const HomePage = () => {
                 Create app
               </button>
             }
+            onSearchChange={handleSearchChange}
+            hideSearch={!!selectedApp}
           />
           <Dashboard 
             selectedApp={selectedApp}
@@ -85,6 +92,7 @@ export const HomePage = () => {
             onChangelogClick={handleChangelogClick}
             onBackClick={handleBackClick}
             refreshKey={refreshKey}
+            searchTerm={searchTerm}
           />
         </main>
       </div>

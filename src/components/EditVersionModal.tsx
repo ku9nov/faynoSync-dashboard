@@ -49,6 +49,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [isPreview, setIsPreview] = React.useState(false);
   const [platform, setPlatform] = React.useState<string>('');
   const [arch, setArch] = React.useState<string>('');
+  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -62,11 +63,41 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const { deleteArtifact } = useAppsQuery();
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+
+  const handleDropdownClick = (dropdownName: string) => {
+    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
+  };
+
+  const handleOptionClick = (dropdownName: string, value: string) => {
+    if (dropdownName === 'platform') {
+      setPlatform(value);
+    } else if (dropdownName === 'arch') {
+      setArch(value);
+    }
+    setOpenDropdown(null);
+  };
+
   React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container')) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    setFormData(currentData);
   }, [currentData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsLoading(true);
     setError(null);
     try {
@@ -104,6 +135,8 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setSelectedFiles(prev => [...prev, ...newFiles]);
@@ -139,9 +172,10 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       try {
         setDeleteError(null);
         await deleteArtifact(currentData.ID, appName, version, artifactToDelete.index);
+        const updatedArtifacts = formData.Artifacts.filter((_, i) => i !== artifactToDelete.index);
         setFormData(prev => ({
           ...prev,
-          Artifacts: prev.Artifacts.filter((_, i) => i !== artifactToDelete.index)
+          Artifacts: updatedArtifacts
         }));
         setDeleteSuccess(true);
         setTimeout(() => {
@@ -231,12 +265,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       <button 
                         onClick={() => handleDownload(artifact)} 
                         className="text-green-500 hover:text-green-400"
+                        type="button"
                       >
                         <i className="fas fa-download"></i>
                       </button>
                       <button
                         onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
                         className="text-theme-danger hover:text-red-400 ml-4"
+                        type="button"
                       >
                         <i className="fas fa-times"></i>
                       </button>
@@ -254,7 +290,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label className="block text-theme-primary mb-2 font-roboto">
               Add New Files
@@ -314,19 +350,43 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                     <label className="block text-theme-primary mb-2 font-roboto">
                       Platform
                     </label>
-                    <select
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value)}
-                      className="w-full p-2 rounded-lg font-roboto"
-                      required
-                    >
-                      <option value="">Select platform</option>
-                      {platforms.map((p) => (
-                        <option key={p.ID} value={p.PlatformName}>
-                          {p.PlatformName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative dropdown-container">
+                      <button
+                        type="button"
+                        onClick={() => handleDropdownClick('platform')}
+                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                      >
+                        <span>{platform || 'Select platform'}</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                          className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                      {openDropdown === 'platform' && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                          {platforms.map((p) => (
+                            <button
+                              key={p.ID}
+                              type="button"
+                              onClick={() => handleOptionClick('platform', p.PlatformName)}
+                              className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            >
+                              {p.PlatformName}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 {architectures.length > 0 && (
@@ -334,19 +394,43 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                     <label className="block text-theme-primary mb-2 font-roboto">
                       Architecture
                     </label>
-                    <select
-                      value={arch}
-                      onChange={(e) => setArch(e.target.value)}
-                      className="w-full p-2 rounded-lg font-roboto"
-                      required
-                    >
-                      <option value="">Select architecture</option>
-                      {architectures.map((a) => (
-                        <option key={a.ID} value={a.ArchID}>
-                          {a.ArchID}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative dropdown-container">
+                      <button
+                        type="button"
+                        onClick={() => handleDropdownClick('arch')}
+                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                      >
+                        <span>{arch || 'Select architecture'}</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                          className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                      {openDropdown === 'arch' && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                          {architectures.map((a) => (
+                            <button
+                              key={a.ID}
+                              type="button"
+                              onClick={() => handleOptionClick('arch', a.ArchID)}
+                              className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            >
+                              {a.ArchID}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -367,14 +451,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               </button>
             </div>
             {isPreview ? (
-              <div className="bg-theme-modal p-4 rounded prose prose-sm max-w-none">
+              <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
                 <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
               </div>
             ) : (
               <textarea
                 value={formData.Changelog}
                 onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full px-3 py-2 rounded font-roboto"
+                className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
                 placeholder="Enter changelog in Markdown format..."
               />
             )}

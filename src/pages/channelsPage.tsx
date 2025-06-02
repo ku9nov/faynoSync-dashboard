@@ -6,6 +6,7 @@ import { EditChannelModal } from '../components/EditChannelModal';
 import { ChannelCard } from '../components/ChannelCard';
 import { DeleteChannelConfirmationModal } from '../components/DeleteChannelConfirmationModal';
 import { useChannelQuery, Channel } from '../hooks/use-query/useChannelQuery';
+import { useSearch } from '../hooks/useSearch.ts';
 
 export const ChannelsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
@@ -13,6 +14,7 @@ export const ChannelsPage = () => {
   const [selectedChannel, setSelectedChannel] = React.useState<Channel | null>(null);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
   const [channelToDelete, setChannelToDelete] = React.useState<{ id: string; name: string } | null>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
@@ -26,6 +28,8 @@ export const ChannelsPage = () => {
   };
 
   const { channels, deleteChannel, isLoading } = useChannelQuery();
+
+  const filteredChannels = useSearch(channels, searchTerm) as Channel[];
 
   const handleDelete = async (channelId: string, channelName: string) => {
     setChannelToDelete({ id: channelId, name: channelName });
@@ -46,7 +50,7 @@ export const ChannelsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-theme-gradient font-roboto">
+    <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-8">
@@ -54,27 +58,28 @@ export const ChannelsPage = () => {
             title="Channels"
             onCreateClick={openCreateModal}
             createButtonText="Create Channel"
+            onSearchChange={setSearchTerm}
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
             </div>
-          ) : channels.length === 0 ? (
+          ) : filteredChannels.length === 0 ? (
             <div className="text-center text-theme-primary text-xl mt-8">
-              No channels has been created yet.
+              {searchTerm ? 'No channels found matching your search.' : 'No channels have been created yet.'}
             </div>
           ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {channels.map((channel) => (
-              <ChannelCard
-                key={channel.ID}
-                name={channel.ChannelName}
-                // description={`Last updated: ${new Date(channel.Updated_at).toLocaleDateString()}`}
-                onClick={() => openEditModal(channel)}
-                onDelete={() => handleDelete(channel.ID, channel.ChannelName)}
-              />
-            ))}
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredChannels.map((channel) => (
+                <ChannelCard
+                  key={channel.ID}
+                  name={channel.ChannelName}
+                  // description={`Last updated: ${new Date(channel.Updated_at).toLocaleDateString()}`}
+                  onClick={() => openEditModal(channel)}
+                  onDelete={() => handleDelete(channel.ID, channel.ChannelName)}
+                />
+              ))}
+            </div>
           )}
         </main>
       </div>

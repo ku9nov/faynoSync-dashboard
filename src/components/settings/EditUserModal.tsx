@@ -130,7 +130,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               type='text'
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              className='w-full p-2 rounded-lg font-roboto'
+              className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
               placeholder='Enter username'
             />
           </div>
@@ -141,7 +141,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 type='text'
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className='w-full p-2 rounded-lg font-roboto'
+                className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
                 placeholder='Enter new password'
               />
               <button
