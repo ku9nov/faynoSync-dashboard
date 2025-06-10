@@ -15,6 +15,7 @@ export const ChannelsPage = () => {
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
   const [channelToDelete, setChannelToDelete] = React.useState<{ id: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
@@ -52,13 +53,14 @@ export const ChannelsPage = () => {
   return (
     <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex">
-        <Sidebar />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="flex-1 p-8">
           <Header
             title="Channels"
             onCreateClick={openCreateModal}
             createButtonText="Create Channel"
             onSearchChange={setSearchTerm}
+            onMenuClick={() => setIsSidebarOpen(true)}
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">

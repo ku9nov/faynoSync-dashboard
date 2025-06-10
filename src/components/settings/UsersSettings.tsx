@@ -16,6 +16,29 @@ const checkboxStyles = `
   .users-settings-checkbox {
     accent-color: #93c5fd !important; /* blue-300 */
   }
+
+  @media (max-width: 768px) {
+    .users-settings-checkbox {
+      width: 0.75rem !important;
+      height: 0.75rem !important;
+    }
+    
+    .table-cell {
+      padding: 0.25rem !important;
+    }
+    
+    .table-header {
+      min-width: 2rem !important;
+    }
+    
+    .username-cell {
+      width: 100px !important;
+    }
+    
+    .action-cell {
+      width: 80px !important;
+    }
+  }
 `;
 
 export const UsersSettings: React.FC = () => {
@@ -429,320 +452,310 @@ export const UsersSettings: React.FC = () => {
           <div className="text-theme-primary p-4 text-center">No users found</div>
         ) : (
           <>
-            {/* Fixed Header Table */}
-            <div className="sticky top-0 z-10 bg-theme-background">
-              <table className="w-full table-fixed border border-theme-modal">
-                <colgroup>
-                  <col className="w-[150px]" /> {/* Username */}
-                  <col className="w-10" span={6} /> {/* Apps */}
-                  <col className="w-10" span={4} /> {/* Channels */}
-                  <col className="w-10" span={4} /> {/* Platforms */}
-                  <col className="w-10" span={4} /> {/* Archs */}
-                  <col className="w-[100px]" /> {/* Actions */}
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-theme-modal">
-                    <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
-                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
-                      Apps
-                    </th>
-                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-                      Channels
-                    </th>
-                    <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
-                      Platforms
-                    </th>
-                    <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
-                      Architectures
-                    </th>
-                    <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
-                      Actions
-                    </th>
-                  </tr>
-                  <tr className="border-b border-theme-modal">
-                    <th className="px-2 py-1 border-r border-theme-modal"></th>
-                    {/* Apps subheaders */}
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                    </th>
-                    {/* Channels subheaders */}
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                    </th>
-                    {/* Platforms subheaders */}
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                    </th>
-                    {/* Archs subheaders */}
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
-                    </th>
-                    <th className="min-w-[40px] h-32 text-center text-theme-primary">
-                      <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
-                    </th>
-                    <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-
-            {/* Scrollable Body Table */}
-            <div className="overflow-y-auto max-h-[calc(100vh-300px)]">
-              <table className="w-full table-fixed border border-t-0 border-theme-modal">
-                <colgroup>
-                  <col className="w-[150px]" /> {/* Username */}
-                  <col className="w-10" span={6} /> {/* Apps */}
-                  <col className="w-10" span={4} /> {/* Channels */}
-                  <col className="w-10" span={4} /> {/* Platforms */}
-                  <col className="w-10" span={4} /> {/* Archs */}
-                  <col className="w-[100px]" /> {/* Actions */}
-                </colgroup>
-                <tbody>
-                  {usersData.users.map((user) => (
-                    <tr key={user.id} className="border-b border-theme-modal">
-                      <td className="px-2 py-1 text-theme-primary border-r border-theme-modal">
-                        <div 
-                          className="truncate max-w-[300px]" 
-                          title={user.username}
-                        >
-                          {JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) && (
-                            <span className="ml-2 text-yellow-500" title="Unsaved changes" style={{ marginRight: '5px' }}>
-                              <i className="fas fa-exclamation-circle"></i>
-                            </span>
-                          )}
-                          {user.username}
-                        </div>
-                      </td>
-                      {/* Apps permissions */}
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Create || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Create', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Delete || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Delete', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Edit || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Edit', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Download || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Download', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Apps?.Upload || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Upload', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <button 
-                          onClick={() => openAllowedModal(user.id, 'app', modifiedPermissions[user.id]?.permissions?.Apps?.Allowed || [])}
-                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                        >
-                          <i className="fas fa-search"></i>
-                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Apps?.Allowed)}</span>
-                        </button>
-                      </td>
-                      {/* Channels permissions */}
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Create || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Create', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Delete || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Delete', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Channels?.Edit || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Edit', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <button 
-                          onClick={() => openAllowedModal(user.id, 'channel', modifiedPermissions[user.id]?.permissions?.Channels?.Allowed || [])}
-                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                        >
-                          <i className="fas fa-search"></i>
-                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Channels?.Allowed)}</span>
-                        </button>
-                      </td>
-                      {/* Platforms permissions */}
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Create || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Create', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Delete || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Delete', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Edit || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Edit', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <button 
-                          onClick={() => openAllowedModal(
-                            user.id, 
-                            'platform', 
-                            modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed || []
-                          )}
-                          className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
-                        >
-                          <i className="fas fa-search"></i>
-                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed)}</span>
-                        </button>
-                      </td>
-                      {/* Archs permissions */}
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Create || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Create', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Delete || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Delete', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center border-r border-theme-modal">
-                        <input 
-                          type="checkbox" 
-                          checked={modifiedPermissions[user.id]?.permissions?.Archs?.Edit || false}
-                          onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Edit', e.target.checked)}
-                          className="users-settings-checkbox w-4 h-4"
-                        />
-                      </td>
-                      <td className="px-2 py-1 text-center">
-                        <button 
-                          onClick={() => openAllowedModal(user.id, 'arch', modifiedPermissions[user.id]?.permissions?.Archs?.Allowed || [])}
-                          className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
-                        >
-                          <i className="fas fa-search"></i>
-                          <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Archs?.Allowed)}</span>
-                        </button>
-                      </td>
-                      {/* Action buttons */}
-                      <td className="px-2 py-1 text-center border-l border-theme-modal">
-                        <div className="flex justify-center space-x-2">
-                          <button 
-                            onClick={() => handleSaveUserPermissions(user.id)}
-                            className={`text-theme-primary hover:text-green-500 ${isSaving[user.id] ? 'opacity-50 cursor-not-allowed' : ''} ${JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) ? 'text-yellow-500' : ''}`}
-                            title="Save user permissions"
-                            disabled={isSaving[user.id]}
-                          >
-                            {isSaving[user.id] ? (
-                              <i className="fas fa-spinner fa-spin"></i>
-                            ) : (
-                              <i className="fas fa-save"></i>
-                            )}
-                          </button>
-                          <button 
-                            onClick={() => handleEditUser(user.id)}
-                            className="text-theme-primary hover:text-blue-500"
-                            title="Edit user"
-                          >
-                            <i className="fas fa-edit"></i>
-                          </button>
-                          <button 
-                            onClick={() => openDeleteModal(user.id, user.username)}
-                            className="text-theme-primary hover:text-red-500"
-                            title="Delete user"
-                          >
-                            <i className="fas fa-trash-alt"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Single scrollable container */}
+            <div className="overflow-x-auto">
+              <div className="min-w-full inline-block align-middle">
+                <div className="overflow-hidden">
+                  <table className="w-full table-fixed border border-theme-modal">
+                    <colgroup>
+                      <col className="w-[150px] username-cell" /> {/* Username */}
+                      <col className="w-10 table-header" span={6} /> {/* Apps */}
+                      <col className="w-10 table-header" span={4} /> {/* Channels */}
+                      <col className="w-10 table-header" span={4} /> {/* Platforms */}
+                      <col className="w-10 table-header" span={4} /> {/* Archs */}
+                      <col className="w-[100px] action-cell" /> {/* Actions */}
+                    </colgroup>
+                    <thead className="bg-theme-background sticky top-0 z-10">
+                      <tr className="border-b border-theme-modal">
+                        <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
+                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
+                          Apps
+                        </th>
+                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                          Channels
+                        </th>
+                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                          Platforms
+                        </th>
+                        <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
+                          Architectures
+                        </th>
+                        <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
+                          Actions
+                        </th>
+                      </tr>
+                      <tr className="border-b border-theme-modal">
+                        <th className="px-2 py-1 border-r border-theme-modal"></th>
+                        {/* Apps subheaders */}
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                        </th>
+                        {/* Channels subheaders */}
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                        </th>
+                        {/* Platforms subheaders */}
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                        </th>
+                        {/* Archs subheaders */}
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
+                        </th>
+                        <th className="min-w-[40px] h-32 text-center text-theme-primary">
+                          <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
+                        </th>
+                        <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-theme-modal">
+                      {usersData.users.map((user) => (
+                        <tr key={user.id} className="border-b border-theme-modal">
+                          <td className="px-2 py-1 text-theme-primary border-r border-theme-modal table-cell">
+                            <div 
+                              className="truncate max-w-[300px]" 
+                              title={user.username}
+                            >
+                              {JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) && (
+                                <span className="ml-2 text-yellow-500" title="Unsaved changes" style={{ marginRight: '5px' }}>
+                                  <i className="fas fa-exclamation-circle"></i>
+                                </span>
+                              )}
+                              {user.username}
+                            </div>
+                          </td>
+                          {/* Apps permissions */}
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Apps?.Create || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Create', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Apps?.Delete || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Delete', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Apps?.Edit || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Edit', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Apps?.Download || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Download', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Apps?.Upload || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Apps', 'Upload', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <button 
+                              onClick={() => openAllowedModal(user.id, 'app', modifiedPermissions[user.id]?.permissions?.Apps?.Allowed || [])}
+                              className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                            >
+                              <i className="fas fa-search"></i>
+                              <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Apps?.Allowed)}</span>
+                            </button>
+                          </td>
+                          {/* Channels permissions */}
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Channels?.Create || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Create', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Channels?.Delete || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Delete', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Channels?.Edit || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Channels', 'Edit', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <button 
+                              onClick={() => openAllowedModal(user.id, 'channel', modifiedPermissions[user.id]?.permissions?.Channels?.Allowed || [])}
+                              className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                            >
+                              <i className="fas fa-search"></i>
+                              <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Channels?.Allowed)}</span>
+                            </button>
+                          </td>
+                          {/* Platforms permissions */}
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Create || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Create', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Delete || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Delete', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Edit || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Platforms', 'Edit', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <button 
+                              onClick={() => openAllowedModal(
+                                user.id, 
+                                'platform', 
+                                modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed || []
+                              )}
+                              className="flex items-center justify-center space-x-1 text-theme-primary hover:text-theme-button-primary"
+                            >
+                              <i className="fas fa-search"></i>
+                              <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Platforms?.Allowed)}</span>
+                            </button>
+                          </td>
+                          {/* Archs permissions */}
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Archs?.Create || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Create', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Archs?.Delete || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Delete', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <input 
+                              type="checkbox" 
+                              checked={modifiedPermissions[user.id]?.permissions?.Archs?.Edit || false}
+                              onChange={(e) => handlePermissionChange(user.id, 'Archs', 'Edit', e.target.checked)}
+                              className="users-settings-checkbox w-4 h-4"
+                            />
+                          </td>
+                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                            <button 
+                              onClick={() => openAllowedModal(user.id, 'arch', modifiedPermissions[user.id]?.permissions?.Archs?.Allowed || [])}
+                              className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
+                            >
+                              <i className="fas fa-search"></i>
+                              <span>{getAllowedCount(modifiedPermissions[user.id]?.permissions?.Archs?.Allowed)}</span>
+                            </button>
+                          </td>
+                          {/* Action buttons */}
+                          <td className="px-2 py-1 text-center border-l border-theme-modal table-cell">
+                            <div className="flex justify-center space-x-2">
+                              <button 
+                                onClick={() => handleSaveUserPermissions(user.id)}
+                                className={`text-theme-primary hover:text-green-500 ${isSaving[user.id] ? 'opacity-50 cursor-not-allowed' : ''} ${JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) ? 'text-yellow-500' : ''}`}
+                                title="Save user permissions"
+                                disabled={isSaving[user.id]}
+                              >
+                                {isSaving[user.id] ? (
+                                  <i className="fas fa-spinner fa-spin"></i>
+                                ) : (
+                                  <i className="fas fa-save"></i>
+                                )}
+                              </button>
+                              <button 
+                                onClick={() => handleEditUser(user.id)}
+                                className="text-theme-primary hover:text-blue-500"
+                                title="Edit user"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button 
+                                onClick={() => openDeleteModal(user.id, user.username)}
+                                className="text-theme-primary hover:text-red-500"
+                                title="Delete user"
+                              >
+                                <i className="fas fa-trash-alt"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </>
         )}
