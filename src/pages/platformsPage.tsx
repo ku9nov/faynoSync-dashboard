@@ -14,6 +14,7 @@ export const PlatformsPage = () => {
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
   const [platformToDelete, setPlatformToDelete] = React.useState<{ id: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const openCreatePlatform = () => setCreatePlatformOpen(true);
   const closeCreatePlatform = () => setCreatePlatformOpen(false);
@@ -45,13 +46,14 @@ export const PlatformsPage = () => {
   return (
     <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex">
-        <Sidebar />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="flex-1 p-8">
           <Header
             title="Platforms"
             onCreateClick={openCreatePlatform}
             createButtonText="Create Platform"
             onSearchChange={setSearchTerm}
+            onMenuClick={() => setIsSidebarOpen(true)}
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">

@@ -20,6 +20,7 @@ export const HomePage = () => {
   const [selectedChangelog, setSelectedChangelog] = React.useState<ChangelogEntry[]>([]);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   React.useEffect(() => {
     setSelectedApp(appName || null);
@@ -66,7 +67,7 @@ export const HomePage = () => {
   return (
     <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex">
-        <Sidebar />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="flex-1 p-8">
           <Header
             title="Applications"
@@ -86,6 +87,7 @@ export const HomePage = () => {
             }
             onSearchChange={handleSearchChange}
             hideSearch={!!selectedApp}
+            onMenuClick={() => setIsSidebarOpen(true)}
           />
           <Dashboard 
             selectedApp={selectedApp}

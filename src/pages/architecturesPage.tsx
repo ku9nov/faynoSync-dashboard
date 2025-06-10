@@ -19,6 +19,7 @@ export const ArchitecturesPage = () => {
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = React.useState(false);
   const [architectureToDelete, setArchitectureToDelete] = React.useState<{ id: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const openCreateArchitecture = () => setCreateArchitectureOpen(true);
   const closeCreateArchitecture = () => setCreateArchitectureOpen(false);
@@ -51,13 +52,14 @@ export const ArchitecturesPage = () => {
   return (
     <div className='min-h-screen bg-theme-gradient font-sans'>
       <div className='flex'>
-        <Sidebar />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className='flex-1 p-8'>
           <Header
             title='Architectures'
             onCreateClick={openCreateArchitecture}
             createButtonText='Create Architecture'
             onSearchChange={setSearchTerm}
+            onMenuClick={() => setIsSidebarOpen(true)}
           />
           {isLoading ? (
             <div className="flex justify-center items-center h-64">

@@ -1,11 +1,15 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname.split('/')[1] || 'applications';
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const getButtonClass = (page: string) => {
     const baseClass = "w-full text-left px-6 py-3 text-theme-primary flex items-center rounded-lg mb-2";
@@ -16,37 +20,24 @@ export const Sidebar: React.FC = () => {
 
   const handleNavigation = (path: string) => {
     navigate(`/${path}`);
-    setDrawerOpen(false); // close drawer on mobile after navigation
+    onClose?.(); // close drawer on mobile after navigation
   };
-
-  // Burger button for mobile
-  const BurgerButton = () => (
-    <button
-      className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none"
-      aria-label="Open menu"
-      onClick={() => setDrawerOpen(true)}
-    >
-      <svg className="w-7 h-7 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
-  );
 
   // Drawer for mobile
   const Drawer = () => (
-    <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${drawerOpen ? '' : 'pointer-events-none'}`}> 
+    <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${isOpen ? '' : 'pointer-events-none'}`}> 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ${drawerOpen ? 'opacity-100' : 'opacity-0'}`}
-        onClick={() => setDrawerOpen(false)}
+        className={`fixed inset-0 bg-black bg-opacity-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onClose}
         aria-label="Close menu overlay"
       />
       {/* Drawer panel */}
-      <aside className={`relative w-64 max-w-[80vw] h-full bg-theme-gradient shadow-xl transform transition-transform duration-300 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`relative w-64 max-w-[80vw] h-full bg-theme-gradient shadow-xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 pt-3">
           <div className="mb-3 flex items-center justify-between w-full">
             <div 
-              onClick={() => { navigate('/applications'); setDrawerOpen(false); }}
+              onClick={() => { navigate('/applications'); onClose?.(); }}
               className="w-full cursor-pointer"
             >
               <img
@@ -58,7 +49,7 @@ export const Sidebar: React.FC = () => {
             <button
               className="ml-2 p-2 rounded-lg text-theme-primary hover:bg-theme-card"
               aria-label="Close menu"
-              onClick={() => setDrawerOpen(false)}
+              onClick={onClose}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -102,8 +93,6 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Burger only on mobile */}
-      <BurgerButton />
       {/* Drawer only on mobile */}
       <Drawer />
       {/* Sidebar only on desktop */}

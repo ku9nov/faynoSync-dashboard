@@ -9,6 +9,7 @@ interface HeaderProps {
   additionalButton?: React.ReactNode;
   onSearchChange?: (searchTerm: string) => void;
   hideSearch?: boolean;
+  onMenuClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   createButtonText,
   additionalButton,
   onSearchChange,
-  hideSearch = false
+  hideSearch = false,
+  onMenuClick
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -129,7 +131,15 @@ export const Header: React.FC<HeaderProps> = ({
       ) : ( 
       <div className="flex flex-col md:hidden gap-2 mt-0">
         <div className="flex justify-between items-center">
-          <div className="w-8 h-8" />
+          <button
+            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none"
+            aria-label="Open menu"
+            onClick={onMenuClick}
+          >
+            <svg className="w-7 h-7 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <div className="flex items-center ml-auto">
             {additionalButton}
             <MobileCreateButton />
