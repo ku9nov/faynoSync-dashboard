@@ -231,6 +231,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const totalPages = Math.ceil((paginatedVersions?.total || 0) / 9);
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day} ${month} ${year}, ${hours}:${minutes}`;
+  };
+
   if (selectedApp) {
     return (
       <div className="mt-8">
@@ -589,6 +599,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   />
                 </div>
                 <p className="mb-4">Channel: {app.Channel}</p>
+                <p className="mb-4 text-theme-primary/70 text-sm">
+                  Created: {formatDate(app.Updated_at)}
+                </p>
                 <div className="flex gap-2">
                   <span className={`px-2 py-1 rounded text-sm ${
                     app.Published ? 'bg-green-500' : 'bg-red-500'
@@ -603,7 +616,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
                 <button
                   onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                  className="mt-4 text-theme-primary hover:text-theme-primary-hover"
+                  className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
                 >
                   View changelog
                 </button>
