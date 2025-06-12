@@ -16,6 +16,7 @@ interface EditVersionModalProps {
     ID: string;
     Published: boolean;
     Critical: boolean;
+    Intermediate: boolean;
     Changelog: string;
     Artifacts: Artifact[];
   };
@@ -23,6 +24,7 @@ interface EditVersionModalProps {
   onSave: (data: {
     Published: boolean;
     Critical: boolean;
+    Intermediate: boolean;
     Changelog: string;
     Platform?: string;
     Arch?: string;
@@ -482,6 +484,15 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 className="mr-2"
               />
               Critical
+            </label>
+            <label className="flex items-center text-theme-primary font-roboto">
+              <input
+                type="checkbox"
+                checked={formData.Intermediate}
+                onChange={(e) => setFormData({ ...formData, Intermediate: e.target.checked })}
+                className="mr-2"
+              />
+              Intermediate
             </label>
           </div>
 

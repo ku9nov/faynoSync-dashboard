@@ -7,6 +7,7 @@ export type UploadData = {
   channel: string;
   publish: boolean;
   critical: boolean;
+  intermediate: boolean;
   platform: string;
   arch: string;
   changelog?: string;
@@ -30,6 +31,7 @@ export const useUploadQuery = () => {
         channel: data.channel,
         publish: data.publish,
         critical: data.critical,
+        intermediate: data.intermediate,
         platform: data.platform,
         arch: data.arch,
         changelog: data.changelog,

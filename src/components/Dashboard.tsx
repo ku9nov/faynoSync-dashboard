@@ -182,6 +182,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleEditSave = async (data: {
     Published: boolean;
     Critical: boolean;
+    Intermediate: boolean;
     Changelog: string;
     Platform?: string;
     Arch?: string;
@@ -613,6 +614,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       Critical
                     </span>
                   )}
+                  {app.Intermediate && (
+                    <span className="px-2 py-1 rounded text-sm bg-yellow-500">
+                      Intermediate
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => onChangelogClick(app.Version, app.Changelog)}
@@ -674,6 +680,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               ID: selectedVersion.ID,
               Published: selectedVersion.Published,
               Critical: selectedVersion.Critical,
+              Intermediate: selectedVersion.Intermediate,
               Changelog: selectedVersion.Changelog[0]?.Changes || '',
               Artifacts: selectedVersion.Artifacts
             }}

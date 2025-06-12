@@ -22,6 +22,7 @@ export type AppVersion = {
   Channel: string;
   Published: boolean;
   Critical: boolean;
+  Intermediate: boolean;
   Artifacts: Artifact[];
   Changelog: ChangelogEntry[];
   Updated_at: string;
@@ -97,6 +98,7 @@ export const useAppsQuery = (
       data: { 
         Published: boolean; 
         Critical: boolean;
+        Intermediate: boolean;
         Changelog: string;
         Platform?: string;
         Arch?: string;
@@ -114,6 +116,7 @@ export const useAppsQuery = (
         channel: data.channel,
         publish: data.Published,
         critical: data.Critical,
+        intermediate: data.Intermediate,
         platform: data.Platform,
         arch: data.Arch,
         changelog: data.Changelog
@@ -184,6 +187,7 @@ export const useAppsQuery = (
   const updateApp = async (id: string, data: {
     Published: boolean;
     Critical: boolean;
+    Intermediate: boolean;
     Changelog: string;
     Platform?: string;
     Arch?: string;
