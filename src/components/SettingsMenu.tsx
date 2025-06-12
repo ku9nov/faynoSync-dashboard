@@ -24,13 +24,21 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
         return;
       }
       
+      // Check if click was on the settings button
+      const settingsButton = document.querySelector('[aria-label="Settings"]');
+      if (settingsButton?.contains(event.target as Node)) {
+        return;
+      }
+      
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [onClose, showProfileModal, showSettingsModal]);
 
   const handleLogout = () => {

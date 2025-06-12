@@ -24,6 +24,12 @@ export const Header: React.FC<HeaderProps> = ({
   const [showSettings, setShowSettings] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const isMobile = useMediaQuery('(max-width: 767px)');
+
+  const handleSettingsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowSettings(!showSettings);
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -118,13 +124,15 @@ export const Header: React.FC<HeaderProps> = ({
           <DesktopCreateButton />
           <div className="relative">
             <button
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={handleSettingsClick}
               className="bg-theme-button-primary hover:bg-theme-button-primary-hover p-2 rounded-lg transition-colors text-theme-primary h-10 w-10 flex items-center justify-center"
               aria-label="Settings"
             >
               <i className="fas fa-cog text-xl"></i>
             </button>
-            {showSettings && <SettingsMenu onClose={() => setShowSettings(false)} />}
+            {showSettings && <SettingsMenu onClose={() => {
+              setShowSettings(false);
+            }} />}
           </div>
         </div>
       </div>
@@ -145,13 +153,15 @@ export const Header: React.FC<HeaderProps> = ({
             <MobileCreateButton />
             <div className="relative ml-2">
               <button
-                onClick={() => setShowSettings(!showSettings)}
+                onClick={handleSettingsClick}
                 className="bg-theme-button-primary hover:bg-theme-button-primary-hover p-2 rounded-lg transition-colors text-theme-primary h-10 w-10 flex items-center justify-center"
                 aria-label="Settings"
               >
                 <i className="fas fa-cog text-xl"></i>
               </button>
-              {showSettings && <SettingsMenu onClose={() => setShowSettings(false)} />}
+              {showSettings && <SettingsMenu onClose={() => {
+                setShowSettings(false);
+              }} />}
             </div>
           </div>
         </div>
