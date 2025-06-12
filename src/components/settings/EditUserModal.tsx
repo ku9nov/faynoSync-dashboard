@@ -138,7 +138,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             <label className='block text-theme-primary mb-2 font-roboto'>New Password</label>
             <div className='flex'>
               <input
-                type='text'
+                type='password'
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'

@@ -341,7 +341,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 <label className='block text-theme-primary mb-2 font-roboto'>Password</label>
                 <div className='flex'>
                   <input
-                    type='text'
+                    type='password'
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
