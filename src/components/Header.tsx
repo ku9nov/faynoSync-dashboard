@@ -58,24 +58,28 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Icon-only button for mobile
   const MobileCreateButton = () => (
-    <button
-      onClick={onCreateClick}
-      className="md:hidden bg-theme-button-primary text-theme-primary p-2.5 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center justify-center ml-2"
-      aria-label={createButtonText}
-    >
-      {renderIcon()}
-    </button>
+    createButtonText && (
+      <button
+        onClick={onCreateClick}
+        className="md:hidden bg-theme-button-primary text-theme-primary p-2.5 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center justify-center ml-2"
+        aria-label={createButtonText}
+      >
+        {renderIcon()}
+      </button>
+    )
   );
 
   // Full button for desktop
   const DesktopCreateButton = () => (
-    <button
-      onClick={onCreateClick}
-      className="hidden md:flex bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200 items-center"
-    >
-      {renderIcon()}
-      <span className="ml-2">{createButtonText}</span>
-    </button>
+    createButtonText && (
+      <button
+        onClick={onCreateClick}
+        className="hidden md:flex bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200 items-center"
+      >
+        {renderIcon()}
+        <span className="ml-2">{createButtonText}</span>
+      </button>
+    )
   );
 
   return (
