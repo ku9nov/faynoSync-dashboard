@@ -16,18 +16,18 @@ import "react-datepicker/dist/react-datepicker.css";
 import type { PieLabelRenderProps } from 'recharts';
 
 const COLORS = [
-  '#026dc9', // основний синій
-  '#006b57', // темно-зелений
-  '#FFBB28', // золотистий
-  '#FF8042', // оранжевий
-  '#7874c2', // лавандовий
-  '#00C49F', // бірюзовий
-  '#FF6B6B', // кораловий
-  '#4ECDC4', // м'ятний
-  '#45B7D1', // світло-синій
-  '#96CEB4', // пастельно-зелений
-  '#FFEEAD', // світло-жовтий
-  '#D4A5A5', // рожево-бежевий
+  '#026dc9', // main blue
+  '#006b57', // dark green
+  '#FFBB28', // golden
+  '#FF8042', // orange
+  '#7874c2', // lavender
+  '#00C49F', // turquoise
+  '#FF6B6B', // coral
+  '#4ECDC4', // mint
+  '#45B7D1', // light blue
+  '#96CEB4', // pastel green
+  '#FFEEAD', // light yellow
+  '#D4A5A5', // pink beige
 ];
 
 type Filters = {
@@ -95,6 +95,26 @@ export const StatisticsPage = () => {
   const { architectures = [] } = useArchitectureQuery();
   const { data, isLoading } = useTelemetryQuery(filters);
 
+  const getNameById = (id: string, type: 'app' | 'channel' | 'platform' | 'arch') => {
+    let items: any[] = [];
+    
+    if (type === 'app' && Array.isArray(apps)) {
+      items = apps;
+      return items.find(item => item.ID === id)?.AppName || id;
+    } else if (type === 'channel' && Array.isArray(channels)) {
+      items = channels;
+      return items.find(item => item.ID === id)?.ChannelName || id;
+    } else if (type === 'platform' && Array.isArray(platforms)) {
+      items = platforms;
+      return items.find(item => item.ID === id)?.PlatformName || id;
+    } else if (type === 'arch' && Array.isArray(architectures)) {
+      items = architectures;
+      return items.find(item => item.ID === id)?.ArchID || id;
+    }
+    
+    return id;
+  };
+
   const handleDropdownClick = (dropdownName: string) => {
     setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
   };
@@ -107,6 +127,10 @@ export const StatisticsPage = () => {
         : [...currentValues, value];
       return { ...prev, [dropdownName]: newValues };
     });
+  };
+
+  const handleClearFilter = (dropdownName: keyof Filters) => {
+    setFilters(prev => ({ ...prev, [dropdownName]: [] }));
   };
 
   const handleTimeRangeChange = (range: 'today' | 'week' | 'month' | 'custom') => {
@@ -205,7 +229,7 @@ export const StatisticsPage = () => {
 
           {/* Time Range Selector */}
           <div className="mb-8">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-end space-x-4">
               <button
                 onClick={() => handleTimeRangeChange('today')}
                 className={`px-4 py-2 rounded-lg ${
@@ -248,7 +272,7 @@ export const StatisticsPage = () => {
                   {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
                 </button>
                 {showDatePicker && (
-                  <div className="absolute z-10 mt-2">
+                  <div className="absolute z-10 mt-2 right-0">
                     <DatePicker
                       selected={selectedDate}
                       onChange={handleDateChange}
@@ -268,27 +292,41 @@ export const StatisticsPage = () => {
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Apps</label>
               <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('apps')}
-                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                >
-                  <span>{filters.apps.length > 0 ? `${filters.apps.length} selected` : 'Select apps'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'apps' ? 'rotate-180' : ''}`}
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDropdownClick('apps')}
+                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                   >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
+                    <span>{filters.apps.length > 0 ? `${filters.apps.length} selected` : 'Select apps'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className={`text-theme-primary transition-transform ${openDropdown === 'apps' ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {filters.apps.length > 0 && (
+                    <button
+                      onClick={() => handleClearFilter('apps')}
+                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      title="Clear selection"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {openDropdown === 'apps' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
                     {(apps as AppListItem[]).map((app) => (
@@ -306,33 +344,69 @@ export const StatisticsPage = () => {
                     ))}
                   </div>
                 )}
+                {filters.apps.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {filters.apps.map(appName => (
+                      <div 
+                        key={appName}
+                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
+                      >
+                        <span>{appName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleOptionClick('apps', appName)}
+                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Channels</label>
               <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('channels')}
-                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                >
-                  <span>{filters.channels.length > 0 ? `${filters.channels.length} selected` : 'Select channels'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'channels' ? 'rotate-180' : ''}`}
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDropdownClick('channels')}
+                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                   >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
+                    <span>{filters.channels.length > 0 ? `${filters.channels.length} selected` : 'Select channels'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className={`text-theme-primary transition-transform ${openDropdown === 'channels' ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {filters.channels.length > 0 && (
+                    <button
+                      onClick={() => handleClearFilter('channels')}
+                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      title="Clear selection"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {openDropdown === 'channels' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
                     {(channels as Channel[]).map((channel) => (
@@ -350,33 +424,69 @@ export const StatisticsPage = () => {
                     ))}
                   </div>
                 )}
+                {filters.channels.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {filters.channels.map(channelName => (
+                      <div 
+                        key={channelName}
+                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
+                      >
+                        <span>{channelName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleOptionClick('channels', channelName)}
+                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Platforms</label>
               <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('platforms')}
-                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                >
-                  <span>{filters.platforms.length > 0 ? `${filters.platforms.length} selected` : 'Select platforms'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'platforms' ? 'rotate-180' : ''}`}
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDropdownClick('platforms')}
+                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                   >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
+                    <span>{filters.platforms.length > 0 ? `${filters.platforms.length} selected` : 'Select platforms'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className={`text-theme-primary transition-transform ${openDropdown === 'platforms' ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {filters.platforms.length > 0 && (
+                    <button
+                      onClick={() => handleClearFilter('platforms')}
+                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      title="Clear selection"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {openDropdown === 'platforms' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
                     {(platforms as Platform[]).map((platform) => (
@@ -394,33 +504,69 @@ export const StatisticsPage = () => {
                     ))}
                   </div>
                 )}
+                {filters.platforms.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {filters.platforms.map(platformName => (
+                      <div 
+                        key={platformName}
+                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
+                      >
+                        <span>{platformName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleOptionClick('platforms', platformName)}
+                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Architectures</label>
               <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('architectures')}
-                  className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                >
-                  <span>{filters.architectures.length > 0 ? `${filters.architectures.length} selected` : 'Select architectures'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'architectures' ? 'rotate-180' : ''}`}
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDropdownClick('architectures')}
+                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                   >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
+                    <span>{filters.architectures.length > 0 ? `${filters.architectures.length} selected` : 'Select architectures'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                      className={`text-theme-primary transition-transform ${openDropdown === 'architectures' ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {filters.architectures.length > 0 && (
+                    <button
+                      onClick={() => handleClearFilter('architectures')}
+                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      title="Clear selection"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  )}
+                </div>
                 {openDropdown === 'architectures' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
                     {(architectures as Architecture[]).map((arch) => (
@@ -435,6 +581,28 @@ export const StatisticsPage = () => {
                         <span className="mr-2">{filters.architectures.includes(arch.ArchID) ? '✓' : ''}</span>
                         {arch.ArchID}
                       </button>
+                    ))}
+                  </div>
+                )}
+                {filters.architectures.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {filters.architectures.map(archId => (
+                      <div 
+                        key={archId}
+                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
+                      >
+                        <span>{archId}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleOptionClick('architectures', archId)}
+                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
