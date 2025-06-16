@@ -13,8 +13,22 @@ import { Platform } from '../hooks/use-query/usePlatformQuery';
 import { Architecture } from '../hooks/use-query/useArchitectureQuery';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import type { PieLabelRenderProps } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = [
+  '#026dc9', // основний синій
+  '#006b57', // темно-зелений
+  '#FFBB28', // золотистий
+  '#FF8042', // оранжевий
+  '#7874c2', // лавандовий
+  '#00C49F', // бірюзовий
+  '#FF6B6B', // кораловий
+  '#4ECDC4', // м'ятний
+  '#45B7D1', // світло-синій
+  '#96CEB4', // пастельно-зелений
+  '#FFEEAD', // світло-жовтий
+  '#D4A5A5', // рожево-бежевий
+];
 
 type Filters = {
   apps: string[];
@@ -36,6 +50,30 @@ const StatCard = ({ title, value, icon }: { title: string; value: number; icon: 
     </div>
   </div>
 );
+
+const renderBoldLabel = (props: PieLabelRenderProps) => {
+  const { cx, cy, midAngle, outerRadius, name, percent = 0, fill } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = Number(outerRadius ?? 80) + 50; // 20px за межі діаграми
+  const centerX = Number(cx ?? 0);
+  const centerY = Number(cy ?? 0);
+  const x = centerX + radius * Math.cos(-midAngle * RADIAN);
+  const y = centerY + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill={fill}
+      fontWeight={700}
+      fontSize={14}
+      textAnchor="middle"
+      dominantBaseline="central"
+    >
+      {`${name} ${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
 
 export const StatisticsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -594,7 +632,7 @@ export const StatisticsPage = () => {
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={renderBoldLabel}
                       >
                         {data.platforms.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -629,7 +667,7 @@ export const StatisticsPage = () => {
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={renderBoldLabel}
                       >
                         {data.architectures.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -664,7 +702,7 @@ export const StatisticsPage = () => {
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={renderBoldLabel}
                       >
                         {data.channels.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
