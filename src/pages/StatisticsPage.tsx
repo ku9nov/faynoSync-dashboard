@@ -93,7 +93,7 @@ export const StatisticsPage = () => {
   const { channels = [] } = useChannelQuery();
   const { platforms = [] } = usePlatformQuery();
   const { architectures = [] } = useArchitectureQuery();
-  const { data, isLoading } = useTelemetryQuery(filters);
+  const { data, isLoading, refetch } = useTelemetryQuery(filters);
 
   const getNameById = (id: string, type: 'app' | 'channel' | 'platform' | 'arch') => {
     let items: any[] = [];
@@ -172,7 +172,25 @@ export const StatisticsPage = () => {
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-theme-gradient font-sans">
+        <div className="flex">
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          <main className="flex-1 p-8">
+            <Header
+              title="Statistics"
+              onMenuClick={() => setIsSidebarOpen(true)}
+              onCreateClick={() => {}}
+              createButtonText=""
+              hideSearch={true}
+            />
+            <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
   }
 
   if (!data) {
@@ -229,60 +247,82 @@ export const StatisticsPage = () => {
 
           {/* Time Range Selector */}
           <div className="mb-8">
-            <div className="flex items-center justify-end space-x-4">
+            <div className="flex items-center justify-between space-x-4">
               <button
-                onClick={() => handleTimeRangeChange('today')}
-                className={`px-4 py-2 rounded-lg ${
-                  filters.range === 'today' && !filters.date
-                    ? 'bg-theme-button-primary text-white'
-                    : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                }`}
+                onClick={() => refetch()}
+                className="flex items-center px-4 py-2 bg-theme-button-primary text-white rounded-lg hover:bg-theme-button-primary-hover transition-colors"
+                disabled={isLoading}
               >
-                Today
+                <svg 
+                  className={`w-5 h-5 mr-2 ${isLoading ? 'animate-spin' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                  />
+                </svg>
+                {isLoading ? 'Updating...' : 'Update Data'}
               </button>
-              <button
-                onClick={() => handleTimeRangeChange('week')}
-                className={`px-4 py-2 rounded-lg ${
-                  filters.range === 'week'
-                    ? 'bg-theme-button-primary text-white'
-                    : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                }`}
-              >
-                Last Week
-              </button>
-              <button
-                onClick={() => handleTimeRangeChange('month')}
-                className={`px-4 py-2 rounded-lg ${
-                  filters.range === 'month'
-                    ? 'bg-theme-button-primary text-white'
-                    : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                }`}
-              >
-                Last Month
-              </button>
-              <div className="relative">
+              <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => handleTimeRangeChange('custom')}
+                  onClick={() => handleTimeRangeChange('today')}
                   className={`px-4 py-2 rounded-lg ${
-                    filters.date
+                    filters.range === 'today' && !filters.date
                       ? 'bg-theme-button-primary text-white'
                       : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
                   }`}
                 >
-                  {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
+                  Today
                 </button>
-                {showDatePicker && (
-                  <div className="absolute z-10 mt-2 right-0">
-                    <DatePicker
-                      selected={selectedDate}
-                      onChange={handleDateChange}
-                      inline
-                      maxDate={new Date()}
-                      className="bg-theme-card border border-theme-card-hover rounded-lg shadow-lg"
-                      calendarClassName="react-datepicker"
-                    />
-                  </div>
-                )}
+                <button
+                  onClick={() => handleTimeRangeChange('week')}
+                  className={`px-4 py-2 rounded-lg ${
+                    filters.range === 'week'
+                      ? 'bg-theme-button-primary text-white'
+                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
+                  }`}
+                >
+                  Last Week
+                </button>
+                <button
+                  onClick={() => handleTimeRangeChange('month')}
+                  className={`px-4 py-2 rounded-lg ${
+                    filters.range === 'month'
+                      ? 'bg-theme-button-primary text-white'
+                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
+                  }`}
+                >
+                  Last Month
+                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => handleTimeRangeChange('custom')}
+                    className={`px-4 py-2 rounded-lg ${
+                      filters.date
+                        ? 'bg-theme-button-primary text-white'
+                        : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
+                    }`}
+                  >
+                    {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
+                  </button>
+                  {showDatePicker && (
+                    <div className="absolute z-10 mt-2 right-0">
+                      <DatePicker
+                        selected={selectedDate}
+                        onChange={handleDateChange}
+                        inline
+                        maxDate={new Date()}
+                        className="bg-theme-card border border-theme-card-hover rounded-lg shadow-lg"
+                        calendarClassName="react-datepicker"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -329,19 +369,25 @@ export const StatisticsPage = () => {
                 </div>
                 {openDropdown === 'apps' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
-                    {(apps as AppListItem[]).map((app) => (
-                      <button
-                        key={app.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('apps', app.AppName)}
-                        className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                          filters.apps.includes(app.AppName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                        }`}
-                      >
-                        <span className="mr-2">{filters.apps.includes(app.AppName) ? '✓' : ''}</span>
-                        {app.AppName}
-                      </button>
-                    ))}
+                    {apps && apps.length > 0 ? (
+                      (apps as AppListItem[]).map((app) => (
+                        <button
+                          key={app.ID}
+                          type="button"
+                          onClick={() => handleOptionClick('apps', app.AppName)}
+                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
+                            filters.apps.includes(app.AppName) ? 'bg-theme-button-primary bg-opacity-50' : ''
+                          }`}
+                        >
+                          <span className="mr-2">{filters.apps.includes(app.AppName) ? '✓' : ''}</span>
+                          {app.AppName}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-theme-primary text-center">
+                        No apps available or you don't have access to any apps
+                      </div>
+                    )}
                   </div>
                 )}
                 {filters.apps.length > 0 && (
@@ -409,19 +455,25 @@ export const StatisticsPage = () => {
                 </div>
                 {openDropdown === 'channels' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
-                    {(channels as Channel[]).map((channel) => (
-                      <button
-                        key={channel.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('channels', channel.ChannelName)}
-                        className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                          filters.channels.includes(channel.ChannelName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                        }`}
-                      >
-                        <span className="mr-2">{filters.channels.includes(channel.ChannelName) ? '✓' : ''}</span>
-                        {channel.ChannelName}
-                      </button>
-                    ))}
+                    {channels && channels.length > 0 ? (
+                      (channels as Channel[]).map((channel) => (
+                        <button
+                          key={channel.ID}
+                          type="button"
+                          onClick={() => handleOptionClick('channels', channel.ChannelName)}
+                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
+                            filters.channels.includes(channel.ChannelName) ? 'bg-theme-button-primary bg-opacity-50' : ''
+                          }`}
+                        >
+                          <span className="mr-2">{filters.channels.includes(channel.ChannelName) ? '✓' : ''}</span>
+                          {channel.ChannelName}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-theme-primary text-center">
+                        No channels available or you don't have access to any channels
+                      </div>
+                    )}
                   </div>
                 )}
                 {filters.channels.length > 0 && (
@@ -489,19 +541,25 @@ export const StatisticsPage = () => {
                 </div>
                 {openDropdown === 'platforms' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
-                    {(platforms as Platform[]).map((platform) => (
-                      <button
-                        key={platform.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('platforms', platform.PlatformName)}
-                        className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                          filters.platforms.includes(platform.PlatformName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                        }`}
-                      >
-                        <span className="mr-2">{filters.platforms.includes(platform.PlatformName) ? '✓' : ''}</span>
-                        {platform.PlatformName}
-                      </button>
-                    ))}
+                    {platforms && platforms.length > 0 ? (
+                      (platforms as Platform[]).map((platform) => (
+                        <button
+                          key={platform.ID}
+                          type="button"
+                          onClick={() => handleOptionClick('platforms', platform.PlatformName)}
+                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
+                            filters.platforms.includes(platform.PlatformName) ? 'bg-theme-button-primary bg-opacity-50' : ''
+                          }`}
+                        >
+                          <span className="mr-2">{filters.platforms.includes(platform.PlatformName) ? '✓' : ''}</span>
+                          {platform.PlatformName}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-theme-primary text-center">
+                        No platforms available or you don't have access to any platforms
+                      </div>
+                    )}
                   </div>
                 )}
                 {filters.platforms.length > 0 && (
@@ -569,19 +627,25 @@ export const StatisticsPage = () => {
                 </div>
                 {openDropdown === 'architectures' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
-                    {(architectures as Architecture[]).map((arch) => (
-                      <button
-                        key={arch.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('architectures', arch.ArchID)}
-                        className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                          filters.architectures.includes(arch.ArchID) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                        }`}
-                      >
-                        <span className="mr-2">{filters.architectures.includes(arch.ArchID) ? '✓' : ''}</span>
-                        {arch.ArchID}
-                      </button>
-                    ))}
+                    {architectures && architectures.length > 0 ? (
+                      (architectures as Architecture[]).map((arch) => (
+                        <button
+                          key={arch.ID}
+                          type="button"
+                          onClick={() => handleOptionClick('architectures', arch.ArchID)}
+                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
+                            filters.architectures.includes(arch.ArchID) ? 'bg-theme-button-primary bg-opacity-50' : ''
+                          }`}
+                        >
+                          <span className="mr-2">{filters.architectures.includes(arch.ArchID) ? '✓' : ''}</span>
+                          {arch.ArchID}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-theme-primary text-center">
+                        No architectures available or you don't have access to any architectures
+                      </div>
+                    )}
                   </div>
                 )}
                 {filters.architectures.length > 0 && (
