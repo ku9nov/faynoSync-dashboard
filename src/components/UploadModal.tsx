@@ -19,6 +19,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     arch: '',
     publish: false,
     critical: false,
+    intermediate: false,
     changelog: '',
   });
 
@@ -81,6 +82,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         arch: formData.arch,
         publish: formData.publish,
         critical: formData.critical,
+        intermediate: formData.intermediate,
         changelog: formData.changelog,
         files: files.map(f => f.file)
       };
@@ -326,6 +328,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 className="mr-2"
               />
               Is critical
+            </label>
+          </div>
+
+          <div className="mb-4">
+            <label className="flex items-center text-theme-primary font-roboto">
+              <input
+                type="checkbox"
+                checked={formData.intermediate}
+                onChange={(e) => setFormData(prev => ({ ...prev, intermediate: e.target.checked }))}
+                className="mr-2"
+              />
+              Is intermediate
             </label>
           </div>
         </>
