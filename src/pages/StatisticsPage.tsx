@@ -95,26 +95,6 @@ export const StatisticsPage = () => {
   const { architectures = [] } = useArchitectureQuery();
   const { data, isLoading, refetch } = useTelemetryQuery(filters);
 
-  const getNameById = (id: string, type: 'app' | 'channel' | 'platform' | 'arch') => {
-    let items: any[] = [];
-    
-    if (type === 'app' && Array.isArray(apps)) {
-      items = apps;
-      return items.find(item => item.ID === id)?.AppName || id;
-    } else if (type === 'channel' && Array.isArray(channels)) {
-      items = channels;
-      return items.find(item => item.ID === id)?.ChannelName || id;
-    } else if (type === 'platform' && Array.isArray(platforms)) {
-      items = platforms;
-      return items.find(item => item.ID === id)?.PlatformName || id;
-    } else if (type === 'arch' && Array.isArray(architectures)) {
-      items = architectures;
-      return items.find(item => item.ID === id)?.ArchID || id;
-    }
-    
-    return id;
-  };
-
   const handleDropdownClick = (dropdownName: string) => {
     setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
   };
@@ -369,7 +349,7 @@ export const StatisticsPage = () => {
                 </div>
                 {openDropdown === 'apps' && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
-                    {apps && apps.length > 0 ? (
+                    {Array.isArray(apps) && apps.length > 0 ? (
                       (apps as AppListItem[]).map((app) => (
                         <button
                           key={app.ID}
