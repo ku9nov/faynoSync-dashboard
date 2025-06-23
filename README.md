@@ -1,6 +1,9 @@
 # FaynoSync Dashboard
 
-![demo-quality](https://github.com/user-attachments/assets/40a80baa-142b-466a-8e5b-c2153dac5cae)
+
+![demo](https://github.com/user-attachments/assets/17ab8692-d445-44bf-8a30-dc164025f805)
+
+
 
 ### 🧠 This frontend was built entirely with CursorAI
 
