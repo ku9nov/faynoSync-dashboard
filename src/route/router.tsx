@@ -4,6 +4,7 @@ import { PrivateRoute } from './privateRoute.tsx';
 import { PublicRoute } from './publicRoute.tsx';
 import { AuthProvider } from '../providers/authProvider.tsx';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 // Lazy load page components
