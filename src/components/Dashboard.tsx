@@ -601,7 +601,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
                 <p className="mb-4">Channel: {app.Channel}</p>
                 <p className="mb-4 text-theme-primary/70 text-sm">
-                  Created: {formatDate(app.Updated_at)}
+                  Last updated: {formatDate(app.Updated_at)}
                 </p>
                 <div className="flex gap-2">
                   <span className={`px-2 py-1 rounded text-sm ${
@@ -620,12 +620,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </span>
                   )}
                 </div>
-                <button
-                  onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                  className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
-                >
-                  View changelog
-                </button>
+                <div className="mt-4 p-3 rounded-lg h-20">
+                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
+                    <p className="text-sm text-theme-primary/80 line-clamp-3">
+                      {app.Changelog[0].Changes}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-theme-primary/60 italic">
+                      Changelog not provided
+                    </p>
+                  )}
+                </div>
+                {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
+                  <button
+                    onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                    className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+                  >
+                    View full changelog
+                  </button>
+                )}
               </div>
             ))
           )}
