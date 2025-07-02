@@ -601,7 +601,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
                 <p className="mb-4">Channel: {app.Channel}</p>
                 <p className="mb-4 text-theme-primary/70 text-sm">
-                  Created: {formatDate(app.Updated_at)}
+                  Last updated: {formatDate(app.Updated_at)}
                 </p>
                 <div className="flex gap-2">
                   <span className={`px-2 py-1 rounded text-sm ${
