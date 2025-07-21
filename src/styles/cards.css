@@ -1,6 +1,6 @@
 .sharedCard {
   border-radius: 1.5rem;
-  border: 2px solid var(--card-color, #8B5CF6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   background: linear-gradient(135deg, #ffffff1a, #ffffff0d);
   box-shadow: 0 4px 32px 0 rgba(16, 24, 40, 0.18);
   backdrop-filter: blur(16px);
@@ -64,4 +64,28 @@
   font-size: 1rem;
   color: #e5e7eb;
   margin: 0;
+}
+.sharedCard--compact {
+  padding: 1.5rem 2rem;
+  gap: 0.25rem;
+}
+.sharedCard--compact .sharedCardContent {
+  flex: none;
+}
+.sharedCard--compact:hover {
+  transform: translateY(-4px) scale(1.025);
+  box-shadow: 0 8px 40px 0 rgba(16, 24, 40, 0.22);
+  border-color: var(--card-color, #8B5CF6);
+}
+.sharedCard.sharedCard--compact {
+  padding: 1.5rem 2rem !important;
+  gap: 0.25rem !important;
+}
+.sharedCard.sharedCard--compact .sharedCardContent {
+  flex: none !important;
+}
+.sharedCard.sharedCard--compact:hover {
+  transform: translateY(-4px) scale(1.025);
+  box-shadow: 0 8px 40px 0 rgba(16, 24, 40, 0.22);
+  border-color: var(--card-color, #8B5CF6);
 } 

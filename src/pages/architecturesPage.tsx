@@ -7,6 +7,7 @@ import { ArchitectureCard } from '../components/ArchitectureCard';
 import { DeleteArchitectureConfirmationModal } from '../components/DeleteArchitectureConfirmationModal';
 import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
 import { useSearch } from '../hooks/useSearch.ts';
+import '../styles/cards.css';
 
 export const ArchitecturesPage = () => {
   const [createArchitectureOpen, setCreateArchitectureOpen] =

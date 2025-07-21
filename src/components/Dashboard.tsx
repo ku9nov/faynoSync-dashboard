@@ -603,60 +603,72 @@ export const Dashboard: React.FC<DashboardProps> = ({
             appVersions.map((app) => (
               <div
                 key={app.ID}
-                className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
+                className={"sharedCard bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"}
+                style={{ ['--card-color' as any]: '#8B5CF6' }}
               >
-                <div className="flex items-center justify-between mb-2 gap-2">
-                  <h3 className="text-xl font-semibold truncate min-w-0" title={`Version ${app.Version}`}>
+                <div className="flex items-center mb-4 min-w-0 w-full">
+                  <h3 
+                    className="sharedCardTitle text-xl font-semibold truncate max-w-[200px] overflow-hidden ml-4" 
+                    title={`Version ${app.Version}`}
+                  >
                     Version {app.Version}
                   </h3>
-                  <ActionIcons
-                    onDownload={() => handleDownload(app)}
-                    onEdit={() => handleEdit(app)}
-                    onDelete={() => handleDelete(app)}
-                    showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                    artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-                  />
+                  <div className="flex gap-2 flex-shrink-0 ml-auto">
+                    <ActionIcons
+                      onDownload={() => handleDownload(app)}
+                      onEdit={() => handleEdit(app)}
+                      onDelete={() => handleDelete(app)}
+                      showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                      artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                    />
+                  </div>
                 </div>
-                <p className="mb-4">Channel: {app.Channel}</p>
-                <p className="mb-4 text-theme-primary/70 text-sm">
-                  Last updated: {formatDate(app.Updated_at)}
-                </p>
-                <div className="flex gap-2">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    app.Published ? 'bg-green-500' : 'bg-red-500'
-                  }`}>
-                    {app.Published ? 'Published' : 'Not published'}
-                  </span>
-                  {app.Critical && (
-                    <span className="px-2 py-1 rounded text-sm bg-red-500">
-                      Critical
-                    </span>
-                  )}
-                  {app.Intermediate && (
-                    <span className="px-2 py-1 rounded text-sm bg-yellow-500">
-                      Intermediate
-                    </span>
-                  )}
-                </div>
-                <div className="mt-4 p-3 rounded-lg h-20">
-                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                    <p className="text-sm text-theme-primary/80 line-clamp-3">
-                      {app.Changelog[0].Changes}
+                <div className="sharedCardContent relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-sm text-theme-primary/70 flex-1 sharedCardDescription">
+                      Channel: {app.Channel}
                     </p>
-                  ) : (
-                    <p className="text-sm text-theme-primary/60 italic">
-                      Changelog not provided
-                    </p>
+                  </div>
+                  <p className="mb-2 text-theme-primary/70 text-sm">
+                    Last updated: {formatDate(app.Updated_at)}
+                  </p>
+                  <div className="flex gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      app.Published ? 'bg-green-500' : 'bg-red-500'
+                    }`}>
+                      {app.Published ? 'Published' : 'Not published'}
+                    </span>
+                    {app.Critical && (
+                      <span className="px-2 py-1 rounded text-sm bg-red-500">
+                        Critical
+                      </span>
+                    )}
+                    {app.Intermediate && (
+                      <span className="px-2 py-1 rounded text-sm bg-yellow-500">
+                        Intermediate
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 p-3 rounded-lg h-20">
+                    {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
+                      <p className="text-sm text-theme-primary/80 line-clamp-3">
+                        {app.Changelog[0].Changes}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-theme-primary/60 italic">
+                        Changelog not provided
+                      </p>
+                    )}
+                  </div>
+                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
+                    <button
+                      onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                      className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+                    >
+                      View full changelog
+                    </button>
                   )}
                 </div>
-                {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
-                  <button
-                    onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                    className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
-                  >
-                    View full changelog
-                  </button>
-                )}
               </div>
             ))
           )}

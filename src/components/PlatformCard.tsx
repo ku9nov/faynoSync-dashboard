@@ -23,22 +23,26 @@ export const PlatformCard: React.FC<PlatformCardProps> = ({
   };
 
   return (
-    <div className='relative'>
-      <div
-        className='bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors'
-        onClick={onClick}>
-        <h3 
-          className='text-xl font-semibold mb-2 text-theme-primary truncate max-w-[200px] overflow-hidden' 
+    <div
+      className={"sharedCard sharedCard--compact bg-theme-card backdrop-blur-lg rounded-lg p-2 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer flex items-center"}
+      style={{ ['--card-color' as any]: '#8B5CF6' }}
+      onClick={onClick}
+    >
+      <div className="flex items-center min-w-0 w-full">
+        <h3
+          className="sharedCardTitle text-xl font-semibold truncate max-w-[200px] overflow-hidden"
           title={platform.name}
         >
           {platform.name}
         </h3>
+        <button
+          onClick={handleDeleteClick}
+          className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200 ml-auto"
+          title="Delete platform"
+        >
+          <i className="fas fa-trash"></i>
+        </button>
       </div>
-      <button
-        onClick={handleDeleteClick}
-        className='absolute top-2 right-2 p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200'>
-        <i className='fas fa-trash'></i>
-      </button>
     </div>
   );
 }; 
