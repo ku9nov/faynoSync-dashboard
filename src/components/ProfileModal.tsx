@@ -182,19 +182,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <h3 className="text-lg font-semibold text-theme-primary mb-3">Change Password</h3>
                 <form onSubmit={handlePasswordChange}>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto">New Password</label>
+                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">New Password</label>
                     <div className="flex">
                       <input
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
+                        className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                         required
                       />
                       <button
                         type="button"
                         onClick={generatePassword}
-                        className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                        className="ml-2 header-action-btn px-3 py-2 font-roboto"
                       >
                         Generate
                       </button>
@@ -202,7 +202,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(newPassword)}
-                          className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                          className="ml-2 header-action-btn px-3 py-2 font-roboto"
                         >
                           <i className="fas fa-copy"></i>
                         </button>
@@ -210,12 +210,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto">Confirm New Password</label>
+                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">Confirm New Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
+                      className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                       required
                     />
                   </div>
@@ -230,7 +230,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                   )}
                   <button
                     type="submit"
-                    className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200"
+                    className="header-action-btn px-4 py-2 font-roboto mt-2"
                     disabled={isUpdatingAdmin}
                   >
                     {isUpdatingAdmin ? (
