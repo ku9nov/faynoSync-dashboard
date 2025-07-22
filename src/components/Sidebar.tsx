@@ -26,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Drawer for mobile
   const Drawer = () => (
-    <div className={`fixed inset-0 z-50 flex md:hidden transition-all duration-300 ${isOpen ? '' : 'pointer-events-none'}`}> 
+    <div className={`fixed inset-0 z-200 flex md:hidden transition-all duration-300 ${isOpen ? '' : 'pointer-events-none'}`}> 
       {/* Overlay */}
       <div
         className={`fixed inset-0 sidebar-drawer-overlay transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
