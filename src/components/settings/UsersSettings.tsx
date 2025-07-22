@@ -442,12 +442,7 @@ export const UsersSettings: React.FC = () => {
                 <div className="overflow-hidden">
                   <table className="users-table table-fixed">
                     <colgroup>
-                      <col className="username-cell" /> {/* Username */}
-                      <col className="checkbox-cell" span={6} /> {/* Apps */}
-                      <col className="checkbox-cell" span={4} /> {/* Channels */}
-                      <col className="checkbox-cell" span={4} /> {/* Platforms */}
-                      <col className="checkbox-cell" span={4} /> {/* Archs */}
-                      <col className="action-cell" /> {/* Actions */}
+                      <col className="username-cell" /><col className="checkbox-cell" span={6} /><col className="checkbox-cell" span={4} /><col className="checkbox-cell" span={4} /><col className="checkbox-cell" span={4} /><col className="action-cell" />
                     </colgroup>
                     <thead>
                       <tr>
