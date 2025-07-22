@@ -103,6 +103,11 @@
   transform: scale(1.08);
 }
 
+.statistics-header-settings-btn {
+  width: 2rem;
+  height: 2rem;
+}
+
 /* Settings menu popup with higher z-index */
 .settings-menu-popup {
   z-index: 9999 !important;

@@ -365,7 +365,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('apps', appName)}
-                          className="header-settings-btn ml-2"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -451,7 +451,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('channels', channelName)}
-                          className="header-settings-btn ml-2"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -537,7 +537,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('platforms', platformName)}
-                          className="header-settings-btn ml-2"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -623,7 +623,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('architectures', archId)}
-                          className="header-settings-btn ml-2"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
