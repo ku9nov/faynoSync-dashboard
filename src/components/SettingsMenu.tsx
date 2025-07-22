@@ -3,8 +3,6 @@ import { createPortal } from 'react-dom';
 import { useAuth } from '../providers/authProvider';
 import { useTheme } from '../providers/themeProvider';
 import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
-import { ProfileModal } from './ProfileModal';
-import { SettingsModal } from './SettingsModal';
 
 interface SettingsMenuProps {
   onClose: () => void;
@@ -17,7 +15,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenSetti
   const { logout } = useAuth();
   const { themeMode, setThemeMode } = useTheme();
   const { data: userData } = useUsersQuery();
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showSettingsModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const themeMenuTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
