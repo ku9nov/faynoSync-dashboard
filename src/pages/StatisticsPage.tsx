@@ -229,8 +229,8 @@ export const StatisticsPage = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between space-x-4">
               <button
-                onClick={() => refetch()}
-                className="flex items-center px-4 py-2 bg-theme-button-primary text-white rounded-lg hover:bg-theme-button-primary-hover transition-colors"
+                onClick={e => { e.currentTarget.blur(); refetch(); }}
+                className={`header-action-btn flex items-center px-3 py-1.5 text-lg font-semibold ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 disabled={isLoading}
               >
                 <svg 
@@ -251,42 +251,26 @@ export const StatisticsPage = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => handleTimeRangeChange('today')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'today' && !filters.date
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-4 py-2 ${filters.range === 'today' && !filters.date ? 'header-action-btn' : ''}`}
                 >
                   Today
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('week')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'week'
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-4 py-2 ${filters.range === 'week' ? 'header-action-btn' : ''}`}
                 >
                   Last Week
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('month')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'month'
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-4 py-2 ${filters.range === 'month' ? 'header-action-btn' : ''}`}
                 >
                   Last Month
                 </button>
                 <div className="relative">
                   <button
                     onClick={() => handleTimeRangeChange('custom')}
-                    className={`px-4 py-2 rounded-lg ${
-                      filters.date
-                        ? 'bg-theme-button-primary text-white'
-                        : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                    }`}
+                    className={`header-additional-btn px-4 py-2 ${filters.date ? 'header-action-btn' : ''}`}
                   >
                     {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
                   </button>
@@ -316,7 +300,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('apps')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.apps.length > 0 ? `${filters.apps.length} selected` : 'Select apps'}</span>
                     <svg 
@@ -337,7 +321,7 @@ export const StatisticsPage = () => {
                   {filters.apps.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('apps')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -381,7 +365,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('apps', appName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -402,7 +386,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('channels')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.channels.length > 0 ? `${filters.channels.length} selected` : 'Select channels'}</span>
                     <svg 
@@ -423,7 +407,7 @@ export const StatisticsPage = () => {
                   {filters.channels.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('channels')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -467,7 +451,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('channels', channelName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -488,7 +472,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('platforms')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.platforms.length > 0 ? `${filters.platforms.length} selected` : 'Select platforms'}</span>
                     <svg 
@@ -509,7 +493,7 @@ export const StatisticsPage = () => {
                   {filters.platforms.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('platforms')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -553,7 +537,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('platforms', platformName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -574,7 +558,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('architectures')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.architectures.length > 0 ? `${filters.architectures.length} selected` : 'Select architectures'}</span>
                     <svg 
@@ -595,7 +579,7 @@ export const StatisticsPage = () => {
                   {filters.architectures.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('architectures')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -639,7 +623,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('architectures', archId)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
