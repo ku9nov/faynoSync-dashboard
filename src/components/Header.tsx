@@ -1,6 +1,9 @@
 import React from 'react';
 import { SettingsMenu } from './SettingsMenu';
 import useMediaQuery from '../hooks/useMediaQuery';
+import '../styles/header.css';
+import { SettingsModal } from './SettingsModal';
+import { ProfileModal } from './ProfileModal';
 
 interface HeaderProps {
   title: string;
@@ -22,12 +25,31 @@ export const Header: React.FC<HeaderProps> = ({
   onMenuClick
 }) => {
   const [showSettings, setShowSettings] = React.useState(false);
+  const [showSettingsModal, setShowSettingsModal] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [showProfileModal, setShowProfileModal] = React.useState(false);
   const isMobile = useMediaQuery('(max-width: 767px)');
 
   const handleSettingsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowSettings(!showSettings);
+  };
+
+  const handleOpenSettingsModal = () => {
+    setShowSettings(false);
+    setShowSettingsModal(true);
+  };
+
+  const handleCloseSettingsModal = () => {
+    setShowSettingsModal(false);
+  };
+
+  const handleOpenProfileModal = () => {
+    setShowSettings(false);
+    setShowProfileModal(true);
+  };
+  const handleCloseProfileModal = () => {
+    setShowProfileModal(false);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,40 +78,16 @@ export const Header: React.FC<HeaderProps> = ({
     );
   };
 
-  // Icon-only button for mobile
-  const MobileCreateButton = () => (
-    createButtonText && (
-      <button
-        onClick={onCreateClick}
-        className="md:hidden bg-theme-button-primary text-theme-primary p-2.5 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center justify-center ml-2"
-        aria-label={createButtonText}
-      >
-        {renderIcon()}
-      </button>
-    )
-  );
 
-  // Full button for desktop
-  const DesktopCreateButton = () => (
-    createButtonText && (
-      <button
-        onClick={onCreateClick}
-        className="hidden md:flex bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200 items-center"
-      >
-        {renderIcon()}
-        <span className="ml-2">{createButtonText}</span>
-      </button>
-    )
-  );
 
   return (
-    <div className="mb-8">
+    <div className="header-container">
       {/* Desktop: all in one row; Mobile: stacked */}
       {!isMobile ? (
       <div className="hidden md:flex items-center justify-between w-full gap-4">
         <div className="flex items-center gap-6 flex-1 min-w-0 justify-between">
           {title && (
-            <h2 className="text-3xl font-bold text-theme-primary whitespace-nowrap">{title}</h2>
+            <h2 className="header-title whitespace-nowrap">{title}</h2>
           )}
           {!hideSearch && (
             <div className="relative w-full max-w-xs ml-4">
@@ -98,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="bg-theme-card text-theme-primary px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary w-full"
+                className="header-search px-4 py-2 focus:outline-none focus:ring-2 focus:ring-theme-primary w-full"
               />
               {searchTerm && (
                 <button
@@ -125,18 +123,27 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         <div className="flex items-center gap-4">
           {additionalButton}
-          <DesktopCreateButton />
+          {/* DesktopCreateButton */}
+          {createButtonText && (
+            <button
+              onClick={onCreateClick}
+              className="header-action-btn hidden md:flex px-4 py-2 font-roboto items-center"
+            >
+              {renderIcon()}
+              <span className="ml-2">{createButtonText}</span>
+            </button>
+          )}
           <div className="relative">
             <button
               onClick={handleSettingsClick}
-              className="bg-theme-button-primary hover:bg-theme-button-primary-hover p-2 rounded-lg transition-colors text-theme-primary h-10 w-10 flex items-center justify-center"
+              className="header-settings-btn"
               aria-label="Settings"
             >
               <i className="fas fa-cog text-xl"></i>
             </button>
             {showSettings && <SettingsMenu onClose={() => {
               setShowSettings(false);
-            }} />}
+            }} onOpenSettingsModal={handleOpenSettingsModal} onOpenProfileModal={handleOpenProfileModal} />}
           </div>
         </div>
       </div>
@@ -144,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-col md:hidden gap-2 mt-0">
         <div className="flex justify-between items-center">
           <button
-            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none"
+            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none hover:bg-theme-card-hover transition-colors duration-200"
             aria-label="Open menu"
             onClick={onMenuClick}
           >
@@ -154,23 +161,32 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <div className="flex items-center ml-auto">
             {additionalButton}
-            <MobileCreateButton />
+            {/* MobileCreateButton */}
+            {createButtonText && (
+              <button
+                onClick={onCreateClick}
+                className="header-action-btn md:hidden p-2.5 ml-2 flex items-center justify-center"
+                aria-label={createButtonText}
+              >
+                {renderIcon()}
+              </button>
+            )}
             <div className="relative ml-2">
               <button
                 onClick={handleSettingsClick}
-                className="bg-theme-button-primary hover:bg-theme-button-primary-hover p-2 rounded-lg transition-colors text-theme-primary h-10 w-10 flex items-center justify-center"
+                className="header-settings-btn"
                 aria-label="Settings"
               >
                 <i className="fas fa-cog text-xl"></i>
               </button>
               {showSettings && <SettingsMenu onClose={() => {
                 setShowSettings(false);
-              }} />}
+              }} onOpenSettingsModal={handleOpenSettingsModal} onOpenProfileModal={handleOpenProfileModal} />}
             </div>
           </div>
         </div>
         {title && (
-          <h2 className="text-2xl font-bold text-theme-primary mb-2">{title}</h2>
+          <h2 className="header-title mb-2">{title}</h2>
         )}
         {!hideSearch && (
           <div className="relative w-full">
@@ -179,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="bg-theme-card text-theme-primary px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary w-full"
+              className="header-search px-4 py-2 focus:outline-none focus:ring-2 focus:ring-theme-primary w-full"
             />
             {searchTerm && (
               <button
@@ -205,6 +221,8 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div> 
       )}
+      {showSettingsModal && <SettingsModal onClose={handleCloseSettingsModal} />}
+      {showProfileModal && <ProfileModal onClose={handleCloseProfileModal} />}
     </div>
   );
 }; 

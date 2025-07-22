@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../providers/authProvider';
 import { useTheme } from '../providers/themeProvider';
 import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
@@ -7,26 +8,47 @@ import { SettingsModal } from './SettingsModal';
 
 interface SettingsMenuProps {
   onClose: () => void;
+  onOpenSettingsModal: () => void;
+  onOpenProfileModal: () => void;
 }
 
-export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
+export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenSettingsModal, onOpenProfileModal }) => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { themeMode, setThemeMode } = useTheme();
   const { data: userData } = useUsersQuery();
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const themeMenuTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    // Calculate position for the menu
+    const settingsButton = document.querySelector('[aria-label="Settings"]') as HTMLElement;
+    if (settingsButton) {
+      const rect = settingsButton.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right
+      });
+    }
+  }, []);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showProfileModal || showSettingsModal) {
+      if (showSettingsModal) {
         return;
       }
       
       // Check if click was on the settings button
       const settingsButton = document.querySelector('[aria-label="Settings"]');
       if (settingsButton?.contains(event.target as Node)) {
+        return;
+      }
+      
+      // Check if click was on theme submenu
+      const themeSubmenu = document.querySelector('.theme-submenu');
+      if (themeSubmenu?.contains(event.target as Node)) {
         return;
       }
       
@@ -38,8 +60,11 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      if (themeMenuTimeoutRef.current) {
+        clearTimeout(themeMenuTimeoutRef.current);
+      }
     };
-  }, [onClose, showProfileModal, showSettingsModal]);
+  }, [onClose, showSettingsModal]);
 
   const handleLogout = () => {
     logout();
@@ -47,11 +72,15 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
   };
 
   const handleProfileClick = () => {
-    setShowProfileModal(true);
+    onClose();
+    onOpenProfileModal();
   };
 
   const handleSettingsClick = () => {
-    setShowSettingsModal(true);
+    onClose();
+    if (typeof onOpenSettingsModal === 'function') {
+      onOpenSettingsModal();
+    }
   };
 
   const getThemeIcon = () => {
@@ -67,94 +96,115 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose }) => {
     }
   };
 
-  return (
-    <>
-      <div
-        ref={menuRef}
-        className="absolute right-0 top-12 w-48 bg-theme-modal rounded-lg shadow-lg py-2 animate-fade-in z-50 border border-theme-modal"
-      >
+  const menuContent = (
+    <div
+      ref={menuRef}
+      className="settings-popup animate-fade-in settings-menu-popup"
+      style={{
+        position: 'fixed',
+        zIndex: 9999,
+        top: menuPosition.top,
+        right: menuPosition.right,
+        minWidth: '12rem'
+      }}
+    >
         {userData && (
           <>
-            <div className="px-4 py-2 text-theme-modal-text flex items-center">
-              <span className="font-medium">{userData.username}</span>
-              <i className={`fas ${userData.is_admin ? 'fa-crown text-yellow-500' : 'fa-user text-blue-500'} ml-2`}></i>
+            <div className="settings-popup-user">
+              <span>{userData.username}</span>
+              <i className={`fas ${userData.is_admin ? 'fa-crown text-yellow-500' : 'fa-user text-blue-500'}`}></i>
             </div>
-            <div className="border-t border-theme-modal my-2"></div>
+            <div className="settings-popup-divider"></div>
           </>
         )}
         <button 
           onClick={handleProfileClick}
-          className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+          className="settings-popup-button"
         >
-          <i className="fas fa-user mr-2"></i>
-          Profile
+          <i className="fas fa-user"></i>
+          <span>Profile</span>
         </button>
         {userData?.is_admin && (
           <button 
             onClick={handleSettingsClick}
-            className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+            className="settings-popup-button"
           >
-            <i className="fas fa-cog mr-2"></i>
-            Settings
+            <i className="fas fa-cog"></i>
+            <span>Settings</span>
           </button>
         )}
         <div className="relative">
           <button 
-            onMouseEnter={() => setShowThemeMenu(true)}
-            onMouseLeave={() => setShowThemeMenu(false)}
-            className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text flex items-center justify-between"
+            onMouseEnter={() => {
+              if (themeMenuTimeoutRef.current) {
+                clearTimeout(themeMenuTimeoutRef.current);
+              }
+              setShowThemeMenu(true);
+            }}
+            onMouseLeave={() => {
+              themeMenuTimeoutRef.current = setTimeout(() => {
+                setShowThemeMenu(false);
+              }, 150);
+            }}
+            className="settings-popup-button"
           >
-            <span>
-              <i className={`fas ${getThemeIcon()} mr-2`}></i>
-              Theme
-            </span>
-            {/* <i className="fas fa-chevron-right"></i> */}
+            <i className={`fas ${getThemeIcon()}`}></i>
+            <span>Theme</span>
+            <i className="fas fa-chevron-right ml-auto"></i>
           </button>
           {showThemeMenu && (
             <div 
-              className="absolute right-full top-0 w-32 bg-theme-modal rounded-lg shadow-lg py-2 border border-theme-modal"
-              onMouseEnter={() => setShowThemeMenu(true)}
-              onMouseLeave={() => setShowThemeMenu(false)}
+              className="theme-submenu"
+              onMouseEnter={() => {
+                if (themeMenuTimeoutRef.current) {
+                  clearTimeout(themeMenuTimeoutRef.current);
+                }
+                setShowThemeMenu(true);
+              }}
+              onMouseLeave={() => {
+                themeMenuTimeoutRef.current = setTimeout(() => {
+                  setShowThemeMenu(false);
+                }, 150);
+              }}
             >
               <button 
                 onClick={() => setThemeMode('light')}
-                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+                className="settings-popup-button"
               >
-                <i className="fas fa-sun mr-2"></i>
-                Light
+                <i className="fas fa-sun"></i>
+                <span>Light</span>
               </button>
               <button 
                 onClick={() => setThemeMode('dark')}
-                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+                className="settings-popup-button"
               >
-                <i className="fas fa-moon mr-2"></i>
-                Dark
+                <i className="fas fa-moon"></i>
+                <span>Dark</span>
               </button>
               <button 
                 onClick={() => setThemeMode('auto')}
-                className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-modal-text"
+                className="settings-popup-button"
               >
-                <i className="fas fa-clock mr-2"></i>
-                Auto
+                <i className="fas fa-clock"></i>
+                <span>Auto</span>
               </button>
             </div>
           )}
         </div>
-        <div className="border-t border-theme-modal my-2"></div>
+        <div className="settings-popup-divider"></div>
         <button 
           onClick={handleLogout}
-          className="w-full text-left px-4 py-2 hover-bg-theme-modal text-theme-danger"
+          className="settings-popup-button danger"
         >
-          <i className="fas fa-sign-out-alt mr-2"></i>
-          Logout
+          <i className="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
         </button>
       </div>
-      {showProfileModal && (
-        <ProfileModal onClose={() => setShowProfileModal(false)} />
-      )}
-      {showSettingsModal && (
-        <SettingsModal onClose={() => setShowSettingsModal(false)} />
-      )}
+    );
+
+  return (
+    <>
+      {createPortal(menuContent, document.body)}
     </>
   );
 }; 

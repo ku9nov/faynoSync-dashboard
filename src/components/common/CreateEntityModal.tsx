@@ -86,7 +86,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
         </div>
       )}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
         onClick={handleBackdropClick}
       >
         <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
