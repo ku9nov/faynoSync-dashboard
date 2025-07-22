@@ -36,17 +36,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     { id: 'users', label: 'Users', icon: 'fa-users' },
   ];
 
+  const isMobile = window.innerWidth < 768;
+  const modalStyle = isMobile
+    ? {
+        width: '100vw',
+        height: '100vh',
+        minWidth: 0,
+        minHeight: 0,
+        maxWidth: '100vw',
+        maxHeight: '100vh',
+        borderRadius: '0.5rem',
+      }
+    : {
+        width: '95vw',
+        height: '90vh',
+        minWidth: '800px',
+        minHeight: '600px',
+        maxWidth: 'calc(100vw - 288px)', // 256px sidebar + 32px запас
+        maxHeight: '90vh',
+        borderRadius: '1rem',
+      };
+
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 grid place-items-center modal-overlay-high"
+      style={{ zIndex: 11000 }}
     >
       <div 
         ref={modalRef}
-        className="bg-theme-gradient rounded-lg w-[98%] h-[85%] flex overflow-hidden"
+        className="bg-theme-gradient flex overflow-auto"
+        style={modalStyle}
       >
-        {/* Sidebar - reduced width from w-64 to w-48 */}
-        <div className="w-48 bg-theme-gradient p-3">
+        {/* Sidebar */}
+        <div className="w-48 bg-theme-gradient p-4">
           <h2 className="text-lg font-bold text-theme-primary mb-4">Settings</h2>
           <nav>
             {menuItems.map((item) => (
@@ -66,8 +89,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           </nav>
         </div>
 
-        {/* Content - adjusted padding and spacing */}
-        <div className="flex-1 p-4 overflow-auto bg-theme-gradient">
+        {/* Content */}
+        <div className="flex-1 p-6 overflow-auto bg-theme-gradient">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-xl font-bold text-theme-primary">
               {menuItems.find(item => item.id === currentPage)?.label}

@@ -7,6 +7,7 @@ import { PlatformCard } from '../components/PlatformCard';
 import { DeletePlatformConfirmationModal } from '../components/DeletePlatformConfirmationModal';
 import { usePlatformQuery, Platform } from '../hooks/use-query/usePlatformQuery';
 import { useSearch } from '../hooks/useSearch.ts';
+import '../styles/cards.css';
 
 export const PlatformsPage = () => {
   const [createPlatformOpen, setCreatePlatformOpen] = React.useState(false);

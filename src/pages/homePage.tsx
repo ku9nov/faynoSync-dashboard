@@ -76,7 +76,7 @@ export const HomePage = () => {
             additionalButton={
               <button
                 onClick={toggleCreateAppModal}
-                className="bg-theme-button-primary text-theme-primary p-2.5 md:px-4 md:py-2 rounded-lg font-sans hover:bg-theme-button-primary-hover transition-colors duration-200 flex items-center"
+                className="header-additional-btn p-2.5 md:px-4 md:py-2 font-sans"
                 aria-label="Create app"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

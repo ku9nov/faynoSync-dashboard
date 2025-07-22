@@ -13,17 +13,17 @@ export const AuthInputs: FC<AuthInputsProps> = ({
   placeholder,
 }) => {
   return (
-    <div>
+    <div className='w-full'>
       <Field
         name={name}
         type={type}
         placeholder={placeholder}
-        className='w-full px-4 py-3 border border-theme-auth-input rounded-md focus:outline-none focus:ring-2 focus:ring-theme-auth-input font-sans'
+        className='w-full px-4 py-3 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-white placeholder-opacity-60 transition-all duration-200 backdrop-blur-sm'
       />
       <ErrorMessage
         name={name}
         component='div'
-        className='text-theme-danger text-sm mt-1'
+        className='text-red-400 text-sm mt-1 font-medium'
       />
     </div>
   );

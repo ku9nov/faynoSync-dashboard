@@ -86,7 +86,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
         </div>
       )}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
         onClick={handleBackdropClick}
       >
         <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
@@ -105,7 +105,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
           </div>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="name" className="block text-theme-primary mb-2 font-roboto">
+              <label htmlFor="name" className="block text-theme-primary mb-2 font-roboto font-semibold">
                 {entityName}
               </label>
               <input
@@ -114,7 +114,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
                 name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary"
+                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                 required
               />
             </div>
@@ -122,13 +122,13 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200"
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
+                className="header-action-btn px-4 py-2 font-roboto ml-2"
               >
                 Create
               </button>

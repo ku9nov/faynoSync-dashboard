@@ -7,6 +7,7 @@ import { ChannelCard } from '../components/ChannelCard';
 import { DeleteChannelConfirmationModal } from '../components/DeleteChannelConfirmationModal';
 import { useChannelQuery, Channel } from '../hooks/use-query/useChannelQuery';
 import { useSearch } from '../hooks/useSearch.ts';
+import '../styles/cards.css';
 
 export const ChannelsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
