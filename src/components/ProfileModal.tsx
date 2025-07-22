@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
 import { useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
@@ -128,7 +129,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
   if (userLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 flex items-center justify-center modal-overlay-high">
         <div className="bg-theme-modal-gradient rounded-lg p-8 w-[500px] max-h-[80vh] overflow-y-auto relative">
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-theme-primary"></div>
@@ -138,12 +139,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     );
   }
 
-  return (
+  return ReactDOM.createPortal(
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[11000] overflow-y-auto min-h-screen p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-theme-modal-gradient rounded-lg p-8 w-[600px] max-h-[80vh] overflow-y-auto relative z-[99999]">
+      <div className="bg-theme-modal-gradient rounded-lg p-8 w-full max-w-[600px] max-h-[90vh] relative"
+        onClick={e => e.stopPropagation()}
+      >
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-theme-primary hover:text-theme-primary-hover"
@@ -179,19 +182,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <h3 className="text-lg font-semibold text-theme-primary mb-3">Change Password</h3>
                 <form onSubmit={handlePasswordChange}>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto">New Password</label>
+                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">New Password</label>
                     <div className="flex">
                       <input
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
+                        className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                         required
                       />
                       <button
                         type="button"
                         onClick={generatePassword}
-                        className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                        className="ml-2 header-action-btn px-3 py-2 font-roboto"
                       >
                         Generate
                       </button>
@@ -199,7 +202,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(newPassword)}
-                          className="ml-2 bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                          className="ml-2 header-action-btn px-3 py-2 font-roboto"
                         >
                           <i className="fas fa-copy"></i>
                         </button>
@@ -207,12 +210,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto">Confirm New Password</label>
+                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">Confirm New Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary font-roboto"
+                      className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                       required
                     />
                   </div>
@@ -227,7 +230,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                   )}
                   <button
                     type="submit"
-                    className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200"
+                    className="header-action-btn px-4 py-2 font-roboto mt-2"
                     disabled={isUpdatingAdmin}
                   >
                     {isUpdatingAdmin ? (
@@ -340,6 +343,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }; 

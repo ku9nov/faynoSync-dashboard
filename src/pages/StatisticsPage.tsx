@@ -214,9 +214,9 @@ export const StatisticsPage = () => {
 
   return (
     <div className="min-h-screen bg-theme-gradient font-sans">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-2 sm:p-4 md:p-8">
           <Header
             title="Statistics"
             onMenuClick={() => setIsSidebarOpen(true)}
@@ -226,11 +226,11 @@ export const StatisticsPage = () => {
           />
 
           {/* Time Range Selector */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between space-x-4">
+          <div className="mb-4 sm:mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-4">
               <button
-                onClick={() => refetch()}
-                className="flex items-center px-4 py-2 bg-theme-button-primary text-white rounded-lg hover:bg-theme-button-primary-hover transition-colors"
+                onClick={e => { e.currentTarget.blur(); refetch(); }}
+                className={`header-action-btn flex items-center px-2 sm:px-3 py-1.5 text-base sm:text-lg font-semibold ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 disabled={isLoading}
               >
                 <svg 
@@ -248,45 +248,29 @@ export const StatisticsPage = () => {
                 </svg>
                 {isLoading ? 'Updating...' : 'Update Data'}
               </button>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-4">
                 <button
                   onClick={() => handleTimeRangeChange('today')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'today' && !filters.date
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-2 sm:px-4 py-2 text-sm sm:text-base ${filters.range === 'today' && !filters.date ? 'header-action-btn' : ''}`}
                 >
                   Today
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('week')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'week'
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-2 sm:px-4 py-2 text-sm sm:text-base ${filters.range === 'week' ? 'header-action-btn' : ''}`}
                 >
                   Last Week
                 </button>
                 <button
                   onClick={() => handleTimeRangeChange('month')}
-                  className={`px-4 py-2 rounded-lg ${
-                    filters.range === 'month'
-                      ? 'bg-theme-button-primary text-white'
-                      : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                  }`}
+                  className={`header-additional-btn px-2 sm:px-4 py-2 text-sm sm:text-base ${filters.range === 'month' ? 'header-action-btn' : ''}`}
                 >
                   Last Month
                 </button>
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <button
                     onClick={() => handleTimeRangeChange('custom')}
-                    className={`px-4 py-2 rounded-lg ${
-                      filters.date
-                        ? 'bg-theme-button-primary text-white'
-                        : 'bg-theme-card text-theme-primary hover:bg-theme-card-hover'
-                    }`}
+                    className={`header-additional-btn w-full sm:w-auto px-2 sm:px-4 py-2 text-sm sm:text-base ${filters.date ? 'header-action-btn' : ''}`}
                   >
                     {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
                   </button>
@@ -308,7 +292,7 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
             <div className="mb-4">
               <label className="block text-theme-primary mb-2 font-roboto">Apps</label>
               <div className="relative dropdown-container">
@@ -316,7 +300,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('apps')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.apps.length > 0 ? `${filters.apps.length} selected` : 'Select apps'}</span>
                     <svg 
@@ -337,7 +321,7 @@ export const StatisticsPage = () => {
                   {filters.apps.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('apps')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -381,7 +365,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('apps', appName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -402,7 +386,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('channels')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.channels.length > 0 ? `${filters.channels.length} selected` : 'Select channels'}</span>
                     <svg 
@@ -423,7 +407,7 @@ export const StatisticsPage = () => {
                   {filters.channels.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('channels')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -467,7 +451,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('channels', channelName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -488,7 +472,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('platforms')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.platforms.length > 0 ? `${filters.platforms.length} selected` : 'Select platforms'}</span>
                     <svg 
@@ -509,7 +493,7 @@ export const StatisticsPage = () => {
                   {filters.platforms.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('platforms')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -553,7 +537,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('platforms', platformName)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -574,7 +558,7 @@ export const StatisticsPage = () => {
                   <button
                     type="button"
                     onClick={() => handleDropdownClick('architectures')}
-                    className="flex-1 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
                   >
                     <span>{filters.architectures.length > 0 ? `${filters.architectures.length} selected` : 'Select architectures'}</span>
                     <svg 
@@ -595,7 +579,7 @@ export const StatisticsPage = () => {
                   {filters.architectures.length > 0 && (
                     <button
                       onClick={() => handleClearFilter('architectures')}
-                      className="p-2 text-theme-primary hover:text-red-500 transition-colors"
+                      className="header-settings-btn p-2"
                       title="Clear selection"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -639,7 +623,7 @@ export const StatisticsPage = () => {
                         <button
                           type="button"
                           onClick={() => handleOptionClick('architectures', archId)}
-                          className="ml-2 text-theme-primary hover:text-theme-danger"
+                          className="header-settings-btn statistics-header-settings-btn ml-2"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -655,7 +639,7 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-8">
             <StatCard
               title="Total Requests"
               value={data.summary?.total_requests || 0}
@@ -684,11 +668,11 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Trend Graphs */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
             {/* Total Requests Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Total Requests Trend</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Total Requests Trend</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.daily_stats ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data.daily_stats}>
@@ -712,9 +696,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Unique Clients Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Unique Clients Trend</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Unique Clients Trend</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.daily_stats ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data.daily_stats}>
@@ -738,9 +722,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Latest Version Users Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Latest Version Users Trend</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Latest Version Users Trend</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.daily_stats ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data.daily_stats}>
@@ -764,9 +748,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Outdated Clients Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Outdated Clients Trend</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Outdated Clients Trend</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.daily_stats ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data.daily_stats}>
@@ -791,11 +775,11 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
             {/* Version Usage Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Version Usage</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Version Usage</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.versions?.usage ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.versions.usage}>
@@ -831,9 +815,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Platform Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Platform Distribution</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Platform Distribution</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.platforms ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -866,9 +850,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Architecture Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Architecture Distribution</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Architecture Distribution</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.architectures ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -901,9 +885,9 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Channel Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-4 text-theme-primary">Channel Distribution</h3>
-              <div className="h-80">
+            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Channel Distribution</h3>
+              <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.channels ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -937,8 +921,8 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Version Table */}
-          <div className="bg-theme-card rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold mb-4 text-theme-primary">Version Details</h3>
+          <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Version Details</h3>
             <div className="overflow-x-auto">
               {data.versions?.usage ? (
                 <table className="min-w-full divide-y divide-theme-card-hover">

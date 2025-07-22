@@ -75,14 +75,14 @@ export const DeleteUserConfirmationModal: React.FC<DeleteUserConfirmationModalPr
         </div>
       )}
       <div 
-        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50'
+        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50 overflow-y-auto min-h-screen p-4'
         onClick={handleBackdropClick}
       >
-        <div className='bg-theme-modal-gradient p-8 rounded-lg w-96'>
+        <div className='bg-theme-modal-gradient p-8 rounded-lg w-full max-w-md max-h-[90vh]'>
           <h2 className='text-2xl font-bold mb-4 text-theme-primary font-roboto'>
             Delete User Confirmation
           </h2>
-          <p className='text-theme-primary mb-4'>
+          <p className='text-theme-primary mb-4 font-semibold'>
             To delete user "{username}" please enter their username:
           </p>
           <div className='mb-4'>
@@ -90,7 +90,7 @@ export const DeleteUserConfirmationModal: React.FC<DeleteUserConfirmationModalPr
               type='text'
               value={confirmationText}
               onChange={(e) => setConfirmationText(e.target.value)}
-              className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
+              className='w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm'
               placeholder='Enter username'
             />
           </div>
@@ -98,14 +98,14 @@ export const DeleteUserConfirmationModal: React.FC<DeleteUserConfirmationModalPr
             <button
               type='button'
               onClick={onClose}
-              className='bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200'>
+              className='bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm'>
               Cancel
             </button>
             <button
               type='button'
               onClick={handleConfirm}
               disabled={confirmationText !== username || isDeleting}
-              className='bg-red-600 text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed'>
+              className='bg-red-600 text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ml-2 shadow-sm'>
               {isDeleting ? (
                 <>
                   <i className="fas fa-spinner fa-spin mr-2"></i>

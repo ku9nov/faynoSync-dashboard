@@ -1,6 +1,9 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 @import './styles/animations.css';
 @import './styles/theme.css';
+@import './styles/cards.css';
+@import './styles/sidebar.css';
+@import './styles/header.css';
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -102,7 +105,7 @@ body {
 }
 
 .text-theme-danger {
-  color: var(--danger-text);
+  color: var(--warning-text);
 }
 
 .bg-theme-auth-gradient {

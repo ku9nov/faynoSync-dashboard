@@ -85,7 +85,7 @@ export const EditModal: React.FC<EditModalProps> = ({
         </div>
       )}
       <div 
-        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50'
+        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high'
         onClick={handleBackdropClick}
       >
         <div className='bg-theme-modal-gradient p-8 rounded-lg w-96'>
@@ -106,14 +106,14 @@ export const EditModal: React.FC<EditModalProps> = ({
             <div className='mb-4'>
               <label
                 htmlFor='rename'
-                className='block text-theme-primary mb-2 font-roboto'>
+                className='block text-theme-primary mb-2 font-roboto font-semibold'>
                 {label}
               </label>
               <input
                 type='text'
                 id='rename'
                 name='rename'
-                className='w-full p-2 rounded-lg font-roboto bg-theme-card text-theme-primary'
+                className='w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm'
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
               />
@@ -122,12 +122,12 @@ export const EditModal: React.FC<EditModalProps> = ({
               <button
                 type='button'
                 onClick={onClose}
-                className='bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200'>
+                className='bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm'>
                 Cancel
               </button>
               <button
                 type='submit'
-                className='bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200'>
+                className='header-action-btn px-4 py-2 font-roboto ml-2'>
                 Save
               </button>
             </div>

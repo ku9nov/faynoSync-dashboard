@@ -13,10 +13,6 @@ import { CreateUserModal } from './CreateUserModal';
 
 // Add styles for checkboxes
 const checkboxStyles = `
-  .users-settings-checkbox {
-    accent-color: #93c5fd !important; /* blue-300 */
-  }
-
   @media (max-width: 768px) {
     .users-settings-checkbox {
       width: 0.75rem !important;
@@ -25,18 +21,6 @@ const checkboxStyles = `
     
     .table-cell {
       padding: 0.25rem !important;
-    }
-    
-    .table-header {
-      min-width: 2rem !important;
-    }
-    
-    .username-cell {
-      width: 100px !important;
-    }
-    
-    .action-cell {
-      width: 80px !important;
     }
   }
 `;
@@ -436,7 +420,7 @@ export const UsersSettings: React.FC = () => {
   return (
     <div className="relative">
       <style>{checkboxStyles}</style>
-      <div className="overflow-hidden text-sm">
+      <div className="users-table-container text-sm">
         {/* Add Create User button at the top - moved outside the conditional rendering */}
         <div className="mb-4 flex justify-end">
           <button
@@ -456,101 +440,96 @@ export const UsersSettings: React.FC = () => {
             <div className="overflow-x-auto">
               <div className="min-w-full inline-block align-middle">
                 <div className="overflow-hidden">
-                  <table className="w-full table-fixed border border-theme-modal">
+                  <table className="users-table table-fixed">
                     <colgroup>
-                      <col className="w-[150px] username-cell" /> {/* Username */}
-                      <col className="w-10 table-header" span={6} /> {/* Apps */}
-                      <col className="w-10 table-header" span={4} /> {/* Channels */}
-                      <col className="w-10 table-header" span={4} /> {/* Platforms */}
-                      <col className="w-10 table-header" span={4} /> {/* Archs */}
-                      <col className="w-[100px] action-cell" /> {/* Actions */}
+                      <col className="username-cell" /><col className="checkbox-cell" span={6} /><col className="checkbox-cell" span={4} /><col className="checkbox-cell" span={4} /><col className="checkbox-cell" span={4} /><col className="action-cell" />
                     </colgroup>
-                    <thead className="bg-theme-background sticky top-0 z-10">
-                      <tr className="border-b border-theme-modal">
-                        <th className="px-2 py-1 text-left text-theme-primary border-r border-theme-modal">Username</th>
-                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={6}>
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1 text-left">Username</th>
+                        <th className="px-2 py-1 text-center" colSpan={6}>
                           Apps
                         </th>
-                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                        <th className="px-2 py-1 text-center" colSpan={4}>
                           Channels
                         </th>
-                        <th className="px-2 py-1 text-center text-theme-primary border-r border-theme-modal" colSpan={4}>
+                        <th className="px-2 py-1 text-center" colSpan={4}>
                           Platforms
                         </th>
-                        <th className="px-2 py-1 text-center text-theme-primary" colSpan={4}>
+                        <th className="px-2 py-1 text-center" colSpan={4}>
                           Architectures
                         </th>
-                        <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal">
+                        <th className="px-2 py-1 text-center">
                           Actions
                         </th>
                       </tr>
-                      <tr className="border-b border-theme-modal">
-                        <th className="px-2 py-1 border-r border-theme-modal"></th>
+                      <tr>
+                        <th className="px-2 py-1"></th>
                         {/* Apps subheaders */}
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Download</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Upload</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
                         </th>
                         {/* Channels subheaders */}
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
                         </th>
                         {/* Platforms subheaders */}
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
                         </th>
                         {/* Archs subheaders */}
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Create</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Delete</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary border-r border-theme-modal">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Edit</div>
                         </th>
-                        <th className="min-w-[40px] h-32 text-center text-theme-primary">
+                        <th className="min-w-[40px] h-32 text-center">
                           <div className="transform -rotate-90 whitespace-nowrap h-full flex items-center justify-center">Allowed</div>
                         </th>
-                        <th className="px-2 py-1 text-center text-theme-primary border-l border-theme-modal"></th>
+                        <th className="px-2 py-1 text-center"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-theme-modal">
+                    <tbody>
                       {usersData.users.map((user) => (
-                        <tr key={user.id} className="border-b border-theme-modal">
-                          <td className="px-2 py-1 text-theme-primary border-r border-theme-modal table-cell">
+                        <tr key={user.id}>
+                          <td className="px-2 py-1 table-cell">
                             <div 
                               className="truncate max-w-[300px]" 
                               title={user.username}
@@ -564,7 +543,7 @@ export const UsersSettings: React.FC = () => {
                             </div>
                           </td>
                           {/* Apps permissions */}
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Apps?.Create || false}
@@ -572,7 +551,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Apps?.Delete || false}
@@ -580,7 +559,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Apps?.Edit || false}
@@ -588,7 +567,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Apps?.Download || false}
@@ -596,7 +575,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Apps?.Upload || false}
@@ -604,7 +583,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <button 
                               onClick={() => openAllowedModal(user.id, 'app', modifiedPermissions[user.id]?.permissions?.Apps?.Allowed || [])}
                               className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
@@ -614,7 +593,7 @@ export const UsersSettings: React.FC = () => {
                             </button>
                           </td>
                           {/* Channels permissions */}
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Channels?.Create || false}
@@ -622,7 +601,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Channels?.Delete || false}
@@ -630,7 +609,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Channels?.Edit || false}
@@ -638,7 +617,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <button 
                               onClick={() => openAllowedModal(user.id, 'channel', modifiedPermissions[user.id]?.permissions?.Channels?.Allowed || [])}
                               className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
@@ -648,7 +627,7 @@ export const UsersSettings: React.FC = () => {
                             </button>
                           </td>
                           {/* Platforms permissions */}
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Create || false}
@@ -656,7 +635,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Delete || false}
@@ -664,7 +643,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Platforms?.Edit || false}
@@ -672,7 +651,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <button 
                               onClick={() => openAllowedModal(
                                 user.id, 
@@ -686,7 +665,7 @@ export const UsersSettings: React.FC = () => {
                             </button>
                           </td>
                           {/* Archs permissions */}
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Archs?.Create || false}
@@ -694,7 +673,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Archs?.Delete || false}
@@ -702,7 +681,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <input 
                               type="checkbox" 
                               checked={modifiedPermissions[user.id]?.permissions?.Archs?.Edit || false}
@@ -710,7 +689,7 @@ export const UsersSettings: React.FC = () => {
                               className="users-settings-checkbox w-4 h-4"
                             />
                           </td>
-                          <td className="px-2 py-1 text-center border-r border-theme-modal table-cell">
+                          <td className="px-2 py-1 text-center table-cell">
                             <button 
                               onClick={() => openAllowedModal(user.id, 'arch', modifiedPermissions[user.id]?.permissions?.Archs?.Allowed || [])}
                               className="flex items-center justify-center text-theme-primary hover:text-theme-button-primary"
@@ -720,11 +699,11 @@ export const UsersSettings: React.FC = () => {
                             </button>
                           </td>
                           {/* Action buttons */}
-                          <td className="px-2 py-1 text-center border-l border-theme-modal table-cell">
-                            <div className="flex justify-center space-x-2">
+                          <td className="px-2 py-1 text-center table-cell">
+                            <div className="flex justify-center space-x-1">
                               <button 
                                 onClick={() => handleSaveUserPermissions(user.id)}
-                                className={`text-theme-primary hover:text-green-500 ${isSaving[user.id] ? 'opacity-50 cursor-not-allowed' : ''} ${JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) ? 'text-yellow-500' : ''}`}
+                                className={`users-table-action-btn ${isSaving[user.id] ? 'opacity-50 cursor-not-allowed' : ''} ${JSON.stringify(modifiedPermissions[user.id]?.permissions) !== JSON.stringify(user.permissions) ? 'text-yellow-500' : ''}`}
                                 title="Save user permissions"
                                 disabled={isSaving[user.id]}
                               >
@@ -736,14 +715,14 @@ export const UsersSettings: React.FC = () => {
                               </button>
                               <button 
                                 onClick={() => handleEditUser(user.id)}
-                                className="text-theme-primary hover:text-blue-500"
+                                className="users-table-action-btn"
                                 title="Edit user"
                               >
                                 <i className="fas fa-edit"></i>
                               </button>
                               <button 
                                 onClick={() => openDeleteModal(user.id, user.username)}
-                                className="text-theme-primary hover:text-red-500"
+                                className="users-table-action-btn"
                                 title="Delete user"
                               >
                                 <i className="fas fa-trash-alt"></i>

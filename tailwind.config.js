@@ -4,6 +4,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      zIndex: {
+        '200': '200',
+      },
       colors: {
       },
       fontFamily: {

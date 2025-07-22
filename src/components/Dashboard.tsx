@@ -13,6 +13,7 @@ import { useSearch } from '../hooks/useSearch.ts';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
+import '../styles/cards.css';
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -602,60 +603,72 @@ export const Dashboard: React.FC<DashboardProps> = ({
             appVersions.map((app) => (
               <div
                 key={app.ID}
-                className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"
+                className={"sharedCard bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"}
+                style={{ ['--card-color' as any]: '#8B5CF6' }}
               >
-                <div className="flex items-center justify-between mb-2 gap-2">
-                  <h3 className="text-xl font-semibold truncate min-w-0" title={`Version ${app.Version}`}>
+                <div className="flex items-center mb-4 min-w-0 w-full">
+                  <h3 
+                    className="sharedCardTitle text-xl font-semibold truncate max-w-[200px] overflow-hidden ml-4" 
+                    title={`Version ${app.Version}`}
+                  >
                     Version {app.Version}
                   </h3>
-                  <ActionIcons
-                    onDownload={() => handleDownload(app)}
-                    onEdit={() => handleEdit(app)}
-                    onDelete={() => handleDelete(app)}
-                    showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                    artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-                  />
+                  <div className="flex gap-2 flex-shrink-0 ml-auto">
+                    <ActionIcons
+                      onDownload={() => handleDownload(app)}
+                      onEdit={() => handleEdit(app)}
+                      onDelete={() => handleDelete(app)}
+                      showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                      artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                    />
+                  </div>
                 </div>
-                <p className="mb-4">Channel: {app.Channel}</p>
-                <p className="mb-4 text-theme-primary/70 text-sm">
-                  Last updated: {formatDate(app.Updated_at)}
-                </p>
-                <div className="flex gap-2">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    app.Published ? 'bg-green-500' : 'bg-red-500'
-                  }`}>
-                    {app.Published ? 'Published' : 'Not published'}
-                  </span>
-                  {app.Critical && (
-                    <span className="px-2 py-1 rounded text-sm bg-red-500">
-                      Critical
-                    </span>
-                  )}
-                  {app.Intermediate && (
-                    <span className="px-2 py-1 rounded text-sm bg-yellow-500">
-                      Intermediate
-                    </span>
-                  )}
-                </div>
-                <div className="mt-4 p-3 rounded-lg h-20">
-                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                    <p className="text-sm text-theme-primary/80 line-clamp-3">
-                      {app.Changelog[0].Changes}
+                <div className="sharedCardContent relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-sm text-theme-primary/70 flex-1 sharedCardDescription">
+                      Channel: {app.Channel}
                     </p>
-                  ) : (
-                    <p className="text-sm text-theme-primary/60 italic">
-                      Changelog not provided
-                    </p>
+                  </div>
+                  <p className="mb-2 text-theme-primary/70 text-sm">
+                    Last updated: {formatDate(app.Updated_at)}
+                  </p>
+                  <div className="flex gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      app.Published ? 'bg-green-500' : 'bg-red-500'
+                    }`}>
+                      {app.Published ? 'Published' : 'Not published'}
+                    </span>
+                    {app.Critical && (
+                      <span className="px-2 py-1 rounded text-sm bg-red-500">
+                        Critical
+                      </span>
+                    )}
+                    {app.Intermediate && (
+                      <span className="px-2 py-1 rounded text-sm bg-yellow-500">
+                        Intermediate
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 p-3 rounded-lg h-20">
+                    {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
+                      <p className="text-sm text-theme-primary/80 line-clamp-3">
+                        {app.Changelog[0].Changes}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-theme-primary/60 italic">
+                        Changelog not provided
+                      </p>
+                    )}
+                  </div>
+                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
+                    <button
+                      onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                      className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+                    >
+                      View full changelog
+                    </button>
                   )}
                 </div>
-                {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
-                  <button
-                    onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                    className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
-                  >
-                    View full changelog
-                  </button>
-                )}
               </div>
             ))
           )}
@@ -761,12 +774,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div
             key={app.ID}
             onClick={() => onAppClick(app.AppName)}
-            className="bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
+            className={"bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer sharedCard"}
+            style={{ ['--card-color' as any]: '#8B5CF6' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4 min-w-0">
-                {app.Logo ? (
-                  <div className="relative w-12 h-12 flex-shrink-0">
+            <div className="flex items-center mb-4 min-w-0 w-full">
+              <div className="relative w-12 h-12 flex-shrink-0">
+                <div className="sharedCardIcon w-12 h-12">
+                  {app.Logo ? (
                     <img 
                       src={app.Logo} 
                       alt={`${app.AppName} logo`}
@@ -785,27 +799,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         target.style.opacity = '1';
                       }}
                     />
-                    <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
-                    {app.Private && (
-                      <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
-                        <svg 
-                          className="w-3 h-3 text-theme-primary" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth="2" 
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
+                  ) : (
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="24" 
@@ -816,22 +810,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       strokeWidth="2" 
                       strokeLinecap="round" 
                       strokeLinejoin="round"
-                      className="text-theme-primary-hover"
+                      className="text-theme-primary-hover w-full h-full"
                     >
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                       <path d="M12 8v8"></path>
                       <path d="M8 12h8"></path>
                     </svg>
+                  )}
+                </div>
+                {app.Private && (
+                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 z-10">
+                    <svg 
+                      className="w-3 h-3 text-theme-primary" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
+                    </svg>
                   </div>
                 )}
-                <h3 
-                  className="text-xl font-semibold truncate max-w-[200px] overflow-hidden" 
-                  title={app.AppName}
-                >
-                  {app.AppName}
-                </h3>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
+              <h3 
+                className="text-xl font-semibold truncate max-w-[200px] overflow-hidden sharedCardTitle ml-4" 
+                title={app.AppName}
+              >
+                {app.AppName}
+              </h3>
+              <div className="flex gap-2 flex-shrink-0 ml-auto">
                 <button
                   onClick={(e) => handleEditApp(e, app)}
                   className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
@@ -848,9 +859,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </button>
               </div>
             </div>
-            <div className="relative">
+            <div className="relative sharedCardContent">
               <div className="flex items-center gap-2">
-                <p className={`text-sm text-theme-primary/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'}`}>
+                <p className={`text-sm text-theme-primary/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'} sharedCardDescription`}>
                   {app.Description || 'No description available'}
                 </p>
                 {app.Description && app.Description.length > 50 && (

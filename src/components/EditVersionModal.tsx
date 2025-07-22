@@ -292,9 +292,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto">
+            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
               Add New Files
             </label>
             <div className="relative">
@@ -349,7 +349,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {platforms.length > 0 && (
                   <div>
-                    <label className="block text-theme-primary mb-2 font-roboto">
+                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
                       Platform
                     </label>
                     <div className="relative dropdown-container">
@@ -393,7 +393,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 )}
                 {architectures.length > 0 && (
                   <div>
-                    <label className="block text-theme-primary mb-2 font-roboto">
+                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
                       Architecture
                     </label>
                     <div className="relative dropdown-container">
@@ -440,7 +440,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto">
+            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
               Changelog
             </label>
             <div className="flex gap-2 mb-2">
@@ -460,7 +460,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <textarea
                 value={formData.Changelog}
                 onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
+                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
                 placeholder="Enter changelog in Markdown format..."
               />
             )}
@@ -496,11 +496,11 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             </label>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-400 transition-colors duration-200"
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
             >
               Cancel
             </button>
