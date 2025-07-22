@@ -69,7 +69,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         style={modalStyle}
       >
         {/* Sidebar */}
-        <div className="w-64 bg-theme-gradient p-4">
+        <div className="w-48 bg-theme-gradient p-4">
           <h2 className="text-lg font-bold text-theme-primary mb-4">Settings</h2>
           <nav>
             {menuItems.map((item) => (
