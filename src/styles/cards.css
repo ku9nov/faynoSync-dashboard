@@ -88,6 +88,32 @@
   transform: translateY(-4px) scale(1.025);
   box-shadow: 0 8px 40px 0 rgba(16, 24, 40, 0.22);
   border-color: var(--card-color, #8B5CF6);
+}
+
+/* Auth card styles without icons */
+.sharedCard--auth {
+  padding: 2.5rem 2rem;
+  gap: 0;
+  align-items: center;
+  text-align: center;
+}
+
+.sharedCard--auth .sharedCardContent {
+  width: 100%;
+  max-width: 100%;
+}
+
+.sharedCard--auth .sharedCardTitle {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.sharedCard--auth:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 40px 0 rgba(16, 24, 40, 0.22);
+  border-color: var(--card-color, #8B5CF6);
 } 
 /* Modern users table styles harmonized with card design */
 .users-table-container {
