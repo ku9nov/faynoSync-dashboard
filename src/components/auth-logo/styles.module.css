@@ -161,8 +161,3 @@
     x: 480px !important;
   }
 }
-
-/* Dark mode support */
-:global(html[data-theme='dark']) .bannerRoot {
-  /* Slightly adjust gradients for dark bg if needed */
-} 

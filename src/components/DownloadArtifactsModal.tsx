@@ -92,10 +92,10 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
       onClick={handleBackdropClick}
     >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] flex flex-col">
+      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto flex flex-col">
         <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
           Select Artifact to Download
         </h2>
@@ -153,7 +153,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-400 transition-colors duration-200"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
           >
             Close
           </button>

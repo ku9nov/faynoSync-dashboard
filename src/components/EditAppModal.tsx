@@ -111,32 +111,32 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
       setError={setError}
       className="w-[500px] max-h-[80vh] overflow-y-auto relative"
     >
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-theme-primary mb-2 font-roboto font-semibold">App Name</label>
           <input
             type="text"
             value={formData.app}
             onChange={(e) => setFormData(prev => ({ ...prev, app: e.target.value }))}
-            className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
+            className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
             required
             placeholder="Enter app name"
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-theme-primary mb-2 font-roboto">Description</label>
+        <div>
+          <label className="block text-theme-primary mb-2 font-roboto font-semibold">Description</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
+            className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
             rows={4}
             placeholder="Enter app description"
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-theme-primary mb-2 font-roboto">Logo</label>
+        <div>
+          <label className="block text-theme-primary mb-2 font-roboto font-semibold">Logo</label>
           <div className="relative">
             <input
               ref={fileInputRef}
@@ -180,12 +180,12 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
           )}
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2 mt-6">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
