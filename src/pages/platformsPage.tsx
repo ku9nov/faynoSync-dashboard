@@ -69,7 +69,7 @@ export const PlatformsPage = () => {
               {filteredPlatforms.map((platform) => (
                 <PlatformCard
                   key={platform.ID}
-                  platform={{ name: platform.PlatformName }}
+                  platform={platform}
                   onClick={() => selectPlatform(platform)}
                   onDelete={() => handleDelete(platform.ID, platform.PlatformName)}
                 />
@@ -85,7 +85,7 @@ export const PlatformsPage = () => {
 
       {selectedPlatform && (
         <EditPlatformModal
-          platform={{ name: selectedPlatform.PlatformName }}
+          platform={selectedPlatform}
           platformId={selectedPlatform.ID}
           onClose={() => setSelectedPlatform(null)}
         />

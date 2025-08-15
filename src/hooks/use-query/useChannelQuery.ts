@@ -20,11 +20,9 @@ export const useChannelQuery = () => {
 
   const createChannelMutation = useMutation({
     mutationFn: async (channelName: string) => {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({ channel: channelName }));
-      const response = await axiosInstance.post('/channel/create', formData, {
+      const response = await axiosInstance.post('/channel/create', { channel: channelName }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
       return response.data;
@@ -53,11 +51,9 @@ export const useChannelQuery = () => {
 
   const updateChannelMutation = useMutation({
     mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({ id, channel: newName }));
-      const response = await axiosInstance.post('/channel/update', formData, {
+      const response = await axiosInstance.post('/channel/update', { id, channel: newName }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
       return response.data;
