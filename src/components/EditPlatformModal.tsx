@@ -15,9 +15,14 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
 }) => {
   const { updatePlatform } = usePlatformQuery();
   const [name, setName] = useState(platform.PlatformName);
-  const [updaters, setUpdaters] = useState<Updater[]>(platform.Updaters || [
-    { type: 'manual', default: true }
-  ]);
+  const [updaters, setUpdaters] = useState<Updater[]>(() => {
+    const platformUpdaters = platform.Updaters || [];
+    // Ensure manual is always included
+    if (!platformUpdaters.find(u => u.type === 'manual')) {
+      return [...platformUpdaters, { type: 'manual', default: !platformUpdaters.some(u => u.default) }];
+    }
+    return platformUpdaters;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
