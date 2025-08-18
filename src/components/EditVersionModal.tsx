@@ -32,6 +32,7 @@ interface EditVersionModalProps {
     app_name: string;
     version: string;
     channel: string;
+    updater?: string;
   }) => void;
 }
 interface ErrorResponse {
@@ -51,6 +52,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [isPreview, setIsPreview] = React.useState(false);
   const [platform, setPlatform] = React.useState<string>('');
   const [arch, setArch] = React.useState<string>('');
+  const [updater, setUpdater] = React.useState<string>('');
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
@@ -66,6 +68,19 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Get selected platform and its updaters
+  const selectedPlatform = platforms.find(p => p.PlatformName === platform);
+  const availableUpdaters = selectedPlatform?.Updaters || [];
+  const hasMultipleUpdaters = availableUpdaters.length > 1;
+  const showUpdaterDropdown = hasMultipleUpdaters && platform;
+
+  // Set default updater to 'manual' when dropdown is shown and no updater is selected
+  React.useEffect(() => {
+    if (showUpdaterDropdown && !updater) {
+      setUpdater('manual');
+    }
+  }, [showUpdaterDropdown, updater]);
+
   const handleDropdownClick = (dropdownName: string) => {
     setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
   };
@@ -73,8 +88,12 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const handleOptionClick = (dropdownName: string, value: string) => {
     if (dropdownName === 'platform') {
       setPlatform(value);
+      // Reset updater when platform changes
+      setUpdater('');
     } else if (dropdownName === 'arch') {
       setArch(value);
+    } else if (dropdownName === 'updater') {
+      setUpdater(value);
     }
     setOpenDropdown(null);
   };
@@ -108,6 +127,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         Files: selectedFiles,
         Platform: selectedFiles.length > 0 ? platform : undefined,
         Arch: selectedFiles.length > 0 ? arch : undefined,
+        updater: selectedFiles.length > 0 && updater && updater !== 'manual' ? updater : undefined,
         app_name: appName,
         version: version,
         channel: channel,
@@ -153,6 +173,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
     if (indexToRemove === 0) {
       setPlatform('');
       setArch('');
+      setUpdater('');
     }
   };
 
@@ -435,6 +456,53 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                     </div>
                   </div>
                 )}
+                                 {showUpdaterDropdown && (
+                   <div>
+                     <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                       Updater
+                       <span className="text-sm text-theme-secondary ml-2">
+                         (This platform has multiple enabled updaters, select desired updater if necessary)
+                       </span>
+                     </label>
+                    <div className="relative dropdown-container">
+                      <button
+                        type="button"
+                        onClick={() => handleDropdownClick('updater')}
+                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                      >
+                                                 <span>{updater || 'manual (default)'}</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="16" 
+                          height="16" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                          className={`text-theme-primary transition-transform ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                                             {openDropdown === 'updater' && (
+                         <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                           {availableUpdaters.map((u) => (
+                             <button
+                               key={u.type}
+                               type="button"
+                               onClick={() => handleOptionClick('updater', u.type)}
+                               className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                             >
+                               {u.type}
+                             </button>
+                           ))}
+                         </div>
+                       )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -507,8 +575,10 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <button
               type="submit"
               className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
-              disabled={selectedFiles.length > 0 && 
-                ((platforms.length > 0 && !platform) || (architectures.length > 0 && !arch))}
+              disabled={Boolean(selectedFiles.length > 0 && 
+                ((platforms.length > 0 && !platform) || 
+                 (architectures.length > 0 && !arch) || 
+                 (showUpdaterDropdown && updater === '')))}
             >
               Save
             </button>

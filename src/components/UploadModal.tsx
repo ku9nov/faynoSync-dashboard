@@ -21,6 +21,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     critical: false,
     intermediate: false,
     changelog: '',
+    updater: '',
   });
 
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
@@ -30,7 +31,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   };
 
   const handleOptionClick = (dropdownName: string, value: string) => {
-    setFormData(prev => ({ ...prev, [dropdownName]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [dropdownName]: value,
+      // Reset updater when platform changes
+      ...(dropdownName === 'platform' && { updater: '' })
+    }));
     setOpenDropdown(null);
   };
 
@@ -51,6 +57,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const [previewChangelog, setPreviewChangelog] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [files, setFiles] = useState<{ file: File; id: string }[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const { apps } = useAppsQuery();
   const { channels } = useChannelQuery();
@@ -58,14 +65,28 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const { architectures } = useArchitectureQuery();
   const { upload, isLoading, error } = useUploadQuery();
 
+  // Get selected platform and its updaters
+  const selectedPlatform = platforms.find(p => p.PlatformName === formData.platform);
+  const availableUpdaters = selectedPlatform?.Updaters || [];
+  const hasMultipleUpdaters = availableUpdaters.length > 1;
+  const showUpdaterDropdown = hasMultipleUpdaters && formData.platform;
+  
+  // Set default updater to 'manual' when dropdown is shown and no updater is selected
+  React.useEffect(() => {
+    if (showUpdaterDropdown && !formData.updater) {
+      setFormData(prev => ({ ...prev, updater: 'manual' }));
+    }
+  }, [showUpdaterDropdown, formData.updater]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setUploadError(null);
     try {
       const formDataToSend = new FormData();
       
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== '') {
+        if (value !== '' && key !== 'updater') {
           formDataToSend.append(key, value.toString());
         }
       });
@@ -84,16 +105,27 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         critical: formData.critical,
         intermediate: formData.intermediate,
         changelog: formData.changelog,
-        files: files.map(f => f.file)
+        files: files.map(f => f.file),
+        updater: formData.updater && formData.updater !== 'manual' ? formData.updater : undefined,
       };
       
       await upload(uploadData);
+      setUploadError(null);
       setIsSuccess(true);
       setTimeout(() => {
         onClose();
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed:', error);
+      // Extract error message from API response
+      let errorMessage = 'Upload failed';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      // Set error state to display the message
+      setUploadError(errorMessage);
     }
   };
 
@@ -106,7 +138,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       isLoading={isLoading}
       isSuccess={isSuccess}
       successMessage="Files uploaded successfully!"
-      error={error ? { error: 'Upload failed', details: error.message } : null}
+      error={uploadError ? { error: 'Upload failed', details: uploadError } : null}
       showChangelogPreview={previewChangelog}
       changelogValue={formData.changelog}
       onChangelogChange={(value) => setFormData(prev => ({ ...prev, changelog: value }))}
@@ -256,6 +288,54 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                         className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                       >
                         {platform.PlatformName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {showUpdaterDropdown && (
+            <div className="mb-4">
+              <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                Updater
+                <span className="text-sm text-theme-secondary ml-2">
+                  (This platform has multiple enabled updaters, select desired updater if necessary)
+                </span>
+              </label>
+              <div className="relative dropdown-container">
+                <button
+                  type="button"
+                  onClick={() => handleDropdownClick('updater')}
+                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                >
+                  <span>{formData.updater || 'manual (default)'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`text-theme-primary transition-transform ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                {openDropdown === 'updater' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                    {availableUpdaters.map((updater) => (
+                      <button
+                        key={updater.type}
+                        type="button"
+                        onClick={() => handleOptionClick('updater', updater.type)}
+                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {updater.type}
                       </button>
                     ))}
                   </div>
