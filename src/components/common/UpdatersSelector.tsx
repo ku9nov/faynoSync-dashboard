@@ -22,6 +22,13 @@ const AVAILABLE_UPDATERS = [
     color: 'from-gray-500 to-gray-600'
   },
   { 
+    type: 'squirrel_windows', 
+    label: 'Squirrel (Windows)', 
+    description: 'Squirrel updater for Windows',
+    icon: '🪟',
+    color: 'from-green-500 to-green-600'
+  },
+  { 
     type: 'sparkle', 
     label: 'Sparkle', 
     description: 'Sparkle framework for macOS updates',

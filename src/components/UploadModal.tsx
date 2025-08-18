@@ -63,7 +63,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
   const { channels } = useChannelQuery();
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
-  const { upload, isLoading, error } = useUploadQuery();
+  const { upload, isLoading } = useUploadQuery();
 
   // Get selected platform and its updaters
   const selectedPlatform = platforms.find(p => p.PlatformName === formData.platform);

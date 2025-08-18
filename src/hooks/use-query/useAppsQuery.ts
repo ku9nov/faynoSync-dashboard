@@ -106,6 +106,7 @@ export const useAppsQuery = (
         app_name: string;
         version: string;
         channel: string;
+        updater?: string;
       } 
     }) => {
       const formData = new FormData();
@@ -119,7 +120,8 @@ export const useAppsQuery = (
         intermediate: data.Intermediate,
         platform: data.Platform,
         arch: data.Arch,
-        changelog: data.Changelog
+        changelog: data.Changelog,
+        ...(data.updater && { updater: data.updater }),
       };
       
       formData.append('data', JSON.stringify(dataObj));
@@ -195,6 +197,7 @@ export const useAppsQuery = (
     app_name: string;
     version: string;
     channel: string;
+    updater?: string;
   }) => {
     await updateAppMutation.mutateAsync({ id, data });
   };
