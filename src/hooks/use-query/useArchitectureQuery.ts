@@ -20,11 +20,9 @@ export const useArchitectureQuery = () => {
 
   const createArchitectureMutation = useMutation({
     mutationFn: async (archName: string) => {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({ arch: archName }));
-      const response = await axiosInstance.post('/arch/create', formData, {
+      const response = await axiosInstance.post('/arch/create', { arch: archName }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
       return response.data;
@@ -53,11 +51,9 @@ export const useArchitectureQuery = () => {
 
   const updateArchitectureMutation = useMutation({
     mutationFn: async ({ id, newName }: { id: string; newName: string }) => {
-      const formData = new FormData();
-      formData.append('data', JSON.stringify({ id, arch: newName }));
-      const response = await axiosInstance.post('/arch/update', formData, {
+      const response = await axiosInstance.post('/arch/update', { id, arch: newName }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
       return response.data;
