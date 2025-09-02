@@ -31,7 +31,7 @@ const AVAILABLE_UPDATERS = [
   { 
     type: 'sparkle', 
     label: 'Sparkle', 
-    description: 'Sparkle framework for macOS updates',
+    description: 'Sparkle framework for macOS updates (Not implemented)',
     icon: '✨',
     color: 'from-purple-500 to-purple-600'
   },
@@ -41,6 +41,13 @@ const AVAILABLE_UPDATERS = [
     description: 'Electron Builder update mechanism',
     icon: '⚡',
     color: 'from-yellow-500 to-yellow-600'
+  },
+  { 
+    type: 'tauri', 
+    label: 'Tauri', 
+    description: 'Tauri framework update mechanism',
+    icon: '🚀',
+    color: 'from-indigo-500 to-indigo-600'
   }
 ];
 

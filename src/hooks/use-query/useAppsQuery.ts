@@ -107,6 +107,7 @@ export const useAppsQuery = (
         version: string;
         channel: string;
         updater?: string;
+        signature?: string;
       } 
     }) => {
       const formData = new FormData();
@@ -122,6 +123,7 @@ export const useAppsQuery = (
         arch: data.Arch,
         changelog: data.Changelog,
         ...(data.updater && { updater: data.updater }),
+        ...(data.signature && { signature: data.signature }),
       };
       
       formData.append('data', JSON.stringify(dataObj));
@@ -198,6 +200,7 @@ export const useAppsQuery = (
     version: string;
     channel: string;
     updater?: string;
+    signature?: string;
   }) => {
     await updateAppMutation.mutateAsync({ id, data });
   };
