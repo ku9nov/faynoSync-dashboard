@@ -53,6 +53,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [platform, setPlatform] = React.useState<string>('');
   const [arch, setArch] = React.useState<string>('');
   const [updater, setUpdater] = React.useState<string>('');
+  const [signature, setSignature] = React.useState<string>('');
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
@@ -90,10 +91,12 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       setPlatform(value);
       // Reset updater when platform changes
       setUpdater('');
+      setSignature('');
     } else if (dropdownName === 'arch') {
       setArch(value);
     } else if (dropdownName === 'updater') {
       setUpdater(value);
+      setSignature('');
     }
     setOpenDropdown(null);
   };
@@ -128,6 +131,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         Platform: selectedFiles.length > 0 ? platform : undefined,
         Arch: selectedFiles.length > 0 ? arch : undefined,
         updater: selectedFiles.length > 0 && updater && updater !== 'manual' ? updater : undefined,
+        signature: selectedFiles.length > 0 && updater === 'tauri' && signature ? signature : undefined,
         app_name: appName,
         version: version,
         channel: channel,
@@ -174,6 +178,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       setPlatform('');
       setArch('');
       setUpdater('');
+      setSignature('');
     }
   };
 
@@ -503,6 +508,23 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {updater === 'tauri' && (
+              <div>
+                <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                  Signature
+                </label>
+                <input
+                  type="text"
+                  name="signature"
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                  placeholder="Enter signature for Tauri updater"
+                  required
+                />
               </div>
             )}
           </div>

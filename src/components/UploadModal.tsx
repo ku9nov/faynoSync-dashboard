@@ -22,6 +22,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     intermediate: false,
     changelog: '',
     updater: '',
+    signature: '',
   });
 
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
@@ -35,7 +36,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       ...prev, 
       [dropdownName]: value,
       // Reset updater when platform changes
-      ...(dropdownName === 'platform' && { updater: '' })
+      ...(dropdownName === 'platform' && { updater: '', signature: '' }),
+      // Reset signature when updater changes
+      ...(dropdownName === 'updater' && { signature: '' })
     }));
     setOpenDropdown(null);
   };
@@ -107,6 +110,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         changelog: formData.changelog,
         files: files.map(f => f.file),
         updater: formData.updater && formData.updater !== 'manual' ? formData.updater : undefined,
+        ...(formData.updater === 'tauri' && formData.signature && { signature: formData.signature }),
       };
       
       await upload(uploadData);
@@ -341,6 +345,21 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {formData.updater === 'tauri' && (
+            <div className="mb-4">
+              <label className="block text-theme-primary mb-2 font-roboto font-semibold">Signature</label>
+              <input
+                type="text"
+                name="signature"
+                value={formData.signature}
+                onChange={(e) => setFormData(prev => ({ ...prev, signature: e.target.value }))}
+                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                placeholder="Enter signature for Tauri updater"
+                required
+              />
             </div>
           )}
 

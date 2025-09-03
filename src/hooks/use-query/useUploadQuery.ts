@@ -13,6 +13,7 @@ export type UploadData = {
   changelog?: string;
   files: File[];
   updater?: string;
+  signature?: string;
 };
 
 export const useUploadQuery = () => {
@@ -37,6 +38,7 @@ export const useUploadQuery = () => {
         arch: data.arch,
         changelog: data.changelog,
         ...(data.updater && { updater: data.updater }),
+        ...(data.signature && { signature: data.signature }),
       };
 
       formData.append('data', JSON.stringify(jsonData));

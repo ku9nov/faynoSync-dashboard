@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Updater } from '../../hooks/use-query/usePlatformQuery';
 
 interface UpdatersSelectorProps {
@@ -31,7 +31,7 @@ const AVAILABLE_UPDATERS = [
   { 
     type: 'sparkle', 
     label: 'Sparkle', 
-    description: 'Sparkle framework for macOS updates',
+    description: 'Sparkle framework for macOS updates (Not implemented)',
     icon: '✨',
     color: 'from-purple-500 to-purple-600'
   },
@@ -41,10 +41,19 @@ const AVAILABLE_UPDATERS = [
     description: 'Electron Builder update mechanism',
     icon: '⚡',
     color: 'from-yellow-500 to-yellow-600'
+  },
+  { 
+    type: 'tauri', 
+    label: 'Tauri', 
+    description: 'Tauri framework update mechanism',
+    icon: '🚀',
+    color: 'from-indigo-500 to-indigo-600'
   }
 ];
 
 export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, onChange }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const handleUpdaterToggle = (updaterType: string, checked: boolean) => {
     // Prevent disabling manual updater
     if (updaterType === 'manual' && !checked) {
@@ -116,143 +125,179 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
     return updaters.find(u => u.type === updaterType)?.default || false;
   };
 
+  const handleExpandClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-3">
         <h3 className="text-lg font-semibold text-theme-primary font-roboto">Updaters</h3>
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-theme-secondary to-transparent opacity-30"></div>
+        <button
+          onClick={handleExpandClick}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onMouseUp={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          className="p-2 rounded-lg hover:bg-theme-secondary hover:bg-opacity-20 transition-all duration-200 group"
+          aria-label={isExpanded ? 'Collapse updaters' : 'Expand updaters'}
+        >
+          <svg
+            className={`w-5 h-5 text-theme-secondary group-hover:text-theme-primary transition-transform duration-200 ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {AVAILABLE_UPDATERS.map(({ type, label, description, icon, color }) => {
-          const isSelected = isUpdaterSelected(type);
-          const isDefault = isUpdaterDefault(type);
-          
-          return (
-                         <div
-               key={type}
-               className={`
-                 relative group transition-all duration-300 ease-in-out
-                 ${isSelected 
-                   ? 'ring-2 ring-purple-500 ring-opacity-50 shadow-lg scale-[1.02]' 
-                   : 'hover:shadow-md hover:scale-[1.01]'
-                 }
-                 ${type === 'manual' ? 'cursor-default' : 'cursor-pointer'}
-                 bg-theme-input border border-theme rounded-xl p-4
-               `}
-               onClick={() => handleUpdaterToggle(type, !isSelected)}
-             >
-                             {/* Selection indicator */}
-               <div className="absolute top-3 right-3">
-                 {type === 'manual' && (
-                   <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                     <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                     </svg>
-                   </div>
-                 )}
-                 <div className={`
-                   w-5 h-5 rounded-full border-2 transition-all duration-200
-                   ${isSelected 
-                     ? 'bg-purple-500 border-purple-500' 
-                     : 'border-theme-secondary group-hover:border-purple-300'
-                   }
-                   flex items-center justify-center
-                 `}>
-                   {isSelected && (
-                     <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                     </svg>
-                   )}
-                 </div>
-               </div>
+      {isExpanded && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {AVAILABLE_UPDATERS.map(({ type, label, description, icon, color }) => {
+              const isSelected = isUpdaterSelected(type);
+              const isDefault = isUpdaterDefault(type);
+              
+              return (
+                <div
+                  key={type}
+                  className={`
+                    relative group transition-all duration-300 ease-in-out
+                    ${isSelected 
+                      ? 'ring-2 ring-purple-500 ring-opacity-50 shadow-lg scale-[1.02]' 
+                      : 'hover:shadow-md hover:scale-[1.01]'
+                    }
+                    ${type === 'manual' ? 'cursor-default' : 'cursor-pointer'}
+                    bg-theme-input border border-theme rounded-xl p-4
+                  `}
+                  onClick={() => handleUpdaterToggle(type, !isSelected)}
+                >
+                  {/* Selection indicator */}
+                  <div className="absolute top-3 right-3">
+                    {type === 'manual' && (
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className={`
+                      w-5 h-5 rounded-full border-2 transition-all duration-200
+                      ${isSelected 
+                        ? 'bg-purple-500 border-purple-500' 
+                        : 'border-theme-secondary group-hover:border-purple-300'
+                      }
+                      flex items-center justify-center
+                    `}>
+                      {isSelected && (
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Icon and gradient background */}
-              <div className={`
-                w-12 h-12 rounded-lg bg-gradient-to-br ${color} 
-                flex items-center justify-center text-white text-xl mb-3
-                shadow-lg
-              `}>
-                {icon}
-              </div>
+                  {/* Icon and gradient background */}
+                  <div className={`
+                    w-12 h-12 rounded-lg bg-gradient-to-br ${color} 
+                    flex items-center justify-center text-white text-xl mb-3
+                    shadow-lg
+                  `}>
+                    {icon}
+                  </div>
 
-              {/* Content */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-theme-primary font-roboto">
-                  {label}
-                </h4>
-                <p className="text-sm text-theme-secondary font-roboto leading-relaxed">
-                  {description}
-                </p>
-                
-                                 {/* Default selector */}
-                 {isSelected && (
-                   <div 
-                     className="pt-3 border-t border-theme-secondary border-opacity-30"
-                     onClick={(e) => e.stopPropagation()}
-                   >
-                     <label className="flex items-center space-x-2 cursor-pointer group/default">
-                       <div className="relative">
-                         <input
-                           type="radio"
-                           name="default-updater"
-                           checked={isDefault}
-                           onChange={(e) => {
-                             e.stopPropagation();
-                             handleDefaultToggle(type, e.target.checked);
-                           }}
-                           className="sr-only"
-                         />
-                         <div className={`
-                           w-4 h-4 rounded-full border-2 transition-all duration-200
-                           ${isDefault 
-                             ? 'border-purple-500 bg-purple-500' 
-                             : 'border-theme-secondary group-hover/default:border-purple-300'
-                           }
-                           flex items-center justify-center
-                         `}>
-                           {isDefault && (
-                             <div className="w-2 h-2 bg-white rounded-full"></div>
-                           )}
-                         </div>
-                       </div>
-                       <span className={`
-                         text-sm font-medium transition-colors duration-200
-                         ${isDefault ? 'text-purple-500' : 'text-theme-secondary group-hover/default:text-theme-primary'}
-                       `}>
-                         Set as default
-                       </span>
-                     </label>
-                   </div>
-                 )}
-              </div>
+                  {/* Content */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-theme-primary font-roboto">
+                      {label}
+                    </h4>
+                    <p className="text-sm text-theme-secondary font-roboto leading-relaxed">
+                      {description}
+                    </p>
+                    
+                    {/* Default selector */}
+                    {isSelected && (
+                      <div 
+                        className="pt-3 border-t border-theme-secondary border-opacity-30"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <label className="flex items-center space-x-2 cursor-pointer group/default">
+                          <div className="relative">
+                            <input
+                              type="radio"
+                              name="default-updater"
+                              checked={isDefault}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleDefaultToggle(type, e.target.checked);
+                              }}
+                              className="sr-only"
+                            />
+                            <div className={`
+                              w-4 h-4 rounded-full border-2 transition-all duration-200
+                              ${isDefault 
+                                ? 'border-purple-500 bg-purple-500' 
+                                : 'border-theme-secondary group-hover/default:border-purple-300'
+                              }
+                              flex items-center justify-center
+                            `}>
+                              {isDefault && (
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              )}
+                            </div>
+                          </div>
+                          <span className={`
+                            text-sm font-medium transition-colors duration-200
+                            ${isDefault ? 'text-purple-500' : 'text-theme-secondary group-hover/default:text-theme-primary'}
+                          `}>
+                            Set as default
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Hover effect */}
-              <div className={`
-                absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/5 to-transparent
-                opacity-0 group-hover:opacity-100 transition-opacity duration-300
-                pointer-events-none
-              `}></div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Status message */}
-      {updaters.length === 0 && (
-        <div className="text-center py-6">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-theme-secondary bg-opacity-20 flex items-center justify-center">
-            <svg className="w-8 h-8 text-theme-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+                  {/* Hover effect */}
+                  <div className={`
+                    absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/5 to-transparent
+                    opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                    pointer-events-none
+                  `}></div>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-theme-secondary font-roboto">
-            No updaters selected. Please select at least one updater.
-          </p>
-        </div>
+
+          {/* Status message */}
+          {updaters.length === 0 && (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-theme-secondary bg-opacity-20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-theme-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <p className="text-theme-secondary font-roboto">
+                No updaters selected. Please select at least one updater.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Selected updaters summary */}
+      {/* Selected updaters summary - always visible */}
       {updaters.length > 0 && (
         <div className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border border-purple-500/20">
           <div className="flex items-center space-x-2 mb-2">
