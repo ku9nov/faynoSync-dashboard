@@ -918,7 +918,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             id: selectedAppData.ID,
             app: selectedAppData.AppName,
             description: selectedAppData.Description,
-            logo: selectedAppData.Logo
+            logo: selectedAppData.Logo,
+            tuf: selectedAppData.Tuf
           }}
         />
       )}

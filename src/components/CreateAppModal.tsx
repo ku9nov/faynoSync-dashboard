@@ -36,7 +36,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
         app: formData.app,
         description: formData.description,
         ...(formData.private && { private: "true" }),
-        ...(formData.tuf && { tuf: "true" }),
+        tuf: formData.tuf ? "true" : "false",
       };
       
       formDataToSend.append('data', JSON.stringify(data));
