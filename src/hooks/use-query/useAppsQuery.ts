@@ -7,6 +7,8 @@ export type Artifact = {
   platform: string;
   arch: string;
   package: string;
+  TufTaskID?: string | null;
+  TufSigned?: boolean;
 };
 
 export type ChangelogEntry = {
