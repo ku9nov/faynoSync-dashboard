@@ -335,9 +335,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return null;
     }
     
-    const tufArtifacts = version.Artifacts.filter(artifact => artifact.TufTaskID);
+    // Consider artifacts that have TufTaskID (not null/undefined) OR have TufTaskID === null and TufSigned === false
+    const tufArtifacts = version.Artifacts.filter(artifact => {
+      // Include artifacts with TufTaskID (not null/undefined)
+      if (artifact.TufTaskID) {
+        return true;
+      }
+      // Also include artifacts with TufTaskID === null and TufSigned === false (not signed)
+      if (artifact.TufTaskID === null && artifact.TufSigned === false) {
+        return true;
+      }
+      return false;
+    });
     
-    // If TUF is enabled but no artifacts have TufTaskID, they are not signed
+    // If TUF is enabled but no artifacts match the criteria, check if there are any artifacts at all
     if (tufArtifacts.length === 0) {
       if (version.Artifacts.length > 0) {
         return 'none';
@@ -346,7 +357,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }
     }
     
-    const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned).length;
+    // Count signed artifacts (TufSigned === true)
+    const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned === true).length;
     
     if (signedCount === tufArtifacts.length) {
       return 'all-signed';
