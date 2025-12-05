@@ -13,6 +13,7 @@ import { useSearch } from '../hooks/useSearch.ts';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
+import { useToast } from '../hooks/useToast';
 import '../styles/cards.css';
 
 interface DashboardProps {
@@ -94,6 +95,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showEditAppModal, setShowEditAppModal] = React.useState(false);
   const [showDeleteAppModal, setShowDeleteAppModal] = React.useState(false);
   const [selectedAppData, setSelectedAppData] = React.useState<AppListItem | null>(null);
+  const [publishingTuf, setPublishingTuf] = React.useState<Record<string, boolean>>({});
+  const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
     if (!apps) return [];
@@ -241,6 +244,117 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${day} ${month} ${year}, ${hours}:${minutes}`;
+  };
+
+  const handleTufPublish = async (e: React.MouseEvent, version: AppVersion) => {
+    e.stopPropagation();
+    
+    if (!appData?.ID) {
+      toastError('App ID not found');
+      return;
+    }
+
+    const versionId = version.ID;
+    setPublishingTuf(prev => ({ ...prev, [versionId]: true }));
+
+    try {
+      const response = await axiosInstance.post('/tuf/v1/artifacts/publish', {
+        app_id: appData.ID,
+        version: version.Version
+      });
+      
+      // Extract task_id from response
+      const responseData = response.data?.data;
+      const taskId = responseData?.task_id;
+      
+      if (taskId) {
+        // Save to localStorage history (similar to bootstrap)
+        const savedHistory = localStorage.getItem('tuf-history');
+        let history: Array<{
+          id: string;
+          timestamp: string;
+          appName: string;
+          operation: 'generate' | 'bootstrap' | 'publish';
+          status: 'success' | 'failed';
+          taskId?: string;
+        }> = [];
+        
+        if (savedHistory) {
+          try {
+            history = JSON.parse(savedHistory);
+          } catch (e) {
+            console.error('Failed to load TUF history:', e);
+          }
+        }
+        
+        const newEntry = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          timestamp: responseData.last_update || new Date().toISOString(),
+          appName: selectedApp || appData.AppName,
+          operation: 'publish' as const,
+          status: 'success' as const,
+          taskId: taskId,
+        };
+        
+        const updatedHistory = [newEntry, ...history].slice(0, 20); // Keep last 20 entries
+        localStorage.setItem('tuf-history', JSON.stringify(updatedHistory));
+      }
+      
+      toastSuccess(`TUF artifacts publishing successfully started for version ${version.Version}`);
+      
+      // Invalidate and refetch queries with correct parameters
+      // Add a delay to allow server to process the request and update artifacts
+      setTimeout(async () => {
+        // Invalidate all apps queries
+        queryClient.invalidateQueries({ queryKey: ['apps'] });
+        queryClient.invalidateQueries({ queryKey: ['appData', selectedApp] });
+        
+        // Refetch with exact query key to ensure we get updated data
+        await queryClient.refetchQueries({ 
+          queryKey: ['apps', selectedApp, currentPage, refreshKey, filters] 
+        });
+        await queryClient.refetchQueries({ queryKey: ['appData', selectedApp] });
+      }, 2000);
+      
+      // Also refetch after a longer delay to catch status updates (when signing completes)
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ 
+          queryKey: ['apps', selectedApp, currentPage, refreshKey, filters] 
+        });
+      }, 5000);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to publish TUF artifacts';
+      toastError(errorMessage);
+    } finally {
+      setPublishingTuf(prev => ({ ...prev, [versionId]: false }));
+    }
+  };
+
+  const getTufSignStatus = (version: AppVersion): 'all-signed' | 'partial' | 'none' | null => {
+    if (!appData?.Tuf) {
+      return null;
+    }
+    
+    const tufArtifacts = version.Artifacts.filter(artifact => artifact.TufTaskID);
+    
+    // If TUF is enabled but no artifacts have TufTaskID, they are not signed
+    if (tufArtifacts.length === 0) {
+      if (version.Artifacts.length > 0) {
+        return 'none';
+      } else {
+        return null;
+      }
+    }
+    
+    const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned).length;
+    
+    if (signedCount === tufArtifacts.length) {
+      return 'all-signed';
+    }
+    if (signedCount > 0) {
+      return 'partial';
+    }
+    return 'none';
   };
 
   if (selectedApp) {
@@ -600,11 +714,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
               No versions have been uploaded yet.
             </div>
           ) : (
-            appVersions.map((app) => (
+            appVersions.map((app) => {
+              const tufStatus = getTufSignStatus(app);
+              const isDangerZone = app.Published && tufStatus !== null && tufStatus !== 'all-signed';
+              
+              return (
               <div
                 key={app.ID}
-                className={"sharedCard bg-theme-card backdrop-blur-lg rounded-lg p-6 text-theme-primary hover:bg-theme-card-hover transition-colors relative"}
-                style={{ ['--card-color' as any]: '#8B5CF6' }}
+                className={`sharedCard backdrop-blur-lg rounded-lg p-6 text-theme-primary transition-all relative ${
+                  isDangerZone 
+                    ? 'border-2 border-red-500' 
+                    : 'bg-theme-card hover:bg-theme-card-hover'
+                }`}
+                style={{ 
+                  ['--card-color' as any]: isDangerZone ? '#EF4444' : '#8B5CF6',
+                  ...(isDangerZone ? {
+                    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                    boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.3)',
+                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  } : {})
+                }}
+                onMouseEnter={(e) => {
+                  if (isDangerZone) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239, 68, 68, 0.35)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isDangerZone) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(239, 68, 68, 0.25)';
+                  }
+                }}
               >
                 <div className="flex items-center mb-4 min-w-0 w-full">
                   <h3 
@@ -613,7 +752,58 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     Version {app.Version}
                   </h3>
-                  <div className="flex gap-2 flex-shrink-0 ml-auto">
+                  <div className="flex gap-2 flex-shrink-0 ml-auto items-center">
+                    {tufStatus && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => handleTufPublish(e, app)}
+                          disabled={publishingTuf[app.ID]}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                            publishingTuf[app.ID]
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'hover:opacity-80 active:scale-95'
+                          } ${
+                            tufStatus === 'all-signed'
+                              ? 'bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30'
+                              : tufStatus === 'partial'
+                              ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30 hover:bg-yellow-500/30'
+                              : 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30'
+                          }`}
+                          title={publishingTuf[app.ID] ? 'Publishing...' : 'Publish TUF artifacts'}
+                        >
+                          {publishingTuf[app.ID] ? (
+                            <svg 
+                              className="w-3 h-3 animate-spin" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth="2" 
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                          ) : (
+                            <svg 
+                              className="w-3 h-3" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth="2" 
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                              />
+                            </svg>
+                          )}
+                          TUF
+                        </button>
+                      </div>
+                    )}
                     <ActionIcons
                       onDownload={() => handleDownload(app)}
                       onEdit={() => handleEdit(app)}
@@ -670,7 +860,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   )}
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
 

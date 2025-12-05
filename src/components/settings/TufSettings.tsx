@@ -9,7 +9,7 @@ type TufHistoryEntry = {
   id: string;
   timestamp: string;
   appName: string;
-  operation: 'generate' | 'bootstrap';
+  operation: 'generate' | 'bootstrap' | 'publish';
   status: 'success' | 'failed';
   taskId?: string;
 };
@@ -1252,9 +1252,9 @@ export const TufSettings: React.FC = () => {
                             {entry.taskId || '-'}
                           </td>
                           <td className="py-2 px-2">
-                            {entry.taskId && entry.operation === 'bootstrap' ? (
+                            {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish') ? (
                               <button
-                                onClick={() => checkTufTasks(entry.taskId)}
+                                onClick={() => checkTufTasks(entry.taskId!)}
                                 className="text-theme-primary hover:text-theme-button-primary text-sm transition-colors"
                                 title="Check task status"
                               >
