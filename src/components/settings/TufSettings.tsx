@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppsQuery, AppListItem } from '../../hooks/use-query/useAppsQuery';
 import { useToast } from '../../hooks/useToast';
 import axiosInstance from '../../config/axios';
@@ -9,7 +9,7 @@ type TufHistoryEntry = {
   id: string;
   timestamp: string;
   appName: string;
-  operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
+  operation: 'generate' | 'bootstrap' | 'publish' | 'unsign' | 'update-config';
   status: 'success' | 'failed';
   taskId?: string;
   version?: string;
@@ -27,6 +27,24 @@ type TaskData = {
     last_update?: string;
     error?: string;
   };
+};
+
+type TufConfig = {
+  bootstrap: string;
+  default_expiration: number;
+  root_expiration: number;
+  root_num_keys: number;
+  root_threshold: number;
+  snapshot_expiration: number;
+  snapshot_num_keys: number;
+  snapshot_threshold: number;
+  targets_expiration: number;
+  targets_num_keys: number;
+  targets_online_key: number;
+  targets_threshold: number;
+  timestamp_expiration: number;
+  timestamp_num_keys: number;
+  timestamp_threshold: number;
 };
 
 export const TufSettings: React.FC = () => {
@@ -67,11 +85,25 @@ export const TufSettings: React.FC = () => {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [lastChecked, setLastChecked] = useState<string>('');
 
+  // Config section
+  const [tufConfig, setTufConfig] = useState<TufConfig | null>(null);
+  const [configLoading, setConfigLoading] = useState<boolean>(false);
+  const [configUpdating, setConfigUpdating] = useState<boolean>(false);
+  const [editableExpiration, setEditableExpiration] = useState({
+    targets: 100,
+    snapshot: 50,
+    timestamp: 20,
+  });
+  const configLoadedRef = useRef<string>(''); // Track which app's config is loaded
+
   // Filter apps with Tuf: true
   const tufApps = React.useMemo(() => {
     if (!Array.isArray(apps)) return [];
     return (apps as AppListItem[]).filter(app => app.Tuf === true);
   }, [apps]);
+
+  // Check if bootstrap is successful (computed value)
+  const isBootstrapSuccess = bootstrapStatus?.state === 'SUCCESS';
 
   // Load history from localStorage
   useEffect(() => {
@@ -182,9 +214,14 @@ export const TufSettings: React.FC = () => {
     }
   }, [selectedApp]);
 
-  // Polling for bootstrap status
+  // Polling for bootstrap status - only when bootstrap is in progress, not when already successful
   useEffect(() => {
-    if (selectedApp && (step2Status === 'in-progress' || step2Status === 'success')) {
+    // Only poll if bootstrap is in progress (PENDING state) and not yet successful
+    const shouldPoll = selectedApp && 
+      bootstrapStatus?.state === 'PENDING' && 
+      !isBootstrapSuccess;
+    
+    if (shouldPoll) {
       pollingIntervalRef.current = setInterval(() => {
         checkBootstrapStatus();
         setLastChecked(new Date().toLocaleTimeString());
@@ -201,7 +238,8 @@ export const TufSettings: React.FC = () => {
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, [selectedApp, step2Status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedApp, bootstrapStatus?.state, isBootstrapSuccess]); // checkBootstrapStatus is stable
 
   // API functions
   const generateKeys = async () => {
@@ -464,6 +502,117 @@ export const TufSettings: React.FC = () => {
     }
   };
 
+  const loadConfig = useCallback(async () => {
+    if (!selectedApp) return;
+    
+    // Prevent multiple simultaneous requests for the same app
+    if (configLoadedRef.current === selectedApp) {
+      return;
+    }
+    
+    setConfigLoading(true);
+    configLoadedRef.current = selectedApp; // Mark as loading immediately to prevent duplicates
+    try {
+      const response = await axiosInstance.get(`/tuf/v1/config?appName=${encodeURIComponent(selectedApp)}`);
+      
+      const configData = response.data?.data;
+      if (!configData) {
+        throw new Error('Invalid response: missing data field');
+      }
+      
+      setTufConfig(configData as TufConfig);
+      
+      // Set editable expiration values from config
+      setEditableExpiration({
+        targets: configData.targets_expiration || 100,
+        snapshot: configData.snapshot_expiration || 50,
+        timestamp: configData.timestamp_expiration || 20,
+      });
+    } catch (error: any) {
+      console.error('Failed to load config:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load config';
+      toastError(errorMessage);
+      configLoadedRef.current = ''; // Reset on error
+    } finally {
+      setConfigLoading(false);
+    }
+  }, [selectedApp]);
+
+  // Load config when bootstrap is successful
+  useEffect(() => {
+    if (selectedApp && isBootstrapSuccess) {
+      // Only load if config is not already loaded for this app
+      if (configLoadedRef.current !== selectedApp) {
+        loadConfig();
+      }
+    } else {
+      setTufConfig(null);
+      configLoadedRef.current = ''; // Reset when app changes or bootstrap not successful
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedApp, isBootstrapSuccess]); // loadConfig is stable, no need to include it
+
+  const updateConfig = async () => {
+    if (!selectedApp) return;
+    
+    setConfigUpdating(true);
+    try {
+      const response = await axiosInstance.put(
+        `/tuf/v1/config?appName=${encodeURIComponent(selectedApp)}`,
+        {
+          settings: {
+            expiration: {
+              targets: editableExpiration.targets,
+              snapshot: editableExpiration.snapshot,
+              timestamp: editableExpiration.timestamp,
+            },
+          },
+        }
+      );
+      
+      const responseData = response.data?.data;
+      if (!responseData) {
+        throw new Error('Invalid response: missing data field');
+      }
+      
+      const taskId = responseData.task_id;
+      const lastUpdate = responseData.last_update;
+      
+      if (taskId) {
+        toastSuccess('Config update submitted successfully!');
+        
+        saveToHistory({
+          timestamp: lastUpdate || new Date().toISOString(),
+          appName: selectedApp,
+          operation: 'update-config',
+          status: 'success',
+          taskId: taskId,
+        });
+        
+        // Reload config to get updated values
+        configLoadedRef.current = ''; // Reset to allow reload
+        setTimeout(() => {
+          loadConfig();
+        }, 1000);
+      } else {
+        throw new Error('Invalid response: missing task_id');
+      }
+    } catch (error: any) {
+      console.error('Failed to update config:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update config';
+      toastError(errorMessage);
+      
+      saveToHistory({
+        timestamp: new Date().toISOString(),
+        appName: selectedApp,
+        operation: 'update-config',
+        status: 'failed',
+      });
+    } finally {
+      setConfigUpdating(false);
+    }
+  };
+
   // Handlers
   const handleGenerateKeys = () => {
     if (!selectedApp || !roleName) return;
@@ -572,9 +721,6 @@ export const TufSettings: React.FC = () => {
         return 'text-gray-500';
     }
   };
-
-  // Check if bootstrap is successful
-  const isBootstrapSuccess = bootstrapStatus?.state === 'SUCCESS';
 
   return (
     <div className="space-y-6">
@@ -1194,6 +1340,169 @@ export const TufSettings: React.FC = () => {
       </div>
       )}
 
+      {/* Config Section - Show when bootstrap is successful */}
+      {selectedApp && isBootstrapSuccess && (
+      <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-theme-primary font-roboto">
+            Config
+          </h2>
+          <button
+            onClick={() => {
+              configLoadedRef.current = ''; // Reset to allow reload
+              loadConfig();
+            }}
+            disabled={configLoading}
+            className="text-theme-primary hover:text-theme-button-primary transition-colors disabled:opacity-50"
+            title="Reload config"
+          >
+            <i className={`fas fa-sync ${configLoading ? 'fa-spin' : ''} mr-2`}></i>
+            Refresh
+          </button>
+        </div>
+
+        {configLoading ? (
+          <div className="text-center py-8">
+            <i className="fas fa-spinner fa-spin text-theme-primary text-2xl mb-2"></i>
+            <p className="text-theme-primary opacity-70">Loading config...</p>
+          </div>
+        ) : tufConfig ? (
+          <div className="space-y-6">
+            {/* Read-only fields */}
+            <div>
+              <h3 className="text-md font-semibold text-theme-primary mb-3 font-roboto">Configuration Details</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Bootstrap ID</div>
+                  <div className="text-theme-primary font-mono text-sm">{tufConfig.bootstrap}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Role Expiration</div>
+                  <div className="text-theme-primary">{tufConfig.default_expiration} days</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Root Expiration</div>
+                  <div className="text-theme-primary">{tufConfig.root_expiration} days</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Root Keys</div>
+                  <div className="text-theme-primary">{tufConfig.root_num_keys}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Root Threshold</div>
+                  <div className="text-theme-primary">{tufConfig.root_threshold}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Snapshot Keys</div>
+                  <div className="text-theme-primary">{tufConfig.snapshot_num_keys}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Snapshot Threshold</div>
+                  <div className="text-theme-primary">{tufConfig.snapshot_threshold}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Targets Keys</div>
+                  <div className="text-theme-primary">{tufConfig.targets_num_keys}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Targets Online Key</div>
+                  <div className="text-theme-primary">{tufConfig.targets_online_key}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Targets Threshold</div>
+                  <div className="text-theme-primary">{tufConfig.targets_threshold}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Timestamp Keys</div>
+                  <div className="text-theme-primary">{tufConfig.timestamp_num_keys}</div>
+                </div>
+                <div className="bg-theme-input p-3 rounded-lg border border-theme">
+                  <div className="text-sm text-theme-primary opacity-70 mb-1">Timestamp Threshold</div>
+                  <div className="text-theme-primary">{tufConfig.timestamp_threshold}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Editable expiration fields */}
+            <div>
+              <h3 className="text-md font-semibold text-theme-primary mb-3 font-roboto">Expiration Settings (Editable)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-theme-input p-4 rounded-lg border border-theme">
+                  <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    Targets Expiration (days)
+                  </label>
+                  <input
+                    type="number"
+                    value={editableExpiration.targets}
+                    onChange={(e) => setEditableExpiration(prev => ({ ...prev, targets: parseInt(e.target.value) || 0 }))}
+                    className="w-full bg-theme-card text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    min="1"
+                  />
+                  <p className="text-xs text-theme-primary opacity-70 mt-1">
+                    Current: {tufConfig.targets_expiration} days
+                  </p>
+                </div>
+                <div className="bg-theme-input p-4 rounded-lg border border-theme">
+                  <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    Snapshot Expiration (days)
+                  </label>
+                  <input
+                    type="number"
+                    value={editableExpiration.snapshot}
+                    onChange={(e) => setEditableExpiration(prev => ({ ...prev, snapshot: parseInt(e.target.value) || 0 }))}
+                    className="w-full bg-theme-card text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    min="1"
+                  />
+                  <p className="text-xs text-theme-primary opacity-70 mt-1">
+                    Current: {tufConfig.snapshot_expiration} days
+                  </p>
+                </div>
+                <div className="bg-theme-input p-4 rounded-lg border border-theme">
+                  <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    Timestamp Expiration (days)
+                  </label>
+                  <input
+                    type="number"
+                    value={editableExpiration.timestamp}
+                    onChange={(e) => setEditableExpiration(prev => ({ ...prev, timestamp: parseInt(e.target.value) || 0 }))}
+                    className="w-full bg-theme-card text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    min="1"
+                  />
+                  <p className="text-xs text-theme-primary opacity-70 mt-1">
+                    Current: {tufConfig.timestamp_expiration} days
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={updateConfig}
+                disabled={configUpdating}
+                className="bg-theme-button-primary text-theme-primary px-6 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {configUpdating ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-save mr-2"></i>
+                    Update Config
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-theme-primary opacity-70">No config available</p>
+          </div>
+        )}
+      </div>
+      )}
+
       {/* History - Show when app is selected (collapsible) */}
       {selectedApp && (
       <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
@@ -1253,7 +1562,7 @@ export const TufSettings: React.FC = () => {
                             {entry.taskId || '-'}
                           </td>
                           <td className="py-2 px-2">
-                            {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish') ? (
+                            {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish' || entry.operation === 'update-config') ? (
                               <button
                                 onClick={() => checkTufTasks(entry.taskId!)}
                                 className="text-theme-primary hover:text-theme-button-primary text-sm transition-colors"

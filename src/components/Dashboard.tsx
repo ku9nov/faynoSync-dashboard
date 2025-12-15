@@ -758,14 +758,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   }
                 }}
               >
-                <div className="flex items-center mb-4 min-w-0 w-full">
-                  <h3 
-                    className="sharedCardTitle text-xl font-semibold truncate max-w-[200px] overflow-hidden ml-4" 
-                    title={`Version ${app.Version}`}
-                  >
-                    Version {app.Version}
-                  </h3>
-                  <div className="flex gap-2 flex-shrink-0 ml-auto items-center">
+                <div className="flex items-center justify-end mb-4 min-w-0 w-full">
+                  <div className="flex gap-2 flex-shrink-0 items-center">
                     {tufStatus && (
                       <div className="flex items-center gap-1">
                         <button
@@ -827,6 +821,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
                 <div className="sharedCardContent relative">
+                  <h3 
+                    className="sharedCardTitle text-2xl font-bold mb-3 text-white" 
+                    style={{
+                      background: 'linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                      letterSpacing: '0.025em'
+                    }}
+                    title={`Version ${app.Version}`}
+                  >
+                    Version {app.Version}
+                  </h3>
                   <div className="flex items-center gap-2 mb-2">
                     <p className="text-sm text-theme-primary/70 flex-1 sharedCardDescription">
                       Channel: {app.Channel}
