@@ -7,6 +7,9 @@ import { DeleteArtifactConfirmationModal } from './DeleteArtifactConfirmationMod
 import { AxiosError } from 'axios';
 import axiosInstance from '../config/axios';
 import { BaseModal } from './common/BaseModal';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { AppListItem } from '../hooks/use-query/useAppsQuery';
+import { useToast } from '../hooks/useToast';
 
 interface EditVersionModalProps {
   appName: string;
@@ -61,13 +64,31 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [isSuccess, setIsSuccess] = React.useState(false);
   const [deleteError, setDeleteError] = useState<{ error: string; details?: string } | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [unsignError, setUnsignError] = useState<{ error: string; details?: string } | null>(null);
+  const [unsignSuccess, setUnsignSuccess] = useState(false);
+  const [isUnsigning, setIsUnsigning] = useState(false);
+  const pendingUnsignRef = React.useRef<Set<number>>(new Set());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
   const { deleteArtifact } = useAppsQuery();
+  const queryClient = useQueryClient();
+  const { toastSuccess, toastError } = useToast();
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [isPublishingTuf, setIsPublishingTuf] = useState(false);
+
+  // Get app data to check if TUF is enabled
+  const { data: appData } = useQuery<AppListItem | null>({
+    queryKey: ['appData', appName],
+    queryFn: async () => {
+      const response = await axiosInstance.get('/app/list');
+      const app = response.data.apps.find((a: AppListItem) => a.AppName === appName);
+      return app || null;
+    },
+    enabled: !!appName,
+  });
 
   // Get selected platform and its updaters
   const selectedPlatform = platforms.find(p => p.PlatformName === platform);
@@ -118,6 +139,77 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   React.useEffect(() => {
     setFormData(currentData);
   }, [currentData]);
+
+  // Update formData when apps data is refetched after unsign operation
+  React.useEffect(() => {
+    const updateFormDataFromQuery = async () => {
+      // Get all apps queries from cache
+      const queryCache = queryClient.getQueryCache();
+      const appsQueries = queryCache.findAll({ queryKey: ['apps'] });
+      
+      // Find the version with matching ID in any of the queries
+      for (const query of appsQueries) {
+        const data = query.state.data;
+        if (!data) continue;
+        
+        let version: any = null;
+        if (Array.isArray(data)) {
+          version = data.find((item: any) => item.ID === currentData.ID);
+        } else if (data && typeof data === 'object' && 'items' in data) {
+          version = (data as any).items.find((item: any) => item.ID === currentData.ID);
+        }
+        
+        if (version && version.Artifacts) {
+          // Only update if we have pending unsign operations to check
+          if (pendingUnsignRef.current.size > 0) {
+            // Check if server has confirmed the unsign for pending artifacts
+            const updatedArtifacts = version.Artifacts.map((artifact: Artifact, i: number) => {
+              // If this artifact is pending unsign, check if server confirms it
+              if (pendingUnsignRef.current.has(i)) {
+                // If server confirms TufSigned is false, remove from pending
+                if (artifact.TufSigned === false) {
+                  pendingUnsignRef.current.delete(i);
+                  return artifact;
+                }
+                // If server still shows TufSigned as true, keep our local change
+                // Don't update this artifact from server yet
+                const currentArtifact = formData.Artifacts[i];
+                if (currentArtifact && currentArtifact.TufSigned === false) {
+                  return currentArtifact;
+                }
+              }
+              return artifact;
+            });
+            
+            // Only update if we have changes or if all pending operations are confirmed
+            setFormData(prev => ({
+              ...prev,
+              Artifacts: updatedArtifacts
+            }));
+          } else {
+            // No pending operations, update normally
+            setFormData(prev => ({
+              ...prev,
+              Artifacts: version.Artifacts
+            }));
+          }
+          break;
+        }
+      }
+    };
+
+    // Set up a listener for query updates
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.type === 'updated' && event.query.queryKey[0] === 'apps') {
+        // Small delay to ensure data is fully updated
+        setTimeout(updateFormDataFromQuery, 100);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient, currentData.ID, formData.Artifacts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,6 +348,252 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       });
   };
 
+  const handleTufPublish = async () => {
+    if (!appData?.ID) {
+      toastError('App ID not found');
+      return;
+    }
+
+    setIsPublishingTuf(true);
+
+    try {
+      const response = await axiosInstance.post('/tuf/v1/artifacts/publish', {
+        app_id: appData.ID,
+        version: version
+      });
+      
+      // Extract task_id from response
+      const responseData = response.data?.data;
+      const taskId = responseData?.task_id;
+      
+      if (taskId) {
+        // Save to localStorage history (similar to bootstrap)
+        const savedHistory = localStorage.getItem('tuf-history');
+        let history: Array<{
+          id: string;
+          timestamp: string;
+          appName: string;
+          operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
+          status: 'success' | 'failed';
+          taskId?: string;
+          version?: string;
+        }> = [];
+        
+        if (savedHistory) {
+          try {
+            history = JSON.parse(savedHistory);
+          } catch (e) {
+            console.error('Failed to load TUF history:', e);
+          }
+        }
+        
+        const newEntry = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          timestamp: responseData.last_update || new Date().toISOString(),
+          appName: appName,
+          operation: 'publish' as const,
+          status: 'success' as const,
+          taskId: taskId,
+          version: version,
+        };
+        
+        const updatedHistory = [newEntry, ...history].slice(0, 20); // Keep last 20 entries
+        localStorage.setItem('tuf-history', JSON.stringify(updatedHistory));
+      }
+      
+      toastSuccess(`TUF artifacts publishing successfully started for version ${version}`);
+      
+      // Invalidate and refetch queries to get updated data from server
+      // Add a delay to allow server to process the request and update artifacts
+      setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['apps'] });
+        await queryClient.invalidateQueries({ queryKey: ['appData', appName] });
+        await queryClient.refetchQueries({ queryKey: ['apps'] });
+        await queryClient.refetchQueries({ queryKey: ['appData', appName] });
+      }, 2000);
+      
+      // Also refetch after a longer delay to catch status updates (when signing completes)
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ queryKey: ['apps'] });
+      }, 5000);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to publish TUF artifacts';
+      toastError(errorMessage);
+      
+      // Save failed operation to history
+      const savedHistory = localStorage.getItem('tuf-history');
+      let history: Array<{
+        id: string;
+        timestamp: string;
+        appName: string;
+        operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
+        status: 'success' | 'failed';
+        taskId?: string;
+        version?: string;
+      }> = [];
+      
+      if (savedHistory) {
+        try {
+          history = JSON.parse(savedHistory);
+        } catch (e) {
+          console.error('Failed to load TUF history:', e);
+        }
+      }
+      
+      const newEntry = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        timestamp: new Date().toISOString(),
+        appName: appName,
+        operation: 'publish' as const,
+        status: 'failed' as const,
+        version: version,
+      };
+      
+      const updatedHistory = [newEntry, ...history].slice(0, 20); // Keep last 20 entries
+      localStorage.setItem('tuf-history', JSON.stringify(updatedHistory));
+    } finally {
+      setIsPublishingTuf(false);
+    }
+  };
+
+  const handleUnsignArtifact = async (index: number) => {
+    try {
+      setIsUnsigning(true);
+      setUnsignError(null);
+      
+      const requestData = {
+        id: currentData.ID,
+        app_name: appName,
+        version: version,
+        artifacts_to_delete: [index.toString()]
+      };
+
+      const response = await axiosInstance.post('/tuf/v1/artifacts/delete', JSON.stringify(requestData), {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
+
+      // Save to localStorage history (similar to publish)
+      const savedHistory = localStorage.getItem('tuf-history');
+      let history: Array<{
+        id: string;
+        timestamp: string;
+        appName: string;
+        operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
+        status: 'success' | 'failed';
+        taskId?: string;
+        version?: string;
+      }> = [];
+      
+      if (savedHistory) {
+        try {
+          history = JSON.parse(savedHistory);
+        } catch (e) {
+          console.error('Failed to load TUF history:', e);
+        }
+      }
+      
+      const responseData = response.data?.data;
+      const taskId = responseData?.task_id;
+      
+      const newEntry = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        timestamp: responseData?.last_update || new Date().toISOString(),
+        appName: appName,
+        operation: 'unsign' as const,
+        status: 'success' as const,
+        taskId: taskId,
+        version: version,
+      };
+      
+      const updatedHistory = [newEntry, ...history].slice(0, 20); // Keep last 20 entries
+      localStorage.setItem('tuf-history', JSON.stringify(updatedHistory));
+
+      // Update the artifact's TufSigned status to false locally immediately
+      const updatedArtifacts = formData.Artifacts.map((artifact, i) => 
+        i === index ? { ...artifact, TufSigned: false } : artifact
+      );
+      
+      // Mark this artifact as pending unsign confirmation
+      pendingUnsignRef.current.add(index);
+      
+      setFormData(prev => ({
+        ...prev,
+        Artifacts: updatedArtifacts
+      }));
+
+      // Invalidate and refetch queries to get updated data from server
+      // Add a delay to allow server to process the request and update artifacts
+      setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['apps'] });
+        await queryClient.refetchQueries({ queryKey: ['apps'] });
+      }, 2000);
+      
+      // Also refetch after a longer delay to catch status updates
+      setTimeout(async () => {
+        await queryClient.refetchQueries({ queryKey: ['apps'] });
+        // Clear pending after final refetch
+        setTimeout(() => {
+          pendingUnsignRef.current.delete(index);
+        }, 500);
+      }, 5000);
+
+      setUnsignSuccess(true);
+      setTimeout(() => {
+        setUnsignSuccess(false);
+      }, 3000);
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      
+      // Save failed operation to history
+      const savedHistory = localStorage.getItem('tuf-history');
+      let history: Array<{
+        id: string;
+        timestamp: string;
+        appName: string;
+        operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
+        status: 'success' | 'failed';
+        taskId?: string;
+        version?: string;
+      }> = [];
+      
+      if (savedHistory) {
+        try {
+          history = JSON.parse(savedHistory);
+        } catch (e) {
+          console.error('Failed to load TUF history:', e);
+        }
+      }
+      
+      const newEntry = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        timestamp: new Date().toISOString(),
+        appName: appName,
+        operation: 'unsign' as const,
+        status: 'failed' as const,
+        version: version,
+      };
+      
+      const updatedHistory = [newEntry, ...history].slice(0, 20); // Keep last 20 entries
+      localStorage.setItem('tuf-history', JSON.stringify(updatedHistory));
+      
+      if (axiosError.response?.data) {
+        setUnsignError({
+          error: axiosError.response.data.error || 'Failed to unsign artifact',
+          details: axiosError.response.data.details
+        });
+      } else {
+        setUnsignError({
+          error: 'Failed to unsign artifact',
+          details: axiosError.message
+        });
+      }
+    } finally {
+      setIsUnsigning(false);
+    }
+  };
+
   return (
     <>
       <BaseModal
@@ -276,7 +614,53 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
         {hasValidArtifacts ? (
           <div className="mb-6">
-            <h3 className="text-xl font-bold mb-3 text-theme-primary font-roboto">Existing Artifacts</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xl font-bold text-theme-primary font-roboto">Existing Artifacts</h3>
+              {appData?.Tuf && (
+                <button
+                  onClick={handleTufPublish}
+                  disabled={isPublishingTuf}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                    isPublishingTuf
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:opacity-80 active:scale-95 cursor-pointer'
+                  } bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30`}
+                  title={isPublishingTuf ? 'Publishing...' : 'Publish TUF artifacts'}
+                  type="button"
+                >
+                  {isPublishingTuf ? (
+                    <svg 
+                      className="w-3 h-3 animate-spin" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  ) : (
+                    <svg 
+                      className="w-3 h-3" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                      />
+                    </svg>
+                  )}
+                  {isPublishingTuf ? 'Publishing...' : 'Sign All'}
+                </button>
+              )}
+            </div>
             <div className="space-y-4">
               {formData.Artifacts.map((artifact, index) => (
                 <div
@@ -289,7 +673,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
                       <p className="text-sm text-gray-300">Package: {artifact.package}</p>
                       {artifact.TufTaskID && (
-                        <div className="mt-1 flex items-center gap-1">
+                        <div className="mt-1 flex items-center gap-2">
                           <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
                             artifact.TufSigned 
                               ? 'bg-green-500/20 text-green-300 border-green-400/30' 
@@ -310,6 +694,21 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                             </svg>
                             TUF
                           </span>
+                          {artifact.TufSigned && (
+                            <button
+                              onClick={() => handleUnsignArtifact(index)}
+                              disabled={isUnsigning}
+                              className="text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              type="button"
+                              title="Unsign artifact from TUF"
+                            >
+                              {isUnsigning ? (
+                                <i className="fas fa-spinner fa-spin"></i>
+                              ) : (
+                                <i className="fas fa-unlock"></i>
+                              )}
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -646,7 +1045,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       )}
 
       {deleteSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
+        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
@@ -655,7 +1054,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       )}
 
       {deleteError && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
           <div className="flex items-center space-x-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -680,6 +1079,46 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           {showDetails && deleteError.details && (
             <div className="mt-2 text-sm bg-red-600 p-2 rounded">
               {deleteError.details}
+            </div>
+          )}
+        </div>
+      )}
+
+      {unsignSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-roboto">Artifact unsigned successfully!</span>
+        </div>
+      )}
+
+      {unsignError && (
+        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
+          <div className="flex items-center space-x-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-roboto">Error: {unsignError.error}</span>
+            {unsignError.details && (
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+              >
+                <svg
+                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {showDetails && unsignError.details && (
+            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
+              {unsignError.details}
             </div>
           )}
         </div>

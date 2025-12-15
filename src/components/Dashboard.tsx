@@ -274,9 +274,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           id: string;
           timestamp: string;
           appName: string;
-          operation: 'generate' | 'bootstrap' | 'publish';
+          operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
           status: 'success' | 'failed';
           taskId?: string;
+          version?: string;
         }> = [];
         
         if (savedHistory) {
