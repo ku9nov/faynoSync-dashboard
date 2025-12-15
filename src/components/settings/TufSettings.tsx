@@ -31,7 +31,7 @@ type TaskData = {
 
 type TufConfig = {
   bootstrap: string;
-  default_expiration: number;
+  role_expiration: number;
   root_expiration: number;
   root_num_keys: number;
   root_threshold: number;
@@ -1378,7 +1378,7 @@ export const TufSettings: React.FC = () => {
                 </div>
                 <div className="bg-theme-input p-3 rounded-lg border border-theme">
                   <div className="text-sm text-theme-primary opacity-70 mb-1">Role Expiration</div>
-                  <div className="text-theme-primary">{tufConfig.default_expiration} days</div>
+                  <div className="text-theme-primary">{tufConfig.role_expiration} days</div>
                 </div>
                 <div className="bg-theme-input p-3 rounded-lg border border-theme">
                   <div className="text-sm text-theme-primary opacity-70 mb-1">Root Expiration</div>
