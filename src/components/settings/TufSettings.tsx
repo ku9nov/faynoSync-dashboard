@@ -5,7 +5,8 @@ import axiosInstance from '../../config/axios';
 import { StepStatus, TaskData, TufHistoryEntry, TufConfig } from './tuf/types';
 import { loadHistoryFromStorage, saveToHistory, updateHistoryStatus, clearHistory } from './tuf/history';
 import { AppSelection } from './tuf/AppSelection';
-import { GenerateKeys } from './tuf/GenerateKeys';
+// import { GenerateKeys } from './tuf/GenerateKeys';
+import { GenerateKeysOffline } from './tuf/GenerateKeysOffline';
 import { Bootstrap } from './tuf/Bootstrap';
 import { MonitorStatus } from './tuf/MonitorStatus';
 import { Config } from './tuf/Config';
@@ -485,13 +486,22 @@ export const TufSettings: React.FC = () => {
       />
 
       {/* Step 1: Generate TUF Root Keys */}
-      <GenerateKeys
+      {/* <GenerateKeys
         selectedApp={selectedApp}
         isBootstrapSuccess={isBootstrapSuccess}
         onGeneratedPayload={handleGeneratedPayload}
         onStartBootstrap={startBootstrap}
         onSaveToHistory={handleSaveToHistory}
-      />
+      /> */}
+
+      {/* Step 1: Generate TUF Root Keys - Offline Mode */}
+      <GenerateKeysOffline
+        selectedApp={selectedApp}
+        isBootstrapSuccess={isBootstrapSuccess}
+        onGeneratedPayload={handleGeneratedPayload}
+        onStartBootstrap={startBootstrap}
+        onSaveToHistory={handleSaveToHistory}
+      /> 
 
       {/* Step 2: Start TUF Bootstrapping */}
       <Bootstrap

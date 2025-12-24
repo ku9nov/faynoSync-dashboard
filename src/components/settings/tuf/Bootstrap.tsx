@@ -92,7 +92,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
         <div>
           <label className="block text-theme-primary mb-2 font-roboto">Payload Source</label>
           <div className="space-y-2">
-            <label className="flex items-center">
+            {/* <label className="flex items-center">
               <input
                 type="radio"
                 name="payloadSource"
@@ -106,7 +106,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
                 Use generated payload (from Step 1)
                 {!generatedPayload && <span className="text-gray-500 ml-2">(Not available)</span>}
               </span>
-            </label>
+            </label> */}
             <label className="flex items-center">
               <input
                 type="radio"
