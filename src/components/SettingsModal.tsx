@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { UsersSettings } from './settings/UsersSettings';
+import { TufSettings } from './settings/TufSettings';
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsPage = 'users';
+type SettingsPage = 'users' | 'tuf';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [currentPage, setCurrentPage] = useState<SettingsPage>('users');
@@ -34,6 +35,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
   const menuItems = [
     { id: 'users', label: 'Users', icon: 'fa-users' },
+    { id: 'tuf', label: 'TUF', icon: 'fa-shield-alt' },
   ];
 
   const isMobile = window.innerWidth < 768;
@@ -104,6 +106,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           </div>
 
           {currentPage === 'users' && <UsersSettings />}
+          {currentPage === 'tuf' && <TufSettings />}
           
           {/* <div className="flex justify-end mt-4 space-x-2">
             <button 

@@ -11,6 +11,7 @@ interface EditAppModalProps {
     app: string;
     description: string;
     logo?: string;
+    tuf?: boolean;
   };
 }
 
@@ -24,6 +25,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
     app: appData.app,
     description: appData.description,
     file: null as File | null,
+    tuf: appData.tuf || false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -54,6 +56,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
         id: appData.id,
         app: formData.app,
         description: formData.description,
+        tuf: formData.tuf ? "true" : "false",
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -133,6 +136,20 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
             rows={4}
             placeholder="Enter app description"
           />
+        </div>
+
+        <div className="mb-6 flex items-start">
+          <input
+            type="checkbox"
+            id="tuf"
+            checked={formData.tuf}
+            onChange={(e) => setFormData(prev => ({ ...prev, tuf: e.target.checked }))}
+            className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+          />
+          <label htmlFor="tuf" className="text-theme-primary font-roboto cursor-pointer select-none">
+            <div className="font-semibold">Enable tuf</div>
+            <div className="text-sm text-purple-200">Enable TUF (The Update Framework) for this application</div>
+          </label>
         </div>
 
         <div>
