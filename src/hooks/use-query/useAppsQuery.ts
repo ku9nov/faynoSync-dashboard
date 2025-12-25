@@ -7,6 +7,8 @@ export type Artifact = {
   platform: string;
   arch: string;
   package: string;
+  TufTaskID?: string | null;
+  TufSigned?: boolean;
 };
 
 export type ChangelogEntry = {
@@ -36,6 +38,7 @@ export type AppListItem = {
   Updated_at: string;
   isExpanded?: boolean;
   Private?: boolean;
+  Tuf?: boolean;
 };
 
 export type PaginatedResponse<T> = {
