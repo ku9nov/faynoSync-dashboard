@@ -10,6 +10,7 @@ import { GenerateKeysOffline } from './tuf/GenerateKeysOffline';
 import { Bootstrap } from './tuf/Bootstrap';
 import { MonitorStatus } from './tuf/MonitorStatus';
 import { Config } from './tuf/Config';
+import { RotateRootKeys } from './tuf/RotateRootKeys';
 import { HistoryTable } from './tuf/HistoryTable';
 
 export const TufSettings: React.FC = () => {
@@ -538,6 +539,14 @@ export const TufSettings: React.FC = () => {
         onLoadConfig={loadConfig}
         onUpdateConfig={updateConfig}
         onResetConfigLoaded={handleResetConfigLoaded}
+      />
+
+      {/* Rotate Root Keys Section */}
+      <RotateRootKeys
+        selectedApp={selectedApp}
+        isBootstrapSuccess={isBootstrapSuccess}
+        onSaveToHistory={handleSaveToHistory}
+        onCheckTufTasks={checkTufTasks}
       />
 
       {/* History - Show last */}

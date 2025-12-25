@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../../hooks/useToast';
+import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
 import { StepStatus, TufHistoryEntry } from './types';
 import { getStatusColor, getStatusIcon } from './utils';
 import { generateTufPythonScript } from './generateTufScript';
@@ -33,6 +34,16 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
   const [showScript, setShowScript] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { toastSuccess, toastError } = useToast();
+  const { data: userData } = useUsersQuery();
+
+  // Calculate file names with app name and admin name
+  const adminName = userData?.owner || userData?.username || 'admin';
+  const generateInitTufKeysScriptFileName = selectedApp && adminName
+    ? `generate_init_tuf_keys_${selectedApp}_${adminName}.py`
+    : 'generate_init_tuf_keys.py';
+  const bootstrapPayloadFileName = selectedApp && adminName
+    ? `bootstrap_payload_${selectedApp}_${adminName}.json`
+    : 'bootstrap_payload.json';
 
   // Handle dropdown clicks
   useEffect(() => {
@@ -58,10 +69,12 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
   }, [selectedApp]);
 
   const generatePythonScript = () => {
+    const adminName = userData?.owner || userData?.username || 'admin';
     const script = generateTufPythonScript({
       appName: selectedApp,
       keyType,
       roleName,
+      adminName,
       expiration,
     });
 
@@ -146,15 +159,15 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                 <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
                   <li>Configure all parameters below</li>
                   <li>Click "Generate Script" to create the Python script</li>
-                  <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">generate_init_tuf_keys.py</code> on a secure offline machine</li>
+                  <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{generateInitTufKeysScriptFileName}</code> on a secure offline machine</li>
                   <li>Set up Python environment and install dependencies:</li>
                 </ol>
                 <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                  <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 generate_init_tuf_keys.py</div>
+                  <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {generateInitTufKeysScriptFileName}</div>
                 </div>
                 <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
                   <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
-                  <li>Use the generated <code className="bg-theme-input px-1 rounded">bootstrap_payload.json</code> to proceed with bootstrap</li>
+                  <li>Use the generated <code className="bg-theme-input px-1 rounded">{bootstrapPayloadFileName}</code> to proceed with bootstrap</li>
                 </ol>
               </div>
             </div>

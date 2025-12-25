@@ -56,7 +56,7 @@ export const Config: React.FC<ConfigProps> = ({
           className="flex items-center gap-3 text-theme-primary hover:text-theme-button-primary transition-colors"
         >
           <h2 className="text-lg font-bold font-roboto">
-            Update TUF Config
+            Update tuf config
           </h2>
           <i className={`fas fa-chevron-${showConfig ? 'up' : 'down'}`}></i>
         </button>

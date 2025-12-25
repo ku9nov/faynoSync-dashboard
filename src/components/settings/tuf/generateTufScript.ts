@@ -2,6 +2,7 @@ interface TufScriptParams {
   appName: string;
   keyType: string;
   roleName: string;
+  adminName: string;
   expiration: {
     root: number;
     timestamp: number;
@@ -11,7 +12,7 @@ interface TufScriptParams {
 }
 
 export const generateTufPythonScript = (params: TufScriptParams): string => {
-  const { appName, keyType: _keyType, roleName, expiration } = params;
+  const { appName, keyType: _keyType, roleName, adminName, expiration } = params;
 
   return `#!/usr/bin/env python3
 """
@@ -107,7 +108,7 @@ def sign_root_metadata(signed_data: dict, private_keys: list[ed25519.Ed25519Priv
             "keyid": key_id,
             "sig": signature_hex
         })
-        print(f"  ✓ Signed with root key {i+1} (key ID: {key_id[:16]}...)")
+        print(f"   Signed with root key {i+1} (key ID: {key_id[:16]}...)")
     
     return signatures
 
@@ -254,7 +255,7 @@ def main():
     snapshot_expiration_days = ${expiration.snapshot}
     app_name = "${appName}"
     delegation_role_name = "${roleName}"
-    admin_name = "ku9n"  # Default admin name
+    admin_name = "${adminName}"
     delegation_threshold = 1
     delegation_terminating = False
     delegation_keys_count = 1
@@ -345,7 +346,7 @@ def main():
     if timeout:
         payload["timeout"] = timeout
     
-    print("  ✓ Root metadata signed with both root keys")
+    print("   Root metadata signed with both root keys")
     print()
     
     # Save private keys (using key ID as filename)
@@ -356,34 +357,34 @@ def main():
     for private_key, (key_id, _) in zip(root_private_keys, root_keys):
         key_file = key_dir / f"{key_id}"
         save_private_key(private_key, key_file)
-        print(f"  ✓ Saved {key_id} (root key)")
+        print(f"   Saved {key_id} (root key)")
     
     timestamp_key_file = key_dir / f"{timestamp_key_id}"
     save_private_key(timestamp_private, timestamp_key_file)
-    print(f"  ✓ Saved {timestamp_key_id} (timestamp key)")
+    print(f"   Saved {timestamp_key_id} (timestamp key)")
     
     snapshot_key_file = key_dir / f"{snapshot_key_id}"
     save_private_key(snapshot_private, snapshot_key_file)
-    print(f"  ✓ Saved {snapshot_key_id} (snapshot key)")
+    print(f"   Saved {snapshot_key_id} (snapshot key)")
     
     targets_key_file = key_dir / f"{targets_key_id}"
     save_private_key(targets_private, targets_key_file)
-    print(f"  ✓ Saved {targets_key_id} (targets key)")
+    print(f"   Saved {targets_key_id} (targets key)")
     
     # Save delegation keys if any
     if delegation_keys:
         for private_key, (key_id, _) in zip(delegation_private_keys, delegation_keys):
             key_file = key_dir / f"{key_id}"
             save_private_key(private_key, key_file)
-            print(f"  ✓ Saved {key_id} (delegation key for '{delegation_role_name}')")
+            print(f"   Saved {key_id} (delegation key for '{delegation_role_name}')")
     
     print()
     
     # Save bootstrap payload
-    payload_file = output_dir / "bootstrap_payload.json"
+    payload_file = output_dir / f"bootstrap_payload_{app_name}_{admin_name}.json"
     with open(payload_file, 'w') as f:
         json.dump(payload, f, indent=2)
-    print(f"✓ Saved bootstrap payload: {payload_file}")
+    print(f" Saved bootstrap payload: {payload_file}")
     
     # Save key info for reference
     key_info = {
@@ -430,10 +431,10 @@ def main():
             "terminating": delegation_terminating
         }
     
-    key_info_file = output_dir / "key_info.json"
+    key_info_file = output_dir / f"key_info_{app_name}_{admin_name}.json"
     with open(key_info_file, 'w') as f:
         json.dump(key_info, f, indent=2)
-    print(f"✓ Saved key info: {key_info_file}")
+    print(f" Saved key info: {key_info_file}")
     
     print()
     print("=" * 70)

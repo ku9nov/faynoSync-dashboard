@@ -59,11 +59,15 @@ export const HistoryTable: React.FC<HistoryProps> = ({
                           className={
                             entry.status === 'success'
                               ? 'text-green-500'
+                              : entry.status === 'pending'
+                              ? 'text-yellow-500'
                               : 'text-red-500'
                           }
                         >
                           {entry.status === 'success' ? (
                             <i className="fas fa-check-circle mr-1"></i>
+                          ) : entry.status === 'pending' ? (
+                            <i className="fas fa-clock mr-1"></i>
                           ) : (
                             <i className="fas fa-times-circle mr-1"></i>
                           )}
@@ -74,7 +78,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
                         {entry.taskId || '-'}
                       </td>
                       <td className="py-2 px-2">
-                        {entry.taskId && entry.operation === 'bootstrap' ? (
+                        {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish' || entry.operation === 'update-config' || entry.operation === 'root-meta-update') ? (
                           <button
                             onClick={() => onCheckTask(entry.taskId!)}
                             className="text-theme-primary hover:text-theme-button-primary text-sm transition-colors"
@@ -151,11 +155,15 @@ export const HistoryTable: React.FC<HistoryProps> = ({
                             className={
                               entry.status === 'success'
                                 ? 'text-green-500'
+                                : entry.status === 'pending'
+                                ? 'text-yellow-500'
                                 : 'text-red-500'
                             }
                           >
                             {entry.status === 'success' ? (
                               <i className="fas fa-check-circle mr-1"></i>
+                            ) : entry.status === 'pending' ? (
+                              <i className="fas fa-clock mr-1"></i>
                             ) : (
                               <i className="fas fa-times-circle mr-1"></i>
                             )}
@@ -166,7 +174,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
                           {entry.taskId || '-'}
                         </td>
                         <td className="py-2 px-2">
-                          {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish' || entry.operation === 'update-config') ? (
+                          {entry.taskId && (entry.operation === 'bootstrap' || entry.operation === 'publish' || entry.operation === 'update-config' || entry.operation === 'root-meta-update') ? (
                             <button
                               onClick={() => onCheckTask(entry.taskId!)}
                               className="text-theme-primary hover:text-theme-button-primary text-sm transition-colors"

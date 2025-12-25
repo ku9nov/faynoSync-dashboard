@@ -32,16 +32,15 @@ export const updateHistoryStatus = (
   currentHistory: TufHistoryEntry[]
 ): TufHistoryEntry[] => {
   const updatedHistory = currentHistory.map(entry => {
-    if (entry.taskId === taskId && entry.operation === 'bootstrap') {
+    if (entry.taskId === taskId) {
       // Map TaskState to history status
-      let newStatus: 'success' | 'failed' = 'failed';
+      let newStatus: 'success' | 'failed' | 'pending' = 'pending';
       if (state === 'SUCCESS') {
         newStatus = 'success';
       } else if (state === 'FAILURE') {
         newStatus = 'failed';
       } else if (state === 'PENDING') {
-        // Keep current status for pending tasks
-        return entry;
+        newStatus = 'pending';
       }
       
       return {
