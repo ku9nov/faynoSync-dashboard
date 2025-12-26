@@ -476,6 +476,56 @@ export const TufSettings: React.FC = () => {
     configLoadedRef.current = '';
   };
 
+  const updateMetadata = async (roles: string[]) => {
+    if (!selectedApp) return;
+    
+    try {
+      const response = await axiosInstance.post(
+        `/tuf/v1/metadata/online?appName=${encodeURIComponent(selectedApp)}`,
+        { roles }
+      );
+      
+      const responseData = response.data?.data;
+      if (!responseData) {
+        throw new Error('Invalid response: missing data field');
+      }
+      
+      const taskId = responseData.task_id;
+      const lastUpdate = responseData.last_update;
+      
+      if (taskId) {
+        const rolesText = roles.length === 0 ? 'all roles (timestamp, targets, snapshot)' : roles.join(', ');
+        toastSuccess(`Metadata update submitted successfully for ${rolesText}!`);
+        
+        setHistory(prevHistory => saveToHistory({
+          timestamp: lastUpdate || new Date().toISOString(),
+          appName: selectedApp,
+          operation: 'metadata-update',
+          status: 'pending',
+          taskId: taskId,
+        }, prevHistory));
+        
+        // Check task status after a delay
+        setTimeout(() => {
+          checkTufTasks(taskId);
+        }, 1000);
+      } else {
+        throw new Error('Invalid response: missing task_id');
+      }
+    } catch (error: any) {
+      console.error('Failed to update metadata:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to update metadata';
+      toastError(errorMessage);
+      
+      setHistory(prevHistory => saveToHistory({
+        timestamp: new Date().toISOString(),
+        appName: selectedApp,
+        operation: 'metadata-update',
+        status: 'failed',
+      }, prevHistory));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* App Selection */}
@@ -539,6 +589,7 @@ export const TufSettings: React.FC = () => {
         onLoadConfig={loadConfig}
         onUpdateConfig={updateConfig}
         onResetConfigLoaded={handleResetConfigLoaded}
+        onUpdateMetadata={updateMetadata}
       />
 
       {/* Rotate Root Keys Section */}
