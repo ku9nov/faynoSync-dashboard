@@ -317,7 +317,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         </div>
       )}
       <div 
-        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in z-50 overflow-y-auto min-h-screen p-4'
+        className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto min-h-screen p-4'
         onClick={handleBackdropClick}
       >
         <div className='bg-theme-modal-gradient p-8 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
