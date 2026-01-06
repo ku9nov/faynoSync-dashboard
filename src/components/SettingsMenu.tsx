@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../providers/authProvider';
 import { useTheme } from '../providers/themeProvider';
 import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
@@ -11,6 +12,7 @@ interface SettingsMenuProps {
 }
 
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenSettingsModal, onOpenProfileModal }) => {
+  const navigate = useNavigate();
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { themeMode, setThemeMode } = useTheme();
@@ -76,9 +78,8 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenSetti
 
   const handleSettingsClick = () => {
     onClose();
-    if (typeof onOpenSettingsModal === 'function') {
-      onOpenSettingsModal();
-    }
+    // Navigate to Settings page
+    navigate('/settings');
   };
 
   const getThemeIcon = () => {

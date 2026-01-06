@@ -15,6 +15,8 @@ const ChannelsPage = lazy(() => import('../pages/channelsPage.tsx').then(module 
 const PlatformsPage = lazy(() => import('../pages/platformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
 const ArchitecturesPage = lazy(() => import('../pages/architecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
 const StatisticsPage = lazy(() => import('../pages/StatisticsPage.tsx').then(module => ({ default: module.StatisticsPage })));
+const SettingsPage = lazy(() => import('../pages/SettingsPage.tsx').then(module => ({ default: module.SettingsPage })));
+const TufSettingsPage = lazy(() => import('../pages/TufSettingsPage.tsx').then(module => ({ default: module.TufSettingsPage })));
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
@@ -53,6 +55,14 @@ export const router = createBrowserRouter([
   {
     path: '/statistics',
     element: <RootLayout><PrivateRoute><StatisticsPage /></PrivateRoute></RootLayout>,
+  },
+  {
+    path: '/settings',
+    element: <RootLayout><PrivateRoute><SettingsPage /></PrivateRoute></RootLayout>,
+  },
+  {
+    path: '/settings/tuf',
+    element: <RootLayout><PrivateRoute><SettingsPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/signin',

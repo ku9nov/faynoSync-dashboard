@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UsersSettings } from './settings/UsersSettings';
-import { TufSettings } from './settings/TufSettings';
 
 interface SettingsModalProps {
   onClose: () => void;
 }
 
-type SettingsPage = 'users' | 'tuf';
+type SettingsPage = 'users';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState<SettingsPage>('users');
   const modalRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -35,7 +36,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
   const menuItems = [
     { id: 'users', label: 'Users', icon: 'fa-users' },
-    { id: 'tuf', label: 'TUF', icon: 'fa-shield-alt' },
+    { id: 'tuf', label: 'TUF', icon: 'fa-shield-alt', isExternal: true },
   ];
 
   const isMobile = window.innerWidth < 768;
@@ -77,7 +78,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentPage(item.id as SettingsPage)}
+                onClick={() => {
+                  if (item.isExternal) {
+                    onClose();
+                    navigate('/settings/tuf');
+                  } else {
+                    setCurrentPage(item.id as SettingsPage);
+                  }
+                }}
                 className={`w-full text-left px-3 py-1.5 rounded-lg mb-1.5 flex items-center text-sm ${
                   currentPage === item.id
                     ? 'bg-theme-button-primary bg-opacity-50 text-theme-primary'
@@ -86,6 +94,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               >
                 <i className={`fas ${item.icon} mr-2`}></i>
                 {item.label}
+                {item.isExternal && <i className="fas fa-external-link-alt ml-auto text-xs"></i>}
               </button>
             ))}
           </nav>
@@ -106,7 +115,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           </div>
 
           {currentPage === 'users' && <UsersSettings />}
-          {currentPage === 'tuf' && <TufSettings />}
           
           {/* <div className="flex justify-end mt-4 space-x-2">
             <button 
