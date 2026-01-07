@@ -21,6 +21,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   onCheckTufTasks,
 }) => {
   const [showRotateKeys, setShowRotateKeys] = useState(false);
+  const [rotationFlow, setRotationFlow] = useState<'online' | 'offline'>('online');
   const [keyCount, setKeyCount] = useState<number>(2);
   const [exampleScript, setExampleScript] = useState<string>('');
   const [showScript, setShowScript] = useState(false);
@@ -624,45 +625,78 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
       {showRotateKeys && (
         <>
-          {/* Instructions */}
-          <div className="mb-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-            <div className="flex items-start">
-              <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-              <div className="flex-1">
-                <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation</h3>
-                <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                  This script generates new TUF root keys for rotation. Configure the number of new keys 
-                  to generate, then generate and run the Python script on a secure offline machine.
-                </p>
-                <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                  <strong>Prerequisites:</strong>
-                </p>
-                <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                  <li>Python 3 must be installed</li>
-                  <li>cryptography library must be installed</li>
-                </ul>
-                <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                  <strong>Instructions:</strong>
-                </p>
-                <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                  <li>Configure the number of keys to generate below</li>
-                  <li>Click "Generate Script" to create the Python script</li>
-                  <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a secure offline machine</li>
-                  <li>Set up Python environment and install dependencies:</li>
-                </ol>
-                <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                  <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
-                </div>
-                <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
-                  <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
-                  <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
-                </ol>
-              </div>
+          {/* Flow Selection */}
+          <div className="mb-6">
+            <label className="block text-theme-primary mb-3 font-roboto font-semibold">
+              Select Rotation Flow:
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="rotationFlow"
+                  value="online"
+                  checked={rotationFlow === 'online'}
+                  onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
+                  className="mr-2"
+                />
+                <span className="text-theme-primary font-roboto">Online Flow</span>
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="rotationFlow"
+                  value="offline"
+                  checked={rotationFlow === 'offline'}
+                  onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
+                  className="mr-2"
+                />
+                <span className="text-theme-primary font-roboto">Offline Flow</span>
+              </label>
             </div>
           </div>
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">
-            Step 1: Generate initial root metadata script
-          </h2>
+
+          {rotationFlow === 'online' ? (
+            <>
+              {/* Online Flow Instructions */}
+              <div className="mb-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+                <div className="flex items-start">
+                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
+                  <div className="flex-1">
+                    <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Online Flow</h3>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      This flow allows you to rotate root keys using the online API. Configure the number of new keys 
+                      to generate, then generate and run the Python script on a secure offline machine.
+                    </p>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      <strong>Prerequisites:</strong>
+                    </p>
+                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
+                      <li>Python 3 must be installed</li>
+                      <li>cryptography library must be installed</li>
+                    </ul>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      <strong>Instructions:</strong>
+                    </p>
+                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
+                      <li>Configure the number of keys to generate below</li>
+                      <li>Click "Generate Script" to create the Python script</li>
+                      <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a secure offline machine</li>
+                      <li>Set up Python environment and install dependencies:</li>
+                    </ol>
+                    <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
+                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
+                    </div>
+                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
+                      <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
+                      <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+              <h2 className="text-lg font-bold font-roboto text-theme-primary">
+                Step 1: Generate initial root metadata script
+              </h2>
           <div className="space-y-4">
             <div>
               <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
@@ -992,6 +1026,49 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               </button>
             </div>
           </div>
+            </>
+          ) : (
+            <>
+              {/* Offline Flow Instructions */}
+              <div className="mb-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+                <div className="flex items-start">
+                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
+                  <div className="flex-1">
+                    <h3 className="text-yellow-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Offline Flow</h3>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      This flow allows you to rotate root keys completely offline without using the online API. 
+                      All operations are performed on a secure offline machine.
+                    </p>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      <strong>Prerequisites:</strong>
+                    </p>
+                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
+                      <li>Python 3 must be installed on an offline machine</li>
+                      <li>cryptography library must be installed</li>
+                      <li>Access to current root metadata</li>
+                      <li>Access to old root keys for signing</li>
+                    </ul>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      <strong>Offline Flow Steps:</strong>
+                    </p>
+                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
+                      <li>Generate new root keys on an offline machine</li>
+                      <li>Create new root metadata with new keys</li>
+                      <li>Sign metadata with old root keys (for trust verification)</li>
+                      <li>Sign metadata with new root keys (to meet threshold)</li>
+                      <li>Transfer signed metadata to online system for upload</li>
+                    </ol>
+                    <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-3 mt-3">
+                      <p className="text-theme-primary text-sm leading-relaxed">
+                        <strong>Note:</strong> Offline flow implementation is coming soon. 
+                        For now, please use the Online Flow option.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </>
       )}
       </div>

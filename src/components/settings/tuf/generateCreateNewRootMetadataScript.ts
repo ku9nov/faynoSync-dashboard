@@ -330,24 +330,35 @@ def main():
         print(f"1. Sign with threshold ({current_root_threshold}) old root keys (for trust verification)")
         print("2. Sign with all new root keys (to meet threshold)")
         print("3. Use sign_metadata_offline_${appName}_${adminName}.py to sign:")
-        old_keys_str = " ".join([f"private_keys/{kid}" for kid in old_root_key_ids[:current_root_threshold]])
-        old_keyids_str = " ".join(old_root_key_ids[:current_root_threshold])
         new_keys_str = " ".join([f"private_keys/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
         new_keyids_str = " ".join(new_metadata['signed']['roles']['root']['keyids'])
-        all_keys = f"{old_keys_str} {new_keys_str}"
-        all_keyids = f"{old_keyids_str} {new_keyids_str}"
-        total_threshold = current_root_threshold + new_metadata['signed']['roles']['root']['threshold']
         print(f"""   python3 sign_metadata_offline_${appName}_${adminName}.py \\
      --metadata {output_path} \\
-     --keys {all_keys} \\
-     --key-ids {all_keyids} \\
-     --threshold {total_threshold} \\
+     --keys {new_keys_str} \\
+     --key-ids {new_keyids_str} \\
+     --threshold {new_metadata['signed']['roles']['root']['threshold']} \\
+     --old-keys {args.old_keys} \\
+     --old-threshold {current_root_threshold} \\
+     --update-key-info {args.old_keys} \\
      --output signed_{output_path.name}""")
     elif old_signatures_count < current_root_threshold:
         print(f" Warning: Only {old_signatures_count} old key signature(s), but threshold is {current_root_threshold}")
         print("Next steps:")
         print(f"1. Sign with remaining {current_root_threshold - old_signatures_count} old root key(s)")
         print("2. Sign with all new root keys (to meet threshold)")
+        print("3. Use sign_metadata_offline_${appName}_${adminName}.py to add signatures:")
+        new_keys_str = " ".join([f"private_keys/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
+        new_keyids_str = " ".join(new_metadata['signed']['roles']['root']['keyids'])
+        remaining_old_threshold = current_root_threshold - old_signatures_count
+        print(f"""   python3 sign_metadata_offline_${appName}_${adminName}.py \\
+     --metadata {output_path} \\
+     --keys {new_keys_str} \\
+     --key-ids {new_keyids_str} \\
+     --threshold {new_metadata['signed']['roles']['root']['threshold']} \\
+     --old-keys {args.old_keys} \\
+     --old-threshold {remaining_old_threshold} \\
+     --update-key-info {args.old_keys} \\
+     --output signed_{output_path.name}""")
     else:
         print(f" Metadata is signed with {old_signatures_count} old root key(s) (threshold: {current_root_threshold})")
         print("Next steps:")
@@ -360,6 +371,7 @@ def main():
      --keys {new_keys_str} \\
      --key-ids {new_keyids_str} \\
      --threshold {new_metadata['signed']['roles']['root']['threshold']} \\
+     --update-key-info {args.old_keys} \\
      --output signed_{output_path.name}""")
 
 
