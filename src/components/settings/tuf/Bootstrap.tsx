@@ -88,6 +88,29 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
         </div>
       </div>
 
+      {/* Info about root keys location */}
+      <div className="mb-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+        <div className="flex items-start">
+          <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
+          <div className="flex-1">
+            <h3 className="text-blue-500 font-semibold mb-2 font-roboto">About Root Keys Location</h3>
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              <strong>Important:</strong> Root keys are <strong>not required</strong> to be in <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> for bootstrapping.
+            </p>
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              <strong>Recommendation:</strong> It is recommended to download root keys locally and remove them from <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> for better security.
+            </p>
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              The location of root keys only affects the choice between <strong>Online</strong> and <strong>Offline</strong> flow in the <strong>Rotate Root Keys</strong> section:
+            </p>
+            <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1">
+              <li>If keys are kept in <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> → choose <strong>Online Flow</strong></li>
+              <li>If keys are downloaded locally → choose <strong>Offline Flow</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-4">
         <div>
           <label className="block text-theme-primary mb-2 font-roboto">Payload Source</label>
