@@ -5,10 +5,8 @@ interface CreateNewRootMetadataScriptOfflineParams {
 }
 
 export const generateCreateNewRootMetadataPythonScriptOffline = (params: CreateNewRootMetadataScriptOfflineParams): string => {
-  const { appName, adminName, keyDirName } = params;
+  const { appName, adminName } = params;
   
-  // Determine key directory name
-  const defaultKeyDir = keyDirName || `root_keys_${appName}_${adminName}`;
 
   return `#!/usr/bin/env python3
 """

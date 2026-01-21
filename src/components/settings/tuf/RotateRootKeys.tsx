@@ -192,12 +192,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     
     let script: string;
     if (rotationFlow === 'offline') {
-      // Use offline script generator
-      const keyDirName = `root_keys_${selectedApp}_${adminName}`;
+
       script = generateCreateNewRootMetadataPythonScriptOffline({
         appName: selectedApp,
         adminName,
-        keyDirName,
       });
     } else {
       // Use online script generator
