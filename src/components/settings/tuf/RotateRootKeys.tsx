@@ -7,6 +7,7 @@ import { generateCreateNewRootMetadataPythonScript } from './generateCreateNewRo
 import { generateCreateNewRootMetadataPythonScriptOffline } from './generateCreateNewRootMetadataScriptOffline';
 import { generateSignMetadataOfflinePythonScript } from './generateSignMetadataOfflineScript';
 import { generateGenerateSignaturesPythonScript } from './generateGenerateSignaturesScript';
+import { deleteSigningMetadata } from './deleteSigningMetadata';
 import { StepperModal, Step } from '../../common/StepperModal';
 
 interface RotateRootKeysProps {
@@ -14,6 +15,19 @@ interface RotateRootKeysProps {
   isBootstrapSuccess: boolean;
   onSaveToHistory: (entry: Omit<import('./types').TufHistoryEntry, 'id'>) => void;
   onCheckTufTasks: (taskId?: string) => void;
+}
+
+interface SignatureProgress {
+  collected: number;
+  total: number;
+  oldCollected: number;
+  newCollected: number;
+  remaining: number;
+  oldRemaining: number;
+  newRemaining: number;
+  oldKeysSigned: string[];
+  missingOldKeys: string[];
+  missingNewKeys: string[];
 }
 
 export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
@@ -47,8 +61,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const [submittingSignature, setSubmittingSignature] = useState(false);
   const [signatureStatus, setSignatureStatus] = useState<string>('');
   const [signatureErrorMessage, setSignatureErrorMessage] = useState<string>('');
+  const [signatureProgress, setSignatureProgress] = useState<SignatureProgress | null>(null);
   const [checkingMetadataStatus, setCheckingMetadataStatus] = useState(false);
   const [metadataStatusResult, setMetadataStatusResult] = useState<string | null>(null);
+  const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
   const [showGuidedTour, setShowGuidedTour] = useState(false);
   const { toastSuccess, toastError } = useToast();
   const { data: userData } = useUsersQuery();
@@ -380,6 +396,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     setSignaturePayloadError('');
     setSignatureStatus('');
     setSignatureErrorMessage('');
+    setSignatureProgress(null);
     
     // Validate JSON on change
     if (value.trim()) {
@@ -392,6 +409,61 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       } catch (e) {
         // Error will be shown on submit
       }
+    }
+  };
+
+  const parseSignatureProgress = (errorMessage: string): SignatureProgress | null => {
+    try {
+      // Parse progress: "Progress: 1/4 signatures collected (1 old + 0 new). 3 more required (1 old + 2 new)."
+      // Make regex more flexible to handle variations in spacing and punctuation
+      const progressMatch = errorMessage.match(/Progress:\s*(\d+)\/(\d+)\s+signatures\s+collected\s+\((\d+)\s+old\s+\+\s+(\d+)\s+new\)[.\s]*(\d+)\s+more\s+required\s+\((\d+)\s+old\s+\+\s+(\d+)\s+new\)/i);
+      
+      if (!progressMatch) {
+        console.log('Progress regex did not match. Error message:', errorMessage);
+        return null;
+      }
+
+      const collected = parseInt(progressMatch[1], 10);
+      const total = parseInt(progressMatch[2], 10);
+      const oldCollected = parseInt(progressMatch[3], 10);
+      const newCollected = parseInt(progressMatch[4], 10);
+      const remaining = parseInt(progressMatch[5], 10);
+      const oldRemaining = parseInt(progressMatch[6], 10);
+      const newRemaining = parseInt(progressMatch[7], 10);
+
+      // Parse old keys signed: "Old keys signed: [key1 key2]."
+      const oldKeysSignedMatch = errorMessage.match(/Old keys signed:\s*\[([^\]]+)\]/i);
+      const oldKeysSigned = oldKeysSignedMatch 
+        ? oldKeysSignedMatch[1].trim().split(/\s+/).filter(k => k.length > 0)
+        : [];
+
+      // Parse missing old keys: "Missing old keys: [key1 key2]."
+      const missingOldKeysMatch = errorMessage.match(/Missing old keys:\s*\[([^\]]+)\]/i);
+      const missingOldKeys = missingOldKeysMatch
+        ? missingOldKeysMatch[1].trim().split(/\s+/).filter(k => k.length > 0)
+        : [];
+
+      // Parse missing new keys: "Missing new keys: [key1 key2]."
+      const missingNewKeysMatch = errorMessage.match(/Missing new keys:\s*\[([^\]]+)\]/i);
+      const missingNewKeys = missingNewKeysMatch
+        ? missingNewKeysMatch[1].trim().split(/\s+/).filter(k => k.length > 0)
+        : [];
+
+      return {
+        collected,
+        total,
+        oldCollected,
+        newCollected,
+        remaining,
+        oldRemaining,
+        newRemaining,
+        oldKeysSigned,
+        missingOldKeys,
+        missingNewKeys,
+      };
+    } catch (e) {
+      console.error('Failed to parse signature progress:', e);
+      return null;
     }
   };
 
@@ -425,6 +497,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     setSubmittingSignature(true);
     setSignatureStatus('');
     setSignatureErrorMessage('');
+    setSignatureProgress(null);
     
     try {
       const payload = {
@@ -448,42 +521,74 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       ) {
         setSignatureStatus('success');
         setSignatureErrorMessage('');
+        setSignatureProgress(null);
         toastSuccess('Metadata update finished! Root keys rotation completed successfully.');
         setSignaturePayload(''); // Clear input for next signature if needed
       } else if (message) {
         setSignatureStatus('partial');
         setSignatureErrorMessage('');
+        setSignatureProgress(null);
         toastSuccess(`Signature submitted: ${message}`);
         setSignaturePayload(''); // Clear input for next signature
       } else {
         setSignatureStatus('partial');
         setSignatureErrorMessage('');
+        setSignatureProgress(null);
         toastSuccess('Signature submitted successfully! Continue submitting more signatures until threshold is reached.');
         setSignaturePayload(''); // Clear input for next signature
       }
     } catch (error: any) {
       console.error('Failed to submit signature:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to submit signature';
+      console.log('Error response data:', error.response?.data);
+      
+      // Prioritize error field over message field, as it contains detailed progress info
+      const errorDetail = error.response?.data?.error || '';
+      const errorMessage = error.response?.data?.message || '';
+      // Combine both fields, prioritizing error detail which contains progress info
+      const fullErrorMessage = errorDetail || errorMessage || error.message || 'Failed to submit signature';
+      
+      console.log('Full error message:', fullErrorMessage);
+      console.log('Contains "not enough signatures":', fullErrorMessage.includes('not enough signatures'));
+      console.log('Contains "threshold not reached":', fullErrorMessage.includes('threshold not reached'));
       
       // Check if it's a success message (no metadata pending = all signed)
       if (
-        errorMessage === 'No metadata pending signing available' ||
-        errorMessage.toLowerCase().includes('no metadata pending')
+        fullErrorMessage === 'No metadata pending signing available' ||
+        fullErrorMessage.toLowerCase().includes('no metadata pending')
       ) {
         setSignatureStatus('success');
         setSignatureErrorMessage('');
+        setSignatureProgress(null);
         toastSuccess('Metadata update finished! Root keys rotation completed successfully.');
         setSignaturePayload(''); // Clear input
-      } else if (errorMessage.includes('not enough signatures') || errorMessage.includes('threshold not reached')) {
+      } else if (
+        fullErrorMessage.includes('not enough signatures') || 
+        fullErrorMessage.includes('threshold not reached') ||
+        fullErrorMessage.includes('Progress:')
+      ) {
         // Check if it's a threshold error (expected, continue submitting)
+        // Also check for "Progress:" as it indicates threshold progress info
+        console.log('Setting status to threshold');
         setSignatureStatus('threshold');
-        setSignatureErrorMessage(errorMessage);
-        toastError(`Threshold not reached yet: ${errorMessage}. Continue submitting more signatures.`);
+        setSignatureErrorMessage(fullErrorMessage);
+        
+        // Parse progress information from error message
+        const progress = parseSignatureProgress(fullErrorMessage);
+        console.log('Parsed progress:', progress);
+        setSignatureProgress(progress);
+        
+        toastError(`Threshold not reached yet. Continue submitting more signatures.`);
         setSignaturePayload(''); // Clear input for next signature
       } else {
+        console.log('Setting status to error');
         setSignatureStatus('error');
-        setSignatureErrorMessage(errorMessage);
-        toastError(errorMessage);
+        setSignatureErrorMessage(fullErrorMessage);
+        
+        // Try to parse progress even for error status, in case it contains threshold info
+        const progress = parseSignatureProgress(fullErrorMessage);
+        setSignatureProgress(progress);
+        
+        toastError(fullErrorMessage);
       }
     } finally {
       setSubmittingSignature(false);
@@ -536,6 +641,57 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       }
     } finally {
       setCheckingMetadataStatus(false);
+    }
+  };
+
+  const handleDeleteSigningMetadata = async () => {
+    if (!selectedApp) {
+      toastError('Please select an app');
+      return;
+    }
+
+    setDeletingSigningMetadata(true);
+    
+    try {
+      const result = await deleteSigningMetadata({
+        appName: selectedApp,
+        role: 'root',
+      });
+      
+      // If we have a task_id, save to history
+      if (result.hasTask && result.taskId) {
+        onSaveToHistory({
+          timestamp: result.lastUpdate || new Date().toISOString(),
+          appName: selectedApp,
+          operation: 'metadata-update',
+          status: 'pending', // Will be updated when we check actual status via API
+          taskId: result.taskId,
+        });
+        
+        // Optionally check the task status
+        if (result.taskId) {
+          setTimeout(() => {
+            onCheckTufTasks(result.taskId);
+          }, 1000);
+        }
+        
+        toastSuccess(result.message || 'Metadata sign delete accepted.');
+      } else {
+        // No task means nothing was being signed (success case)
+        toastSuccess(result.message || 'No signing process for root.');
+      }
+      
+      // Clear signature status and progress after deletion
+      setSignatureStatus('');
+      setSignatureErrorMessage('');
+      setSignatureProgress(null);
+      setSignaturePayload('');
+    } catch (error: any) {
+      console.error('Failed to delete signing metadata:', error);
+      const errorMessage = error.message || 'Failed to delete signing metadata';
+      toastError(errorMessage);
+    } finally {
+      setDeletingSigningMetadata(false);
     }
   };
 
@@ -1190,14 +1346,116 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <div className="flex items-start">
                     <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                     <div className="flex-1">
-                      <p className="text-yellow-500 font-semibold mb-1">Threshold not reached yet</p>
-                      {signatureErrorMessage && (
-                        <>
+                      <p className="text-yellow-500 font-semibold mb-2">Threshold not reached yet</p>
+                      
+                      {signatureProgress ? (
+                        <div className="space-y-3">
+                          {/* Overall Progress */}
+                          <div className="bg-theme-input rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-theme-primary font-semibold">Overall Progress</span>
+                              <span className="text-yellow-500 font-bold">
+                                {signatureProgress.collected} / {signatureProgress.total}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                              <div 
+                                className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
+                                style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-theme-primary text-xs">
+                              {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
+                            </p>
+                          </div>
+
+                          {/* Breakdown by Old/New Keys */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-theme-input rounded-lg p-3">
+                              <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
+                              <p className="text-green-400 text-sm font-bold">
+                                {signatureProgress.oldCollected} collected
+                              </p>
+                              {signatureProgress.oldRemaining > 0 && (
+                                <p className="text-yellow-400 text-xs mt-1">
+                                  {signatureProgress.oldRemaining} more needed
+                                </p>
+                              )}
+                            </div>
+                            <div className="bg-theme-input rounded-lg p-3">
+                              <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
+                              <p className="text-green-400 text-sm font-bold">
+                                {signatureProgress.newCollected} collected
+                              </p>
+                              {signatureProgress.newRemaining > 0 && (
+                                <p className="text-yellow-400 text-xs mt-1">
+                                  {signatureProgress.newRemaining} more needed
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Signed Keys */}
+                          {signatureProgress.oldKeysSigned.length > 0 && (
+                            <div className="bg-theme-input rounded-lg p-3">
+                              <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
+                              <div className="flex flex-wrap gap-1">
+                                {signatureProgress.oldKeysSigned.map((key, idx) => (
+                                  <span 
+                                    key={idx}
+                                    className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
+                                  >
+                                    {key.substring(0, 8)}...
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Missing Keys */}
+                          {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
+                            <div className="bg-theme-input rounded-lg p-3">
+                              <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
+                              {signatureProgress.missingOldKeys.length > 0 && (
+                                <div className="mb-2">
+                                  <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {signatureProgress.missingOldKeys.map((key, idx) => (
+                                      <span 
+                                        key={idx}
+                                        className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                      >
+                                        {key.substring(0, 8)}...
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {signatureProgress.missingNewKeys.length > 0 && (
+                                <div>
+                                  <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {signatureProgress.missingNewKeys.map((key, idx) => (
+                                      <span 
+                                        key={idx}
+                                        className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                      >
+                                        {key.substring(0, 8)}...
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : signatureErrorMessage && (
+                        <div>
                           <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
                             {signatureErrorMessage}
                           </p>
                           {(() => {
-                            // Extract progress information (got X, want Y)
+                            // Fallback: Extract progress information (got X, want Y)
                             const gotMatch = signatureErrorMessage.match(/got\s+(\d+)/i);
                             const wantMatch = signatureErrorMessage.match(/want\s+(\d+)/i);
                             if (gotMatch && wantMatch) {
@@ -1213,9 +1471,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                             }
                             return null;
                           })()}
-                        </>
+                        </div>
                       )}
-                      <p className="text-theme-primary text-sm">
+                      
+                      <p className="text-theme-primary text-sm mt-3">
                         Continue submitting more signatures. The input field has been cleared for the next signature.
                       </p>
                     </div>
@@ -1244,12 +1503,126 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     <div className="flex-1">
                       <p className="text-red-500 font-semibold mb-1">Error submitting signature</p>
                       {signatureErrorMessage && (
-                        <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
-                          {signatureErrorMessage}
-                        </p>
+                        <>
+                          <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
+                            {signatureErrorMessage}
+                          </p>
+                          {/* Show progress even for error status if it contains threshold info */}
+                          {signatureProgress ? (
+                            <div className="mt-3 space-y-3">
+                              {/* Overall Progress */}
+                              <div className="bg-theme-input rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-theme-primary font-semibold">Overall Progress</span>
+                                  <span className="text-yellow-500 font-bold">
+                                    {signatureProgress.collected} / {signatureProgress.total}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                                  <div 
+                                    className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
+                                    style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
+                                  ></div>
+                                </div>
+                                <p className="text-theme-primary text-xs">
+                                  {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
+                                </p>
+                              </div>
+
+                              {/* Breakdown by Old/New Keys */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-theme-input rounded-lg p-3">
+                                  <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
+                                  <p className="text-green-400 text-sm font-bold">
+                                    {signatureProgress.oldCollected} collected
+                                  </p>
+                                  {signatureProgress.oldRemaining > 0 && (
+                                    <p className="text-yellow-400 text-xs mt-1">
+                                      {signatureProgress.oldRemaining} more needed
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="bg-theme-input rounded-lg p-3">
+                                  <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
+                                  <p className="text-green-400 text-sm font-bold">
+                                    {signatureProgress.newCollected} collected
+                                  </p>
+                                  {signatureProgress.newRemaining > 0 && (
+                                    <p className="text-yellow-400 text-xs mt-1">
+                                      {signatureProgress.newRemaining} more needed
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Signed Keys */}
+                              {signatureProgress.oldKeysSigned.length > 0 && (
+                                <div className="bg-theme-input rounded-lg p-3">
+                                  <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {signatureProgress.oldKeysSigned.map((key, idx) => (
+                                      <span 
+                                        key={idx}
+                                        className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
+                                      >
+                                        {key.substring(0, 8)}...
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Missing Keys */}
+                              {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
+                                <div className="bg-theme-input rounded-lg p-3">
+                                  <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
+                                  {signatureProgress.missingOldKeys.length > 0 && (
+                                    <div className="mb-2">
+                                      <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {signatureProgress.missingOldKeys.map((key, idx) => (
+                                          <span 
+                                            key={idx}
+                                            className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                          >
+                                            {key.substring(0, 8)}...
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {signatureProgress.missingNewKeys.length > 0 && (
+                                    <div>
+                                      <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {signatureProgress.missingNewKeys.map((key, idx) => (
+                                          <span 
+                                            key={idx}
+                                            className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                          >
+                                            {key.substring(0, 8)}...
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ) : signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')) && (
+                            <div className="mt-3 p-3 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+                              <p className="text-yellow-500 text-sm font-semibold mb-2">Threshold not reached</p>
+                              <p className="text-theme-primary text-sm">
+                                This is expected - continue submitting more signatures until the threshold is met.
+                              </p>
+                            </div>
+                          )}
+                        </>
                       )}
-                      <p className="text-theme-primary text-sm">
-                        Please check the error message above and try again.
+                      <p className="text-theme-primary text-sm mt-3">
+                        {signatureProgress || (signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')))
+                          ? 'Continue submitting more signatures. The input field has been cleared for the next signature.'
+                          : 'Please check the error message above and try again.'}
                       </p>
                     </div>
                   </div>
@@ -2252,14 +2625,116 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     <div className="flex items-start">
                       <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                       <div className="flex-1">
-                        <p className="text-yellow-500 font-semibold mb-1">Threshold not reached yet</p>
-                        {signatureErrorMessage && (
-                          <>
+                        <p className="text-yellow-500 font-semibold mb-2">Threshold not reached yet</p>
+                        
+                        {signatureProgress ? (
+                          <div className="space-y-3">
+                            {/* Overall Progress */}
+                            <div className="bg-theme-input rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-theme-primary font-semibold">Overall Progress</span>
+                                <span className="text-yellow-500 font-bold">
+                                  {signatureProgress.collected} / {signatureProgress.total}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                                <div 
+                                  className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
+                                  style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-theme-primary text-xs">
+                                {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
+                              </p>
+                            </div>
+
+                            {/* Breakdown by Old/New Keys */}
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-theme-input rounded-lg p-3">
+                                <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
+                                <p className="text-green-400 text-sm font-bold">
+                                  {signatureProgress.oldCollected} collected
+                                </p>
+                                {signatureProgress.oldRemaining > 0 && (
+                                  <p className="text-yellow-400 text-xs mt-1">
+                                    {signatureProgress.oldRemaining} more needed
+                                  </p>
+                                )}
+                              </div>
+                              <div className="bg-theme-input rounded-lg p-3">
+                                <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
+                                <p className="text-green-400 text-sm font-bold">
+                                  {signatureProgress.newCollected} collected
+                                </p>
+                                {signatureProgress.newRemaining > 0 && (
+                                  <p className="text-yellow-400 text-xs mt-1">
+                                    {signatureProgress.newRemaining} more needed
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Signed Keys */}
+                            {signatureProgress.oldKeysSigned.length > 0 && (
+                              <div className="bg-theme-input rounded-lg p-3">
+                                <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {signatureProgress.oldKeysSigned.map((key, idx) => (
+                                    <span 
+                                      key={idx}
+                                      className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
+                                    >
+                                      {key.substring(0, 8)}...
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Missing Keys */}
+                            {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
+                              <div className="bg-theme-input rounded-lg p-3">
+                                <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
+                                {signatureProgress.missingOldKeys.length > 0 && (
+                                  <div className="mb-2">
+                                    <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {signatureProgress.missingOldKeys.map((key, idx) => (
+                                        <span 
+                                          key={idx}
+                                          className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                        >
+                                          {key.substring(0, 8)}...
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {signatureProgress.missingNewKeys.length > 0 && (
+                                  <div>
+                                    <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {signatureProgress.missingNewKeys.map((key, idx) => (
+                                        <span 
+                                          key={idx}
+                                          className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                        >
+                                          {key.substring(0, 8)}...
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : signatureErrorMessage && (
+                          <div>
                             <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
                               {signatureErrorMessage}
                             </p>
                             {(() => {
-                              // Extract progress information (got X, want Y)
+                              // Fallback: Extract progress information (got X, want Y)
                               const gotMatch = signatureErrorMessage.match(/got\s+(\d+)/i);
                               const wantMatch = signatureErrorMessage.match(/want\s+(\d+)/i);
                               if (gotMatch && wantMatch) {
@@ -2275,9 +2750,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                               }
                               return null;
                             })()}
-                          </>
+                          </div>
                         )}
-                        <p className="text-theme-primary text-sm">
+                        
+                        <p className="text-theme-primary text-sm mt-3">
                           Continue submitting more signatures. The input field has been cleared for the next signature.
                         </p>
                       </div>
@@ -2306,12 +2782,126 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <div className="flex-1">
                         <p className="text-red-500 font-semibold mb-1">Error submitting signature</p>
                         {signatureErrorMessage && (
-                          <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
-                            {signatureErrorMessage}
-                          </p>
+                          <>
+                            <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
+                              {signatureErrorMessage}
+                            </p>
+                            {/* Show progress even for error status if it contains threshold info */}
+                            {signatureProgress ? (
+                              <div className="mt-3 space-y-3">
+                                {/* Overall Progress */}
+                                <div className="bg-theme-input rounded-lg p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-theme-primary font-semibold">Overall Progress</span>
+                                    <span className="text-yellow-500 font-bold">
+                                      {signatureProgress.collected} / {signatureProgress.total}
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
+                                    <div 
+                                      className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
+                                      style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
+                                    ></div>
+                                  </div>
+                                  <p className="text-theme-primary text-xs">
+                                    {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
+                                  </p>
+                                </div>
+
+                                {/* Breakdown by Old/New Keys */}
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="bg-theme-input rounded-lg p-3">
+                                    <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
+                                    <p className="text-green-400 text-sm font-bold">
+                                      {signatureProgress.oldCollected} collected
+                                    </p>
+                                    {signatureProgress.oldRemaining > 0 && (
+                                      <p className="text-yellow-400 text-xs mt-1">
+                                        {signatureProgress.oldRemaining} more needed
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="bg-theme-input rounded-lg p-3">
+                                    <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
+                                    <p className="text-green-400 text-sm font-bold">
+                                      {signatureProgress.newCollected} collected
+                                    </p>
+                                    {signatureProgress.newRemaining > 0 && (
+                                      <p className="text-yellow-400 text-xs mt-1">
+                                        {signatureProgress.newRemaining} more needed
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Signed Keys */}
+                                {signatureProgress.oldKeysSigned.length > 0 && (
+                                  <div className="bg-theme-input rounded-lg p-3">
+                                    <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {signatureProgress.oldKeysSigned.map((key, idx) => (
+                                        <span 
+                                          key={idx}
+                                          className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
+                                        >
+                                          {key.substring(0, 8)}...
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Missing Keys */}
+                                {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
+                                  <div className="bg-theme-input rounded-lg p-3">
+                                    <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
+                                    {signatureProgress.missingOldKeys.length > 0 && (
+                                      <div className="mb-2">
+                                        <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {signatureProgress.missingOldKeys.map((key, idx) => (
+                                            <span 
+                                              key={idx}
+                                              className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                            >
+                                              {key.substring(0, 8)}...
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {signatureProgress.missingNewKeys.length > 0 && (
+                                      <div>
+                                        <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
+                                        <div className="flex flex-wrap gap-1">
+                                          {signatureProgress.missingNewKeys.map((key, idx) => (
+                                            <span 
+                                              key={idx}
+                                              className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
+                                            >
+                                              {key.substring(0, 8)}...
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ) : signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')) && (
+                              <div className="mt-3 p-3 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+                                <p className="text-yellow-500 text-sm font-semibold mb-2">Threshold not reached</p>
+                                <p className="text-theme-primary text-sm">
+                                  This is expected - continue submitting more signatures until the threshold is met.
+                                </p>
+                              </div>
+                            )}
+                          </>
                         )}
-                        <p className="text-theme-primary text-sm">
-                          Please check the error message above and try again.
+                        <p className="text-theme-primary text-sm mt-3">
+                          {signatureProgress || (signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')))
+                            ? 'Continue submitting more signatures. The input field has been cleared for the next signature.'
+                            : 'Please check the error message above and try again.'}
                         </p>
                       </div>
                     </div>
@@ -2369,6 +2959,24 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <>
                         <i className="fas fa-download mr-2"></i>
                         Get current root
+                      </>
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={handleDeleteSigningMetadata}
+                    disabled={!selectedApp || deletingSigningMetadata}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingSigningMetadata ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-trash mr-2"></i>
+                        Delete signing metadata
                       </>
                     )}
                   </button>
