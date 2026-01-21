@@ -352,10 +352,12 @@ def main():
     # Save private keys (using key ID as filename)
     print("Saving private keys...")
     key_dir = output_dir / "private_keys"
+    key_dir_root = output_dir / f"root_keys_{app_name}_{admin_name}"
+    key_dir_root.mkdir(exist_ok=True)
     key_dir.mkdir(exist_ok=True)
     
     for private_key, (key_id, _) in zip(root_private_keys, root_keys):
-        key_file = key_dir / f"{key_id}"
+        key_file = key_dir_root / f"{key_id}"
         save_private_key(private_key, key_file)
         print(f"   Saved {key_id} (root key)")
     
@@ -389,7 +391,7 @@ def main():
     # Save key info for reference
     key_info = {
         "root_keys": [
-            {"key_id": key_id, "public_hex": public_hex, "file": f"private_keys/{key_id}", "role": "root"}
+            {"key_id": key_id, "public_hex": public_hex, "file": f"root_keys_{app_name}_{admin_name}/{key_id}", "role": "root"}
             for key_id, public_hex in root_keys
         ],
         "timestamp_key": {

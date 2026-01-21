@@ -1,10 +1,14 @@
 interface CreateNewRootMetadataScriptParams {
   appName: string;
   adminName: string;
+  keyDirName?: string; // Optional: defaults to "private_keys" for online flow, or "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateCreateNewRootMetadataPythonScript = (params: CreateNewRootMetadataScriptParams): string => {
-  const { appName, adminName } = params;
+  const { appName, adminName, keyDirName } = params;
+  
+  // Determine key directory name
+  const defaultKeyDir = keyDirName || "private_keys";
   return `#!/usr/bin/env python3
 """
 Create new root metadata for rotation.
@@ -283,7 +287,7 @@ def main():
             
             if not Path(old_key_path).exists():
                 print(f"Warning: Old key file not found: {old_key_path}")
-                print("You can sign it manually later using sign_metadata_offline.py")
+                print("You can sign it manually later using sign_metadata_online.py")
                 continue
             
             try:
@@ -298,7 +302,7 @@ def main():
                 print(f"   Signed with old root key {i+1}: {old_key_info['key_id'][:16]}...")
             except Exception as e:
                 print(f"   Failed to sign with old key {i+1} ({old_key_info['key_id'][:16]}...): {e}")
-                print("    You can sign it manually later using sign_metadata_offline.py")
+                print("    You can sign it manually later using sign_metadata_online.py")
         
         if signed_count > 0:
             print(f"Successfully signed with {signed_count} old root key(s)")
@@ -329,10 +333,10 @@ def main():
         print("Next steps:")
         print(f"1. Sign with threshold ({current_root_threshold}) old root keys (for trust verification)")
         print("2. Sign with all new root keys (to meet threshold)")
-        print("3. Use sign_metadata_offline_${appName}_${adminName}.py to sign:")
-        new_keys_str = " ".join([f"private_keys/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
+        print("3. Use sign_metadata_online_${appName}_${adminName}.py to sign:")
+        new_keys_str = " ".join([f"${defaultKeyDir}/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
         new_keyids_str = " ".join(new_metadata['signed']['roles']['root']['keyids'])
-        print(f"""   python3 sign_metadata_offline_${appName}_${adminName}.py \\
+        print(f"""   python3 sign_metadata_online_${appName}_${adminName}.py \\
      --metadata {output_path} \\
      --keys {new_keys_str} \\
      --key-ids {new_keyids_str} \\
@@ -346,11 +350,11 @@ def main():
         print("Next steps:")
         print(f"1. Sign with remaining {current_root_threshold - old_signatures_count} old root key(s)")
         print("2. Sign with all new root keys (to meet threshold)")
-        print("3. Use sign_metadata_offline_${appName}_${adminName}.py to add signatures:")
-        new_keys_str = " ".join([f"private_keys/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
+        print("3. Use sign_metadata_online_${appName}_${adminName}.py to add signatures:")
+        new_keys_str = " ".join([f"${defaultKeyDir}/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
         new_keyids_str = " ".join(new_metadata['signed']['roles']['root']['keyids'])
         remaining_old_threshold = current_root_threshold - old_signatures_count
-        print(f"""   python3 sign_metadata_offline_${appName}_${adminName}.py \\
+        print(f"""   python3 sign_metadata_online_${appName}_${adminName}.py \\
      --metadata {output_path} \\
      --keys {new_keys_str} \\
      --key-ids {new_keyids_str} \\
@@ -363,10 +367,10 @@ def main():
         print(f" Metadata is signed with {old_signatures_count} old root key(s) (threshold: {current_root_threshold})")
         print("Next steps:")
         print("1. Sign with all new root keys (to meet threshold)")
-        print("2. Use sign_metadata_offline_${appName}_${adminName}.py to add new root key signatures:")
-        new_keys_str = " ".join([f"private_keys/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
+        print("2. Use sign_metadata_online_${appName}_${adminName}.py to add new root key signatures:")
+        new_keys_str = " ".join([f"${defaultKeyDir}/{kid}" for kid in new_metadata['signed']['roles']['root']['keyids']])
         new_keyids_str = " ".join(new_metadata['signed']['roles']['root']['keyids'])
-        print(f"""   python3 sign_metadata_offline_${appName}_${adminName}.py \\
+        print(f"""   python3 sign_metadata_online_${appName}_${adminName}.py \\
      --metadata {output_path} \\
      --keys {new_keys_str} \\
      --key-ids {new_keyids_str} \\
