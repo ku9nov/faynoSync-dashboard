@@ -338,11 +338,11 @@ def update_key_info_file(
         key_path_obj = Path(key_path)
         if key_id in key_path_obj.name:
             # If key_id is in filename, use it directly
-            key_path_str = f"private_keys/{key_id}"
+            key_path_str = f"root_keys_${appName}_${adminName}/{key_id}"
         else:
             # Extract just the filename if it's a full path
             key_filename = key_path_obj.name
-            key_path_str = f"private_keys/{key_filename}"
+            key_path_str = f"root_keys_${appName}_${adminName}/{key_filename}"
         
         new_root_keys.append({
             "key_id": key_id,
