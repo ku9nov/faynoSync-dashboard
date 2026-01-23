@@ -1334,7 +1334,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     <div className="flex-1">
                       <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
                       <p className="text-theme-primary text-sm">
-                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met.
+                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
                       </p>
                     </div>
                   </div>
@@ -1674,7 +1674,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     <div className="flex-1">
                       <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
                       <p className="text-theme-primary text-sm">
-                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met.
+                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
                       </p>
                     </div>
                   </div>
@@ -2613,7 +2613,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <div className="flex-1">
                         <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
                         <p className="text-theme-primary text-sm">
-                          Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met.
+                          Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
                         </p>
                       </div>
                     </div>
@@ -3017,7 +3017,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <div className="flex-1">
                         <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
                         <p className="text-theme-primary text-sm">
-                          Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met.
+                          Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
                         </p>
                       </div>
                     </div>
