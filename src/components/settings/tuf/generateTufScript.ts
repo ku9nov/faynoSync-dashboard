@@ -9,20 +9,27 @@ interface TufScriptParams {
     snapshot: number;
     targets: number;
   };
+  thresholds: {
+    root: number;
+    timestamp: number;
+    snapshot: number;
+    targets: number;
+    delegation: number;
+  };
 }
 
 export const generateTufPythonScript = (params: TufScriptParams): string => {
-  const { appName, keyType: _keyType, roleName, adminName, expiration } = params;
+  const { appName, keyType: _keyType, roleName, adminName, expiration, thresholds } = params;
 
   return `#!/usr/bin/env python3
 """
 Generate TUF keys and create bootstrap payload.
 
 This script generates:
-- 2 root keys (threshold=2)
-- 1 timestamp key
-- 1 snapshot key  
-- 1 targets key
+- 2 root keys (threshold from config)
+- N timestamp keys (N = timestamp threshold)
+- N snapshot keys (N = snapshot threshold)
+- N targets keys (N = targets threshold)
 
 All keys are Ed25519. The script creates a complete bootstrap payload
 with properly signed root metadata.
@@ -115,10 +122,14 @@ def sign_root_metadata(signed_data: dict, private_keys: list[ed25519.Ed25519Priv
 
 def create_bootstrap_payload(
     root_keys: list[tuple[str, str]],  # (key_id, public_hex)
-    timestamp_key: tuple[str, str],
-    snapshot_key: tuple[str, str],
-    targets_key: tuple[str, str],
+    timestamp_keys: list[tuple[str, str]],
+    snapshot_keys: list[tuple[str, str]],
+    targets_keys: list[tuple[str, str]],
     root_private_keys: list[ed25519.Ed25519PrivateKey],
+    root_threshold: int,
+    timestamp_threshold: int,
+    snapshot_threshold: int,
+    targets_threshold: int,
     root_expiration_days: int = 365,
     timestamp_expiration_days: int = 1,
     snapshot_expiration_days: int = 1,
@@ -137,7 +148,7 @@ def create_bootstrap_payload(
     
     # Build keys dictionary
     keys = {}
-    all_keys = root_keys + [timestamp_key, snapshot_key, targets_key]
+    all_keys = root_keys + timestamp_keys + snapshot_keys + targets_keys
     if delegation_keys:
         all_keys.extend(delegation_keys)
     
@@ -155,19 +166,19 @@ def create_bootstrap_payload(
     roles = {
         "root": {
             "keyids": root_key_ids,
-            "threshold": len(root_key_ids)  # threshold = number of root keys
+            "threshold": root_threshold
         },
         "timestamp": {
-            "keyids": [timestamp_key[0]],
-            "threshold": 1
+            "keyids": [k[0] for k in timestamp_keys],
+            "threshold": timestamp_threshold
         },
         "snapshot": {
-            "keyids": [snapshot_key[0]],
-            "threshold": 1
+            "keyids": [k[0] for k in snapshot_keys],
+            "threshold": snapshot_threshold
         },
         "targets": {
-            "keyids": [targets_key[0]],
-            "threshold": 1
+            "keyids": [k[0] for k in targets_keys],
+            "threshold": targets_threshold
         }
     }
     
@@ -184,7 +195,7 @@ def create_bootstrap_payload(
     
     # Sign root metadata
     root_key_ids_list = [k[0] for k in root_keys]
-    signatures = sign_root_metadata(signed_data, root_private_keys, root_key_ids_list, len(root_key_ids_list))
+    signatures = sign_root_metadata(signed_data, root_private_keys, root_key_ids_list, root_threshold)
     
     # Create root metadata
     root_metadata = {
@@ -253,12 +264,16 @@ def main():
     targets_expiration_days = ${expiration.targets}
     timestamp_expiration_days = ${expiration.timestamp}
     snapshot_expiration_days = ${expiration.snapshot}
+    root_threshold = ${thresholds.root}
+    timestamp_threshold = ${thresholds.timestamp}
+    snapshot_threshold = ${thresholds.snapshot}
+    targets_threshold = ${thresholds.targets}
     app_name = "${appName}"
     delegation_role_name = "${roleName}"
     admin_name = "${adminName}"
-    delegation_threshold = 1
+    delegation_threshold = ${thresholds.delegation}
     delegation_terminating = False
-    delegation_keys_count = 1
+    delegation_keys_count = max(1, delegation_threshold)
     timeout = None
     
     # Generate default delegation paths based on app-name
@@ -276,36 +291,51 @@ def main():
     print("=" * 70)
     print()
     
+    # Root must have at least root_threshold keys; we generate 2 root keys
+    num_root_keys = max(2, root_threshold)
+    
     # Generate keys
     print("Generating keys...")
     
-    # Root keys (2 keys, threshold=2)
-    print("  Root keys (2 keys, threshold=2):")
+    # Root keys
+    print(f"  Root keys ({num_root_keys} keys, threshold={root_threshold}):")
     root_keys = []
     root_private_keys = []
-    for i in range(2):
+    for i in range(num_root_keys):
         private_key, public_hex, key_id = generate_key_pair()
         root_keys.append((key_id, public_hex))
         root_private_keys.append(private_key)
         print(f"    Root key {i+1}: {key_id[:16]}...")
     
-    # Timestamp key
-    print("  Timestamp key:")
-    timestamp_private, timestamp_public, timestamp_key_id = generate_key_pair()
-    timestamp_key = (timestamp_key_id, timestamp_public)
-    print(f"    Timestamp: {timestamp_key_id[:16]}...")
+    # Timestamp keys
+    print(f"  Timestamp keys ({timestamp_threshold} keys, threshold={timestamp_threshold}):")
+    timestamp_keys = []
+    timestamp_private_keys = []
+    for i in range(timestamp_threshold):
+        private_key, public_hex, key_id = generate_key_pair()
+        timestamp_keys.append((key_id, public_hex))
+        timestamp_private_keys.append(private_key)
+        print(f"    Timestamp key {i+1}: {key_id[:16]}...")
     
-    # Snapshot key
-    print("  Snapshot key:")
-    snapshot_private, snapshot_public, snapshot_key_id = generate_key_pair()
-    snapshot_key = (snapshot_key_id, snapshot_public)
-    print(f"    Snapshot: {snapshot_key_id[:16]}...")
+    # Snapshot keys
+    print(f"  Snapshot keys ({snapshot_threshold} keys, threshold={snapshot_threshold}):")
+    snapshot_keys = []
+    snapshot_private_keys = []
+    for i in range(snapshot_threshold):
+        private_key, public_hex, key_id = generate_key_pair()
+        snapshot_keys.append((key_id, public_hex))
+        snapshot_private_keys.append(private_key)
+        print(f"    Snapshot key {i+1}: {key_id[:16]}...")
     
-    # Targets key
-    print("  Targets key:")
-    targets_private, targets_public, targets_key_id = generate_key_pair()
-    targets_key = (targets_key_id, targets_public)
-    print(f"    Targets: {targets_key_id[:16]}...")
+    # Targets keys
+    print(f"  Targets keys ({targets_threshold} keys, threshold={targets_threshold}):")
+    targets_keys = []
+    targets_private_keys = []
+    for i in range(targets_threshold):
+        private_key, public_hex, key_id = generate_key_pair()
+        targets_keys.append((key_id, public_hex))
+        targets_private_keys.append(private_key)
+        print(f"    Targets key {i+1}: {key_id[:16]}...")
     
     # Delegation keys (always created by default)
     delegation_keys = []
@@ -324,10 +354,14 @@ def main():
     # Create bootstrap payload
     payload = create_bootstrap_payload(
         root_keys=root_keys,
-        timestamp_key=timestamp_key,
-        snapshot_key=snapshot_key,
-        targets_key=targets_key,
+        timestamp_keys=timestamp_keys,
+        snapshot_keys=snapshot_keys,
+        targets_keys=targets_keys,
         root_private_keys=root_private_keys,
+        root_threshold=root_threshold,
+        timestamp_threshold=timestamp_threshold,
+        snapshot_threshold=snapshot_threshold,
+        targets_threshold=targets_threshold,
         root_expiration_days=root_expiration_days,
         timestamp_expiration_days=timestamp_expiration_days,
         snapshot_expiration_days=snapshot_expiration_days,
@@ -346,7 +380,7 @@ def main():
     if timeout:
         payload["timeout"] = timeout
     
-    print("   Root metadata signed with both root keys")
+    print(f"   Root metadata signed with {root_threshold} root key(s)")
     print()
     
     # Save private keys (using key ID as filename)
@@ -361,17 +395,20 @@ def main():
         save_private_key(private_key, key_file)
         print(f"   Saved {key_id} (root key)")
     
-    timestamp_key_file = key_dir / f"{timestamp_key_id}"
-    save_private_key(timestamp_private, timestamp_key_file)
-    print(f"   Saved {timestamp_key_id} (timestamp key)")
+    for private_key, (key_id, _) in zip(timestamp_private_keys, timestamp_keys):
+        key_file = key_dir / f"{key_id}"
+        save_private_key(private_key, key_file)
+        print(f"   Saved {key_id} (timestamp key)")
     
-    snapshot_key_file = key_dir / f"{snapshot_key_id}"
-    save_private_key(snapshot_private, snapshot_key_file)
-    print(f"   Saved {snapshot_key_id} (snapshot key)")
+    for private_key, (key_id, _) in zip(snapshot_private_keys, snapshot_keys):
+        key_file = key_dir / f"{key_id}"
+        save_private_key(private_key, key_file)
+        print(f"   Saved {key_id} (snapshot key)")
     
-    targets_key_file = key_dir / f"{targets_key_id}"
-    save_private_key(targets_private, targets_key_file)
-    print(f"   Saved {targets_key_id} (targets key)")
+    for private_key, (key_id, _) in zip(targets_private_keys, targets_keys):
+        key_file = key_dir / f"{key_id}"
+        save_private_key(private_key, key_file)
+        print(f"   Saved {key_id} (targets key)")
     
     # Save delegation keys if any
     if delegation_keys:
@@ -394,24 +431,22 @@ def main():
             {"key_id": key_id, "public_hex": public_hex, "file": f"root_keys_{app_name}_{admin_name}/{key_id}", "role": "root"}
             for key_id, public_hex in root_keys
         ],
-        "timestamp_key": {
-            "key_id": timestamp_key_id,
-            "public_hex": timestamp_public,
-            "file": f"private_keys/{timestamp_key_id}",
-            "role": "timestamp"
-        },
-        "snapshot_key": {
-            "key_id": snapshot_key_id,
-            "public_hex": snapshot_public,
-            "file": f"private_keys/{snapshot_key_id}",
-            "role": "snapshot"
-        },
-        "targets_key": {
-            "key_id": targets_key_id,
-            "public_hex": targets_public,
-            "file": f"private_keys/{targets_key_id}",
-            "role": "targets"
-        }
+        "root_threshold": root_threshold,
+        "timestamp_keys": [
+            {"key_id": key_id, "public_hex": public_hex, "file": f"private_keys/{key_id}", "role": "timestamp"}
+            for key_id, public_hex in timestamp_keys
+        ],
+        "timestamp_threshold": timestamp_threshold,
+        "snapshot_keys": [
+            {"key_id": key_id, "public_hex": public_hex, "file": f"private_keys/{key_id}", "role": "snapshot"}
+            for key_id, public_hex in snapshot_keys
+        ],
+        "snapshot_threshold": snapshot_threshold,
+        "targets_keys": [
+            {"key_id": key_id, "public_hex": public_hex, "file": f"private_keys/{key_id}", "role": "targets"}
+            for key_id, public_hex in targets_keys
+        ],
+        "targets_threshold": targets_threshold
     }
     
     # Add delegation keys info if any
@@ -442,10 +477,10 @@ def main():
     print("=" * 70)
     print("Summary")
     print("=" * 70)
-    print(f"Root keys: {len(root_keys)} (threshold: {len(root_keys)})")
-    print(f"Timestamp key: 1")
-    print(f"Snapshot key: 1")
-    print(f"Targets key: 1")
+    print(f"Root keys: {len(root_keys)} (threshold: {root_threshold})")
+    print(f"Timestamp keys: {len(timestamp_keys)} (threshold: {timestamp_threshold})")
+    print(f"Snapshot keys: {len(snapshot_keys)} (threshold: {snapshot_threshold})")
+    print(f"Targets keys: {len(targets_keys)} (threshold: {targets_threshold})")
     if delegation_keys:
         print(f"Delegation keys: {len(delegation_keys)} (role: '{delegation_role_name}', threshold: {delegation_threshold})")
     print()
