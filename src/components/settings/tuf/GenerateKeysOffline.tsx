@@ -30,6 +30,13 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
     snapshot: 6,
     targets: 6,
   });
+  const [thresholds, setThresholds] = useState({
+    root: 2,
+    timestamp: 1,
+    snapshot: 1,
+    targets: 1,
+    delegation: 1,
+  });
   const [generatedScript, setGeneratedScript] = useState<string>('');
   const [showScript, setShowScript] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -76,6 +83,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
       roleName,
       adminName,
       expiration,
+      thresholds,
     });
 
     setGeneratedScript(script);
@@ -237,6 +245,62 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                 placeholder="Enter role name (e.g., root, timestamp, snapshot, targets)"
                 className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
               />
+            </div>
+
+            <div>
+              <label className="block text-theme-primary mb-2 font-roboto">Keys Threshold</label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-theme-primary mb-1">Root</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={thresholds.root}
+                    onChange={(e) => setThresholds(prev => ({ ...prev, root: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-theme-primary mb-1">Targets</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={thresholds.targets}
+                    onChange={(e) => setThresholds(prev => ({ ...prev, targets: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-theme-primary mb-1">Timestamp</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={thresholds.timestamp}
+                    onChange={(e) => setThresholds(prev => ({ ...prev, timestamp: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-theme-primary mb-1">Snapshot</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={thresholds.snapshot}
+                    onChange={(e) => setThresholds(prev => ({ ...prev, snapshot: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-theme-primary mb-1">Delegation</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={thresholds.delegation}
+                    onChange={(e) => setThresholds(prev => ({ ...prev, delegation: Math.max(1, parseInt(e.target.value) || 1) }))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  />
+                </div>
+              </div>
             </div>
 
             <div>

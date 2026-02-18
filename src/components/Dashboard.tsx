@@ -14,6 +14,7 @@ import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 import { useToast } from '../hooks/useToast';
+import ReactMarkdown from 'react-markdown';
 import '../styles/cards.css';
 
 interface DashboardProps {
@@ -862,9 +863,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   <div className="mt-2 p-3 rounded-lg h-20">
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                      <p className="text-sm text-theme-primary/80 line-clamp-3">
-                        {app.Changelog[0].Changes}
-                      </p>
+                      <div className="text-sm text-theme-primary/80 line-clamp-3 prose prose-sm prose-invert max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="m-0">{children}</p>,
+                            ul: ({ children }) => <ul className="m-0 pl-4">{children}</ul>,
+                            ol: ({ children }) => <ol className="m-0 pl-4">{children}</ol>,
+                            li: ({ children }) => <li className="m-0">{children}</li>,
+                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                            em: ({ children }) => <em className="italic">{children}</em>,
+                            code: ({ children }) => <code className="bg-theme-input px-1 rounded text-xs">{children}</code>,
+                            h1: ({ children }) => <h1 className="text-base font-bold m-0">{children}</h1>,
+                            h2: ({ children }) => <h2 className="text-sm font-bold m-0">{children}</h2>,
+                            h3: ({ children }) => <h3 className="text-sm font-semibold m-0">{children}</h3>,
+                          }}
+                        >
+                          {app.Changelog[0].Changes}
+                        </ReactMarkdown>
+                      </div>
                     ) : (
                       <p className="text-sm text-theme-primary/60 italic">
                         Changelog not provided

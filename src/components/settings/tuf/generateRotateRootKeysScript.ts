@@ -2,16 +2,22 @@ interface RotateRootKeysScriptParams {
   appName: string;
   keyCount: number;
   adminName: string;
+  keyDirName?: string; // Optional: defaults to "private_keys" for online flow, or "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateRotateRootKeysPythonScript = (params: RotateRootKeysScriptParams): string => {
-  const { appName, keyCount, adminName } = params;
+  const { appName, keyCount, adminName, keyDirName } = params;
+  
+  // Determine key directory name
+  const defaultKeyDir = keyDirName || "private_keys";
+  const isOfflineFlow = keyDirName !== undefined && keyDirName !== "private_keys";
+  const flowTypeSuffix = isOfflineFlow ? " (Offline Flow)" : "";
 
   return `#!/usr/bin/env python3
 """
-Generate new root keys for root metadata rotation.
+Generate new root keys for root metadata rotation${flowTypeSuffix}.
 
-This script generates new root keys and saves them to the private_keys directory.
+This script generates new root keys and saves them to the ${defaultKeyDir} directory.
 It does not delete or modify existing keys - it only adds new ones.
 """
 
@@ -82,11 +88,11 @@ def main():
     admin_name = "${adminName}"
     new_root_keys_count = ${keyCount}
     
-    key_dir = output_dir / "private_keys"
+    key_dir = output_dir / "${defaultKeyDir}"
     key_dir.mkdir(parents=True, exist_ok=True)
     
     print("=" * 70)
-    print("Generating New Root Keys for Rotation")
+    print("Generating New Root Keys for Rotation${flowTypeSuffix}")
     print("=" * 70)
     print()
     
@@ -133,7 +139,7 @@ def main():
             {
                 "key_id": key_info["key_id"],
                 "public_hex": key_info["public_hex"],
-                "file": f"private_keys/{key_info['key_id']}",
+                "file": f"${defaultKeyDir}/{key_info['key_id']}",
                 "role": "root",
                 "generated_for": "rotation"
             }
@@ -158,7 +164,7 @@ def main():
     for i, key_info in enumerate(saved_keys, 1):
         print(f"  {i}. Key ID: {key_info['key_id']}")
         print(f"     Public: {key_info['public_hex']}")
-        print(f"     File:   private_keys/{key_info['key_id']}")
+        print(f"     File:   ${defaultKeyDir}/{key_info['key_id']}")
     print()
 
 
