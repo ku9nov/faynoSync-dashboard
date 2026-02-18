@@ -7,11 +7,10 @@ import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
 
 interface SettingsMenuProps {
   onClose: () => void;
-  onOpenSettingsModal: () => void;
   onOpenProfileModal: () => void;
 }
 
-export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenSettingsModal, onOpenProfileModal }) => {
+export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfileModal }) => {
   const navigate = useNavigate();
   const menuRef = React.useRef<HTMLDivElement>(null);
   const { logout } = useAuth();

@@ -35,11 +35,6 @@ export const Header: React.FC<HeaderProps> = ({
     setShowSettings(!showSettings);
   };
 
-  const handleOpenSettingsModal = () => {
-    setShowSettings(false);
-    setShowSettingsModal(true);
-  };
-
   const handleCloseSettingsModal = () => {
     setShowSettingsModal(false);
   };
@@ -143,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             {showSettings && <SettingsMenu onClose={() => {
               setShowSettings(false);
-            }} onOpenSettingsModal={handleOpenSettingsModal} onOpenProfileModal={handleOpenProfileModal} />}
+            }} onOpenProfileModal={handleOpenProfileModal} />}
           </div>
         </div>
       </div>
@@ -181,7 +176,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
               {showSettings && <SettingsMenu onClose={() => {
                 setShowSettings(false);
-              }} onOpenSettingsModal={handleOpenSettingsModal} onOpenProfileModal={handleOpenProfileModal} />}
+              }} onOpenProfileModal={handleOpenProfileModal} />}
             </div>
           </div>
         </div>
