@@ -64,6 +64,10 @@ export const router = createBrowserRouter([
     element: <RootLayout><PrivateRoute><SettingsPage /></PrivateRoute></RootLayout>,
   },
   {
+    path: '/settings/tokens',
+    element: <RootLayout><PrivateRoute><SettingsPage /></PrivateRoute></RootLayout>,
+  },
+  {
     path: '/signin',
     element: <RootLayout><PublicRoute><SignInPage /></PublicRoute></RootLayout>,
   },
