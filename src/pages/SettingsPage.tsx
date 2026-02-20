@@ -4,8 +4,9 @@ import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { UsersSettings } from '../components/settings/UsersSettings';
 import { TufSettings } from '../components/settings/TufSettings';
+import { TokenSettings } from '../components/settings/TokenSettings';
 
-type SettingsPage = 'users' | 'tuf';
+type SettingsPage = 'users' | 'tokens' | 'tuf';
 
 export const SettingsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -16,6 +17,9 @@ export const SettingsPage = () => {
   const getCurrentPage = (): SettingsPage => {
     if (location.pathname === '/settings/tuf') {
       return 'tuf';
+    }
+    if (location.pathname === '/settings/tokens') {
+      return 'tokens';
     }
     return 'users';
   };
@@ -30,6 +34,7 @@ export const SettingsPage = () => {
 
   const menuItems = [
     { id: 'users' as SettingsPage, label: 'Users', icon: 'fa-users' },
+    { id: 'tokens' as SettingsPage, label: 'CI/CD Tokens', icon: 'fa-key' },
     { id: 'tuf' as SettingsPage, label: 'TUF', icon: 'fa-shield-alt' },
   ];
 
@@ -37,6 +42,8 @@ export const SettingsPage = () => {
     setCurrentPage(page);
     if (page === 'tuf') {
       navigate('/settings/tuf');
+    } else if (page === 'tokens') {
+      navigate('/settings/tokens');
     } else {
       navigate('/settings');
     }
@@ -80,6 +87,7 @@ export const SettingsPage = () => {
               {/* Content */}
               <div className="mt-6">
                 {currentPage === 'users' && <UsersSettings />}
+                {currentPage === 'tokens' && <TokenSettings />}
                 {currentPage === 'tuf' && <TufSettings />}
               </div>
             </div>

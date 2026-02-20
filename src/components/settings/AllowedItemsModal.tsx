@@ -38,6 +38,10 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
     onClose();
   };
 
+  const handleSelectAll = () => {
+    setSelected(items.map((item) => item.id));
+  };
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -85,6 +89,12 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
         </div>
         
         <div className="p-4 border-t border-theme-modal flex justify-end">
+          <button
+            onClick={handleSelectAll}
+            className="header-action-btn px-4 py-2 font-roboto mr-2"
+          >
+            Select all
+          </button>
           <button
             onClick={handleSave}
             className="header-action-btn px-4 py-2 font-roboto"
