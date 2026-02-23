@@ -166,9 +166,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
               <button
                 type="button"
                 onClick={() => handleDropdownClick('app_name')}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
               >
-                <span>{formData.app_name || 'Select an app'}</span>
+                <span className="block min-w-0 flex-1 truncate text-left">{formData.app_name || 'Select an app'}</span>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="16" 
@@ -179,7 +179,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'app_name' ? 'rotate-180' : ''}`}
+                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'app_name' ? 'rotate-180' : ''}`}
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -191,7 +191,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                       key={app.ID}
                       type="button"
                       onClick={() => handleOptionClick('app_name', app.AppName)}
-                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                     >
                       {app.AppName}
                     </button>
@@ -221,9 +221,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('channel')}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
                 >
-                  <span>{formData.channel || 'Select a channel'}</span>
+                  <span className="block min-w-0 flex-1 truncate text-left">{formData.channel || 'Select a channel'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="16" 
@@ -234,7 +234,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
+                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
                   >
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -246,7 +246,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                         key={channel.ID}
                         type="button"
                         onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                       >
                         {channel.ChannelName}
                       </button>
@@ -264,9 +264,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('platform')}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
                 >
-                  <span>{formData.platform || 'Select a platform'}</span>
+                  <span className="block min-w-0 flex-1 truncate text-left">{formData.platform || 'Select a platform'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="16" 
@@ -277,7 +277,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
                   >
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -289,7 +289,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                         key={platform.ID}
                         type="button"
                         onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                       >
                         {platform.PlatformName}
                       </button>
@@ -312,9 +312,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('updater')}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
                 >
-                  <span>{formData.updater || 'manual (default)'}</span>
+                  <span className="block min-w-0 flex-1 truncate text-left">{formData.updater || 'manual (default)'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="16" 
@@ -325,7 +325,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
+                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
                   >
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -337,7 +337,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                         key={updater.type}
                         type="button"
                         onClick={() => handleOptionClick('updater', updater.type)}
-                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                       >
                         {updater.type}
                       </button>
@@ -370,9 +370,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('arch')}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
                 >
-                  <span>{formData.arch || 'Select an architecture'}</span>
+                  <span className="block min-w-0 flex-1 truncate text-left">{formData.arch || 'Select an architecture'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="16" 
@@ -383,7 +383,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                     strokeWidth="2" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
                   >
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
@@ -395,7 +395,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                         key={arch.ID}
                         type="button"
                         onClick={() => handleOptionClick('arch', arch.ArchID)}
-                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                       >
                         {arch.ArchID}
                       </button>

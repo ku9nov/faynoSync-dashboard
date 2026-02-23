@@ -805,9 +805,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDropdownClick('platform')}
-                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                       >
-                        <span>{platform || 'Select platform'}</span>
+                        <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="16" 
@@ -818,7 +818,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
                         >
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -830,7 +830,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                               key={p.ID}
                               type="button"
                               onClick={() => handleOptionClick('platform', p.PlatformName)}
-                              className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                             >
                               {p.PlatformName}
                             </button>
@@ -849,9 +849,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDropdownClick('arch')}
-                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                       >
-                        <span>{arch || 'Select architecture'}</span>
+                        <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="16" 
@@ -862,7 +862,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
                         >
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -874,7 +874,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                               key={a.ID}
                               type="button"
                               onClick={() => handleOptionClick('arch', a.ArchID)}
-                              className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                             >
                               {a.ArchID}
                             </button>
@@ -896,9 +896,9 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleDropdownClick('updater')}
-                        className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
                       >
-                                                 <span>{updater || 'manual (default)'}</span>
+                                                 <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="16" 
@@ -909,7 +909,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
+                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
                         >
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -921,7 +921,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                                key={u.type}
                                type="button"
                                onClick={() => handleOptionClick('updater', u.type)}
-                               className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                               className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
                              >
                                {u.type}
                              </button>

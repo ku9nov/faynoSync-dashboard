@@ -52,9 +52,9 @@ export const AppSelection: React.FC<AppSelectionProps> = ({
         <button
           type="button"
           onClick={() => setOpenDropdown(openDropdown === 'app' ? null : 'app')}
-          className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150"
+          className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150"
         >
-          <span>{selectedApp || 'Select an app with TUF enabled'}</span>
+          <span className="block min-w-0 flex-1 truncate text-left">{selectedApp || 'Select an app with TUF enabled'}</span>
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             width="16" 
@@ -65,7 +65,7 @@ export const AppSelection: React.FC<AppSelectionProps> = ({
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
-            className={`text-theme-primary transition-transform ${openDropdown === 'app' ? 'rotate-180' : ''}`}
+            className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'app' ? 'rotate-180' : ''}`}
           >
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
@@ -78,7 +78,7 @@ export const AppSelection: React.FC<AppSelectionProps> = ({
                   key={app.ID}
                   type="button"
                   onClick={() => handleAppSelect(app.AppName)}
-                  className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors ${
+                  className={`w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors ${
                     selectedApp === app.AppName ? 'bg-theme-button-primary bg-opacity-50' : ''
                   }`}
                 >
