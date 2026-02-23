@@ -23,7 +23,7 @@ export const AuthInputs: FC<AuthInputsProps> = ({
       <ErrorMessage
         name={name}
         component='div'
-        className='text-red-400 text-sm mt-1 font-medium'
+        className='dark:text-red-400 text-red-900 text-sm mt-1 font-medium'
       />
     </div>
   );

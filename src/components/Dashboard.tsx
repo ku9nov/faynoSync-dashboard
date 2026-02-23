@@ -78,6 +78,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
   }, []);
 
+  React.useEffect(() => {
+    if (!selectedApp || typeof window === 'undefined') {
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [selectedApp]);
+
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
   const { channels } = useChannelQuery();
