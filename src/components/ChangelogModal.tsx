@@ -18,16 +18,16 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
   const currentVersionChangelog = changelog.find(entry => entry.Version === version);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[11000]"
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[11000] p-4 overflow-y-auto"
     onClick={onClose}
     >
-      <div className="bg-theme-modal rounded-lg p-8 w-[800px]"
+      <div className="bg-theme-modal rounded-lg p-4 sm:p-8 w-full max-w-[800px] max-h-[calc(100vh-2rem)] flex flex-col my-auto"
       onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold mb-4">
           Changelog for {appName} v{version}
         </h2>
-        <div className="mb-4 max-h-[60vh] overflow-y-auto">
+        <div className="mb-4 overflow-y-auto min-h-0">
           {currentVersionChangelog ? (
             <>
               <p className="text-gray-600 mb-2">

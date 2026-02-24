@@ -78,6 +78,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
   }, []);
 
+  React.useEffect(() => {
+    if (!selectedApp || typeof window === 'undefined') {
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [selectedApp]);
+
   const { platforms } = usePlatformQuery();
   const { architectures } = useArchitectureQuery();
   const { channels } = useChannelQuery();
@@ -97,6 +105,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showDeleteAppModal, setShowDeleteAppModal] = React.useState(false);
   const [selectedAppData, setSelectedAppData] = React.useState<AppListItem | null>(null);
   const [publishingTuf, setPublishingTuf] = React.useState<Record<string, boolean>>({});
+  const [openArtifactsPopoverId, setOpenArtifactsPopoverId] = React.useState<string | null>(null);
+  const [hoveredArtifactsPopoverId, setHoveredArtifactsPopoverId] = React.useState<string | null>(null);
+  const [suppressHoverArtifactsPopoverId, setSuppressHoverArtifactsPopoverId] = React.useState<string | null>(null);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -371,6 +382,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return 'none';
   };
 
+  const getArtifactSummary = (artifacts: AppVersion['Artifacts']) => {
+    const groupedByPlatform = artifacts.reduce<Record<string, { count: number; label: string }>>((acc, artifact) => {
+      const rawPlatform = artifact.platform?.trim() || 'N/A';
+      const key = rawPlatform.toLowerCase();
+      if (!acc[key]) {
+        acc[key] = { count: 0, label: rawPlatform };
+      }
+      acc[key].count += 1;
+      return acc;
+    }, {});
+
+    const sortedGroups = Object.entries(groupedByPlatform)
+      .sort((a, b) => b[1].count - a[1].count || a[1].label.localeCompare(b[1].label))
+      .map(([, value]) => ({
+        count: value.count,
+        label: value.label,
+      }));
+
+    const visibleGroups = sortedGroups.slice(0, 3);
+    const hiddenGroupsCount = Math.max(sortedGroups.length - visibleGroups.length, 0);
+
+    return {
+      visibleSummary: visibleGroups.map(item => `${item.label}(${item.count})`).join(' '),
+      hiddenGroupsCount,
+      details: artifacts.map(artifact => {
+        const platform = artifact.platform?.trim() || 'N/A';
+        const arch = artifact.arch?.trim() || 'N/A';
+        const pkg = artifact.package?.trim() || 'N/A';
+        return `${platform}/${arch} - ${pkg}`;
+      }),
+    };
+  };
+
   if (selectedApp) {
     return (
       <div className="mt-8">
@@ -467,9 +511,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="relative dropdown-container">
               <button
                 onClick={() => handleDropdownClick('channel')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
               >
-                <span>{filters.channel || 'All Channels'}</span>
+                <span className="block min-w-0 flex-1 truncate text-left">{filters.channel || 'All Channels'}</span>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="16" 
@@ -480,7 +524,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
+                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -489,7 +533,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
                   <button
                     onClick={() => handleOptionClick('channel', '')}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
                   >
                     All Channels
                   </button>
@@ -497,7 +541,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <button
                       key={channel.ID}
                       onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
                     >
                       {channel.ChannelName}
                     </button>
@@ -509,9 +553,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="relative dropdown-container">
               <button
                 onClick={() => handleDropdownClick('platform')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
               >
-                <span>{filters.platform || 'All Platforms'}</span>
+                <span className="block min-w-0 flex-1 truncate text-left">{filters.platform || 'All Platforms'}</span>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="16" 
@@ -522,7 +566,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -531,7 +575,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
                   <button
                     onClick={() => handleOptionClick('platform', '')}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
                   >
                     All Platforms
                   </button>
@@ -539,7 +583,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <button
                       key={platform.ID}
                       onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
                     >
                       {platform.PlatformName}
                     </button>
@@ -551,9 +595,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="relative dropdown-container">
               <button
                 onClick={() => handleDropdownClick('arch')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
               >
-                <span>{filters.arch || 'All Architectures'}</span>
+                <span className="block min-w-0 flex-1 truncate text-left">{filters.arch || 'All Architectures'}</span>
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
                   width="16" 
@@ -564,7 +608,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   strokeWidth="2" 
                   strokeLinecap="round" 
                   strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
+                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
                 >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -573,7 +617,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
                   <button
                     onClick={() => handleOptionClick('arch', '')}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
+                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
                   >
                     All Architectures
                   </button>
@@ -581,7 +625,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <button
                       key={arch.ID}
                       onClick={() => handleOptionClick('arch', arch.ArchID)}
-                      className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
+                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
                     >
                       {arch.ArchID}
                     </button>
@@ -731,6 +775,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             appVersions.map((app) => {
               const tufStatus = getTufSignStatus(app);
               const isDangerZone = app.Published && tufStatus !== null && tufStatus !== 'all-signed';
+              const artifactSummary = getArtifactSummary(app.Artifacts);
               
               return (
               <div
@@ -821,7 +866,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                   </div>
                 </div>
-                <div className="sharedCardContent relative">
+                <div className="sharedCardContent relative w-full min-w-0">
                   <h3 
                     className="sharedCardTitle text-2xl font-bold mb-3 text-white" 
                     style={{
@@ -861,6 +906,63 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </span>
                     )}
                   </div>
+                  {app.Artifacts.length > 0 && (
+                    <div
+                      className="relative group mb-2 w-full min-w-0"
+                      onMouseEnter={() => {
+                        setHoveredArtifactsPopoverId(app.ID);
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredArtifactsPopoverId(prev => (prev === app.ID ? null : prev));
+                        setSuppressHoverArtifactsPopoverId(prev => (prev === app.ID ? null : prev));
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="block w-full min-w-0 max-w-full truncate px-2 py-1 rounded text-xs bg-theme-card/70 border border-theme-card-hover text-theme-primary/90 hover:text-theme-primary transition-colors text-left"
+                        title={`Artifacts: ${artifactSummary.visibleSummary}${artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenArtifactsPopoverId(prev => {
+                            const isClosing = prev === app.ID;
+                            if (isClosing) {
+                              setSuppressHoverArtifactsPopoverId(app.ID);
+                              return null;
+                            }
+                            setSuppressHoverArtifactsPopoverId(null);
+                            return app.ID;
+                          });
+                        }}
+                      >
+                        Artifacts: {artifactSummary.visibleSummary}
+                        {artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}
+                      </button>
+                      <div
+                        className={`absolute left-0 right-0 bottom-full z-20 mb-2 rounded-lg border border-theme-card-hover bg-gray-900 p-3 shadow-xl transition-opacity duration-150 max-h-44 overflow-hidden flex flex-col ${
+                          openArtifactsPopoverId === app.ID ||
+                          (hoveredArtifactsPopoverId === app.ID && suppressHoverArtifactsPopoverId !== app.ID)
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenArtifactsPopoverId(null);
+                          setSuppressHoverArtifactsPopoverId(app.ID);
+                        }}
+                      >
+                        <p className="mb-2 text-xs font-semibold text-theme-primary">
+                          Artifact details
+                        </p>
+                        <div className="overflow-y-auto pr-1 flex-1 min-h-0">
+                          {artifactSummary.details.map((detail, index) => (
+                            <p key={`${app.ID}-artifact-${index}`} className="text-xs text-theme-primary/80 break-all mb-1 last:mb-0">
+                              {detail}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-2 p-3 rounded-lg h-20">
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
                       <div className="text-sm text-theme-primary/80 line-clamp-3 prose prose-sm prose-invert max-w-none">
