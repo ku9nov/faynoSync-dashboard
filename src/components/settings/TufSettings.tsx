@@ -158,7 +158,7 @@ export const TufSettings: React.FC = () => {
         timestamp: lastUpdate || new Date().toISOString(),
         appName: selectedApp,
         operation: 'bootstrap',
-        status: 'failed', // Will be updated when we check actual status via API
+        status: 'pending', // Will be updated when we check actual status via API
         taskId: taskId,
       }, prevHistory));
       
@@ -284,11 +284,13 @@ export const TufSettings: React.FC = () => {
     }
   };
 
-  const checkTufTasks = async (taskId?: string) => {
+  const checkTufTasks = async (taskId?: string, options?: { silent?: boolean }) => {
     // Use provided taskId, or bootstrapTaskId, or bootstrapStatus?.task_id
     const taskIdToUse = taskId || bootstrapTaskId || bootstrapStatus?.task_id;
     if (!taskIdToUse) {
-      toastError('No task ID available. Please start bootstrap first or select a task from history.');
+      if (!options?.silent) {
+        toastError('No task ID available. Please start bootstrap first or select a task from history.');
+      }
       return;
     }
     
@@ -318,11 +320,15 @@ export const TufSettings: React.FC = () => {
         return updatedHistory;
       });
       
-      toastSuccess('TUF task loaded successfully!');
+      if (!options?.silent) {
+        toastSuccess('TUF task loaded successfully!');
+      }
     } catch (error: any) {
       console.error('Failed to check TUF task:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to check TUF task';
-      toastError(errorMessage);
+      if (!options?.silent) {
+        toastError(errorMessage);
+      }
       setTufTasks([]);
     }
   };
@@ -410,7 +416,7 @@ export const TufSettings: React.FC = () => {
           timestamp: lastUpdate || new Date().toISOString(),
           appName: selectedApp,
           operation: 'update-config',
-          status: 'success',
+          status: 'pending',
           taskId: taskId,
         }, prevHistory));
         

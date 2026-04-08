@@ -374,7 +374,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           timestamp: string;
           appName: string;
           operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
-          status: 'success' | 'failed';
+          status: 'success' | 'failed' | 'pending';
           taskId?: string;
           version?: string;
         }> = [];
@@ -392,7 +392,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           timestamp: responseData.last_update || new Date().toISOString(),
           appName: appName,
           operation: 'publish' as const,
-          status: 'success' as const,
+          status: 'pending' as const,
           taskId: taskId,
           version: version,
         };
@@ -427,7 +427,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         timestamp: string;
         appName: string;
         operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
-        status: 'success' | 'failed';
+        status: 'success' | 'failed' | 'pending';
         taskId?: string;
         version?: string;
       }> = [];
@@ -481,7 +481,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         timestamp: string;
         appName: string;
         operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
-        status: 'success' | 'failed';
+        status: 'success' | 'failed' | 'pending';
         taskId?: string;
         version?: string;
       }> = [];
@@ -553,7 +553,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         timestamp: string;
         appName: string;
         operation: 'generate' | 'bootstrap' | 'publish' | 'unsign';
-        status: 'success' | 'failed';
+        status: 'success' | 'failed' | 'pending';
         taskId?: string;
         version?: string;
       }> = [];

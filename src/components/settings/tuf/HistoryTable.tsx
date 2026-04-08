@@ -4,7 +4,7 @@ import { TufHistoryEntry } from './types';
 interface HistoryProps {
   selectedApp: string | null;
   history: TufHistoryEntry[];
-  onCheckTask: (taskId: string) => void;
+  onCheckTask: (taskId: string, options?: { silent?: boolean }) => void;
   onClearHistory: () => void;
 }
 
@@ -15,6 +15,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
   onClearHistory,
 }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const autoCheckedTaskIdsRef = React.useRef<Set<string>>(new Set());
 
   // Auto-open history when app is selected
   React.useEffect(() => {
@@ -22,6 +23,31 @@ export const HistoryTable: React.FC<HistoryProps> = ({
       setShowHistory(true);
     }
   }, [selectedApp]);
+
+  const isHistoryVisible = !selectedApp || showHistory;
+
+  React.useEffect(() => {
+    if (!isHistoryVisible) {
+      return;
+    }
+
+    const pendingTaskIds = history
+      .filter((entry) => entry.status === 'pending' && entry.taskId)
+      .map((entry) => entry.taskId as string);
+
+    if (pendingTaskIds.length === 0) {
+      return;
+    }
+
+    pendingTaskIds.forEach((taskId) => {
+      if (autoCheckedTaskIdsRef.current.has(taskId)) {
+        return;
+      }
+
+      autoCheckedTaskIdsRef.current.add(taskId);
+      onCheckTask(taskId, { silent: true });
+    });
+  }, [history, isHistoryVisible, onCheckTask]);
 
   // Show history when no app is selected (full view)
   if (!selectedApp) {
