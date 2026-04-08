@@ -278,10 +278,10 @@ def main():
     
     # Generate default delegation paths based on app-name
     delegation_paths = [
-        f"{admin_name}/{app_name}/",
-        f"{app_name}-{admin_name}/",
-        f"electron-builder/{app_name}-{admin_name}/",
-        f"squirrel_windows/{app_name}-{admin_name}/",
+        f"{admin_name}/{app_name}/*",
+        f"{app_name}-{admin_name}/*",
+        f"electron-builder/{app_name}-{admin_name}/*",
+        f"squirrel_windows/{app_name}-{admin_name}/*",
     ]
     
     output_dir.mkdir(parents=True, exist_ok=True)
