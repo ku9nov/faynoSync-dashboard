@@ -1,11 +1,15 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface CreateNewRootMetadataScriptParams {
   appName: string;
   adminName: string;
+  keyType: string;
   keyDirName?: string; // Optional: defaults to "private_keys" for online flow, or "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateCreateNewRootMetadataPythonScript = (params: CreateNewRootMetadataScriptParams): string => {
-  const { appName, adminName, keyDirName } = params;
+  const { appName, adminName, keyType, keyDirName } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
   
   // Determine key directory name
   const defaultKeyDir = keyDirName || "private_keys";
@@ -36,8 +40,8 @@ from pathlib import Path
 from typing import Dict, Any
 
 try:
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
     import hashlib
 except ImportError:
@@ -46,11 +50,16 @@ except ImportError:
     sys.exit(1)
 
 
+KEY_ALGORITHM = "${algorithm.algorithm}"
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
 def calculate_key_id_from_public_hex(public_hex: str) -> str:
     """Calculate TUF key ID from hex-encoded public key."""
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
             "public": public_hex
         }
@@ -61,8 +70,8 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
     return key_id
 
 
-def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
-    """Load Ed25519 private key from file."""
+def load_private_key(key_path: str):
+    """Load private key from file."""
     key_file = Path(key_path)
     if not key_file.exists():
         raise FileNotFoundError(f"Private key file not found: {key_path}")
@@ -76,23 +85,27 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
             password=None,
             backend=default_backend()
         )
-        if isinstance(private_key, ed25519.Ed25519PrivateKey):
+        if KEY_ALGORITHM == "ed25519" and isinstance(private_key, ed25519.Ed25519PrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "rsa" and isinstance(private_key, rsa.RSAPrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "ecdsa" and isinstance(private_key, ec.EllipticCurvePrivateKey):
             return private_key
     except Exception:
         pass
     
-    # Try raw 32-byte seed
-    if len(key_data) == 32:
+    # Try raw 32-byte seed (ed25519 only)
+    if KEY_ALGORITHM == "ed25519" and len(key_data) == 32:
         try:
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_data)
             return private_key
         except Exception:
             pass
     
-    # Try hex-encoded seed
+    # Try hex-encoded seed (ed25519 only)
     try:
         key_hex = key_data.decode('utf-8').strip()
-        if len(key_hex) == 64:
+        if KEY_ALGORITHM == "ed25519" and len(key_hex) == 64:
             key_bytes = bytes.fromhex(key_hex)
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
             return private_key
@@ -102,11 +115,23 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
     raise ValueError(f"Could not load private key from {key_path}")
 
 
-def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key: ed25519.Ed25519PrivateKey) -> str:
+def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> str:
     """Sign the 'signed' portion of metadata."""
     signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
     signed_bytes = signed_json.encode('utf-8')
-    signature_bytes = private_key.sign(signed_bytes)
+    if KEY_ALGORITHM == "ed25519":
+        signature_bytes = private_key.sign(signed_bytes)
+    elif KEY_ALGORITHM == "rsa":
+        signature_bytes = private_key.sign(
+            signed_bytes,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
+            ),
+            hashes.SHA256(),
+        )
+    else:
+        signature_bytes = private_key.sign(signed_bytes, ec.ECDSA(hashes.SHA256()))
     return signature_bytes.hex()
 
 
@@ -169,8 +194,8 @@ def create_new_root_metadata(
             raise ValueError(f"Key ID mismatch for {key_id[:16]}...: expected {key_id}, got {calculated_key_id}")
         
         current_keys[key_id] = {
-            "keytype": "ed25519",
-            "scheme": "ed25519",
+            "keytype": KEY_TYPE,
+            "scheme": KEY_SCHEME,
             "keyval": {
                 "public": public_hex
             }
@@ -279,6 +304,9 @@ def main():
     if args.sign_with_old_keys:
         print()
         print(f"Signing with {old_keys_to_sign} old root key(s) for trust verification (threshold: {current_root_threshold})...")
+        existing_sig_keyids = {sig.get("keyid") for sig in new_metadata["signatures"] if "keyid" in sig}
+        if len(existing_sig_keyids) != len(new_metadata["signatures"]):
+            raise ValueError("Duplicate signature keyid detected in existing signatures")
         
         signed_count = 0
         for i in range(old_keys_to_sign):
@@ -293,11 +321,14 @@ def main():
             try:
                 old_private_key = load_private_key(old_key_path)
                 signature_hex = sign_metadata_signed_portion(new_metadata["signed"], old_private_key)
+                if old_key_info["key_id"] in existing_sig_keyids:
+                    raise ValueError(f"Duplicate signature keyid detected: {old_key_info['key_id']}")
                 
                 new_metadata["signatures"].append({
                     "keyid": old_key_info["key_id"],
                     "sig": signature_hex
                 })
+                existing_sig_keyids.add(old_key_info["key_id"])
                 signed_count += 1
                 print(f"   Signed with old root key {i+1}: {old_key_info['key_id'][:16]}...")
             except Exception as e:

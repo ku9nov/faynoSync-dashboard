@@ -8,6 +8,7 @@ import { generateCreateNewRootMetadataPythonScriptOffline } from './generateCrea
 import { generateSignMetadataOfflinePythonScript } from './generateSignMetadataOfflineScript';
 import { generateGenerateSignaturesPythonScript } from './generateGenerateSignaturesScript';
 import { deleteSigningMetadata } from './deleteSigningMetadata';
+import { DEFAULT_KEY_ALGORITHM, normalizeKeyAlgorithm } from './keyAlgorithm';
 import { StepperModal, Step } from '../../common/StepperModal';
 
 interface RotateRootKeysProps {
@@ -95,6 +96,16 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const generateSignaturesScriptFileName = selectedApp && adminName
     ? `generate_signatures_${selectedApp}_${adminName}.py`
     : 'generate_signatures.py';
+  const rotationKeyType = useMemo(() => {
+    const keys = rootMetadata?.signed?.keys;
+    const firstKeyId = keys ? Object.keys(keys)[0] : null;
+    const rawType = firstKeyId ? keys[firstKeyId]?.keytype : null;
+    try {
+      return normalizeKeyAlgorithm(rawType || DEFAULT_KEY_ALGORITHM);
+    } catch {
+      return DEFAULT_KEY_ALGORITHM;
+    }
+  }, [rootMetadata]);
 
   const generateExampleScript = () => {
     if (!selectedApp || keyCount < 1) {
@@ -106,6 +117,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateRotateRootKeysPythonScript({
       appName: selectedApp,
       keyCount,
+      keyType: rotationKeyType,
       adminName,
       keyDirName: `root_keys_${selectedApp}_${adminName}`, // Online flow uses root_keys_{appName}_{adminName}
     });
@@ -125,6 +137,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateRotateRootKeysPythonScript({
       appName: selectedApp,
       keyCount,
+      keyType: rotationKeyType,
       adminName,
       keyDirName: `root_keys_${selectedApp}_${adminName}`, // Offline flow uses root_keys_{appName}_{adminName}
     });
@@ -212,6 +225,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       script = generateCreateNewRootMetadataPythonScriptOffline({
         appName: selectedApp,
         adminName,
+        keyType: rotationKeyType,
       });
     } else {
       // Use online script generator
@@ -219,6 +233,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       script = generateCreateNewRootMetadataPythonScript({
         appName: selectedApp,
         adminName,
+        keyType: rotationKeyType,
         keyDirName,
       });
     }
@@ -250,6 +265,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateSignMetadataOfflinePythonScript({
       appName: selectedApp,
       adminName,
+      keyType: rotationKeyType,
     });
 
     setSignMetadataOfflineScript(script);
@@ -279,6 +295,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateGenerateSignaturesPythonScript({
       appName: selectedApp,
       adminName,
+      keyType: rotationKeyType,
     });
 
     setGenerateSignaturesScript(script);

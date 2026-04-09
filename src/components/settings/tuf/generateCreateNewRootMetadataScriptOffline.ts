@@ -1,11 +1,15 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface CreateNewRootMetadataScriptOfflineParams {
   appName: string;
   adminName: string;
+  keyType: string;
   keyDirName?: string; // Optional: defaults to "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateCreateNewRootMetadataPythonScriptOffline = (params: CreateNewRootMetadataScriptOfflineParams): string => {
-  const { appName, adminName } = params;
+  const { appName, adminName, keyType } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
   
 
   return `#!/usr/bin/env python3
@@ -35,11 +39,15 @@ from pathlib import Path
 from typing import Dict, Any
 
 
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
 def calculate_key_id_from_public_hex(public_hex: str) -> str:
     """Calculate TUF key ID from hex-encoded public key."""
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
             "public": public_hex
         }
@@ -109,8 +117,8 @@ def create_new_root_metadata(
             raise ValueError(f"Key ID mismatch for {key_id[:16]}...: expected {key_id}, got {calculated_key_id}")
         
         current_keys[key_id] = {
-            "keytype": "ed25519",
-            "scheme": "ed25519",
+            "keytype": KEY_TYPE,
+            "scheme": KEY_SCHEME,
             "keyval": {
                 "public": public_hex
             }

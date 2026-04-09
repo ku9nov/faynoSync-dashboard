@@ -1,10 +1,14 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface SignMetadataOfflineScriptParams {
   appName: string;
   adminName: string;
+  keyType: string;
 }
 
 export const generateSignMetadataOfflinePythonScript = (params: SignMetadataOfflineScriptParams): string => {
-  const { appName, adminName } = params;
+  const { appName, adminName, keyType } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
 
   return `#!/usr/bin/env python3
 """
@@ -42,8 +46,8 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 try:
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
     import hashlib
 except ImportError:
@@ -52,8 +56,13 @@ except ImportError:
     sys.exit(1)
 
 
-def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
-    """Load Ed25519 private key from file."""
+KEY_ALGORITHM = "${algorithm.algorithm}"
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
+def load_private_key(key_path: str):
+    """Load private key from file."""
     key_file = Path(key_path)
     if not key_file.exists():
         raise FileNotFoundError(f"Private key file not found: {key_path}")
@@ -67,23 +76,27 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
             password=None,
             backend=default_backend()
         )
-        if isinstance(private_key, ed25519.Ed25519PrivateKey):
+        if KEY_ALGORITHM == "ed25519" and isinstance(private_key, ed25519.Ed25519PrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "rsa" and isinstance(private_key, rsa.RSAPrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "ecdsa" and isinstance(private_key, ec.EllipticCurvePrivateKey):
             return private_key
     except Exception:
         pass
     
-    # Try to load as raw 32-byte seed
-    if len(key_data) == 32:
+    # Try to load as raw 32-byte seed (ed25519 only)
+    if KEY_ALGORITHM == "ed25519" and len(key_data) == 32:
         try:
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_data)
             return private_key
         except Exception:
             pass
     
-    # Try to load as hex-encoded seed
+    # Try to load as hex-encoded seed (ed25519 only)
     try:
         key_hex = key_data.decode('utf-8').strip()
-        if len(key_hex) == 64:  # 32 bytes = 64 hex chars
+        if KEY_ALGORITHM == "ed25519" and len(key_hex) == 64:  # 32 bytes = 64 hex chars
             key_bytes = bytes.fromhex(key_hex)
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
             return private_key
@@ -103,8 +116,8 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
     """
     # Create canonical JSON representation
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
             "public": public_hex
         }
@@ -119,29 +132,54 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
     return key_id
 
 
-def calculate_key_id(public_key: ed25519.Ed25519PublicKey) -> str:
+def calculate_key_id(public_key) -> str:
     """
     Calculate TUF key ID from Ed25519 public key object.
     """
-    public_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
-    )
+    if KEY_ALGORITHM == "ed25519":
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )
+    else:
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
     public_hex = public_bytes.hex()
     return calculate_key_id_from_public_hex(public_hex)
 
 
-def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key: ed25519.Ed25519PrivateKey) -> str:
+def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> str:
     """Sign the 'signed' portion of metadata."""
     signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
     signed_bytes = signed_json.encode('utf-8')
-    signature_bytes = private_key.sign(signed_bytes)
+    if KEY_ALGORITHM == "ed25519":
+        signature_bytes = private_key.sign(signed_bytes)
+    elif KEY_ALGORITHM == "rsa":
+        signature_bytes = private_key.sign(
+            signed_bytes,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
+            ),
+            hashes.SHA256(),
+        )
+    else:
+        signature_bytes = private_key.sign(signed_bytes, ec.ECDSA(hashes.SHA256()))
     return signature_bytes.hex()
+
+
+def assert_no_duplicate_signature_keyids(signatures: List[Dict[str, str]], context: str) -> None:
+    keyids = [sig.get("keyid") for sig in signatures if "keyid" in sig]
+    unique_keyids = set(keyids)
+    if len(unique_keyids) != len(keyids):
+        raise ValueError(f"Duplicate signature keyid detected in {context}")
 
 
 def sign_metadata(
     metadata: Dict[str, Any],
-    private_keys: List[ed25519.Ed25519PrivateKey],
+    private_keys: List[Any],
     key_ids: List[str],
     threshold: int,
     existing_signatures: List[Dict[str, str]] = None
@@ -152,6 +190,9 @@ def sign_metadata(
     
     if threshold > len(private_keys):
         raise ValueError(f"Threshold ({threshold}) cannot be greater than number of keys ({len(private_keys)})")
+
+    if len(set(key_ids)) != len(key_ids):
+        raise ValueError("Duplicate key IDs are not allowed in --key-ids input")
     
     # Get the "signed" portion for signing
     signed_data = metadata.get("signed", {})
@@ -161,6 +202,7 @@ def sign_metadata(
     # Get existing signatures if provided
     if existing_signatures is None:
         existing_signatures = metadata.get("signatures", [])
+    assert_no_duplicate_signature_keyids(existing_signatures, "existing signatures")
     
     existing_key_ids = {sig["keyid"] for sig in existing_signatures}
     
@@ -200,6 +242,7 @@ def sign_metadata(
     
     # Combine existing and new signatures
     all_signatures = existing_signatures + new_signatures
+    assert_no_duplicate_signature_keyids(all_signatures, "combined signatures")
     
     # Create signed metadata
     signed_metadata = {
@@ -231,6 +274,7 @@ def add_old_key_signatures(
     
     # Get existing signatures
     existing_signatures = metadata.get("signatures", [])
+    assert_no_duplicate_signature_keyids(existing_signatures, "existing signatures before adding old keys")
     existing_key_ids = {sig["keyid"] for sig in existing_signatures}
     
     print(f"\\nAdding signatures from {min(old_threshold, len(old_root_keys))} old root key(s)...")
@@ -267,6 +311,7 @@ def add_old_key_signatures(
     
     # Combine all signatures
     all_signatures = existing_signatures + new_signatures
+    assert_no_duplicate_signature_keyids(all_signatures, "combined signatures after adding old keys")
     
     # Create updated metadata
     updated_metadata = {

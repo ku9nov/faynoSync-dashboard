@@ -1,12 +1,16 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface RotateRootKeysScriptParams {
   appName: string;
   keyCount: number;
+  keyType: string;
   adminName: string;
   keyDirName?: string; // Optional: defaults to "private_keys" for online flow, or "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateRotateRootKeysPythonScript = (params: RotateRootKeysScriptParams): string => {
-  const { appName, keyCount, adminName, keyDirName } = params;
+  const { appName, keyCount, keyType, adminName, keyDirName } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
   
   // Determine key directory name
   const defaultKeyDir = keyDirName || "private_keys";
@@ -26,14 +30,18 @@ import sys
 from pathlib import Path
 
 try:
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
-    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
     print("Install with: pip install cryptography")
     sys.exit(1)
+
+
+KEY_ALGORITHM = "${algorithm.algorithm}"
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
 
 
 def calculate_key_id_from_public_hex(public_hex: str) -> str:
@@ -43,8 +51,8 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
     TUF key ID is SHA256 of the canonical JSON representation of the key.
     """
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
             "public": public_hex
         }
@@ -56,22 +64,36 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
     return key_id
 
 
-def generate_key_pair() -> tuple[ed25519.Ed25519PrivateKey, str, str]:
-    """Generate Ed25519 key pair and return private key, public hex, and key ID."""
-    private_key = ed25519.Ed25519PrivateKey.generate()
-    public_key = private_key.public_key()
-    
-    public_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
-    )
+def generate_key_pair():
+    """Generate key pair and return private key, public hex, and key ID."""
+    if KEY_ALGORITHM == "ed25519":
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )
+    elif KEY_ALGORITHM == "rsa":
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=3072)
+        public_key = private_key.public_key()
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+    else:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        public_key = private_key.public_key()
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
     public_hex = public_bytes.hex()
     key_id = calculate_key_id_from_public_hex(public_hex)
     
     return private_key, public_hex, key_id
 
 
-def save_private_key(private_key: ed25519.Ed25519PrivateKey, filepath: Path):
+def save_private_key(private_key, filepath: Path):
     """Save private key in PEM format."""
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
@@ -92,7 +114,7 @@ def main():
     key_dir.mkdir(parents=True, exist_ok=True)
     
     print("=" * 70)
-    print("Generating New Root Keys for Rotation${flowTypeSuffix}")
+    print(f"Generating New Root Keys for Rotation${flowTypeSuffix} (algorithm: {KEY_ALGORITHM})")
     print("=" * 70)
     print()
     
