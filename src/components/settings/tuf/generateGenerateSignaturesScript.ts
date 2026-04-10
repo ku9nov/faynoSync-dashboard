@@ -45,10 +45,11 @@ try:
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
+    from securesystemslib.formats import encode_canonical
     import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
-    print("Install with: pip install cryptography")
+    print("Install with: pip install cryptography securesystemslib")
     sys.exit(1)
 
 
@@ -102,16 +103,16 @@ def load_private_key(key_path: str):
     raise ValueError(f"Could not load private key from {key_path}")
 
 
-def calculate_key_id_from_public_hex(public_hex: str) -> str:
+def calculate_key_id_from_public_value(public_value: str) -> str:
     key_dict = {
         "keytype": KEY_TYPE,
         "scheme": KEY_SCHEME,
         "keyval": {
-            "public": public_hex
+            "public": public_value
         }
     }
-    canonical_json = json.dumps(key_dict, sort_keys=True, separators=(',', ':'))
-    canonical_bytes = canonical_json.encode('utf-8')
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
     return hashlib.sha256(canonical_bytes).hexdigest()
 
 
@@ -121,12 +122,13 @@ def calculate_key_id(public_key) -> str:
             encoding=serialization.Encoding.Raw,
             format=serialization.PublicFormat.Raw
         )
+        public_value = public_bytes.hex()
     else:
-        public_bytes = public_key.public_bytes(
-            encoding=serialization.Encoding.DER,
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-    return calculate_key_id_from_public_hex(public_bytes.hex())
+        ).decode("utf-8")
+    return calculate_key_id_from_public_value(public_value)
 
 
 def generate_signature(
@@ -143,9 +145,8 @@ def generate_signature(
     # Load private key
     private_key = load_private_key(key_path)
     
-    # Serialize signed data to canonical JSON
-    signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
-    signed_bytes = signed_json.encode('utf-8')
+    canonical_signed = encode_canonical(signed_data)
+    signed_bytes = canonical_signed if isinstance(canonical_signed, bytes) else canonical_signed.encode("utf-8")
     
     # Sign
     if KEY_ALGORITHM == "ed25519":
@@ -155,7 +156,7 @@ def generate_signature(
             signed_bytes,
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH,
+                salt_length=hashes.SHA256().digest_size,
             ),
             hashes.SHA256(),
         )

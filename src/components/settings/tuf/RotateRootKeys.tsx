@@ -862,7 +862,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <li>Set up Python environment and install dependencies:</li>
                     </ol>
                     <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
+                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
                     </div>
                     <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
                       <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
@@ -1136,7 +1136,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <li>Set up Python environment and install dependencies:</li>
                     </ol>
                     <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
+                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
                     </div>
                     <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
                       <li>Keys will be saved to <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}/</code> folder (keep them locally, do not upload to ONLINE_KEY_DIR)</li>
@@ -1925,7 +1925,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <li>Set up Python environment and install dependencies:</li>
                     </ol>
                     <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
+                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
                     </div>
                     <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
                       <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
@@ -2416,7 +2416,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                           <li>Set up Python environment and install dependencies:</li>
                         </ol>
                         <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                          <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography<br />python3 {rotateRootKeysScriptFileName}</div>
+                          <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
                         </div>
                         <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
                           <li>Keys will be saved to <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}/</code> folder (keep them locally, do not upload to ONLINE_KEY_DIR)</li>

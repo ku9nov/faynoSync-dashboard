@@ -49,10 +49,11 @@ try:
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
+    from securesystemslib.formats import encode_canonical
     import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
-    print("Install with: pip install cryptography")
+    print("Install with: pip install cryptography securesystemslib")
     sys.exit(1)
 
 
@@ -107,7 +108,7 @@ def load_private_key(key_path: str):
                      "Expected PEM format, raw 32 bytes, or hex-encoded seed.")
 
 
-def calculate_key_id_from_public_hex(public_hex: str) -> str:
+def calculate_key_id_from_public_value(public_value: str) -> str:
     """
     Calculate TUF key ID from hex-encoded public key.
     
@@ -119,13 +120,12 @@ def calculate_key_id_from_public_hex(public_hex: str) -> str:
         "keytype": KEY_TYPE,
         "scheme": KEY_SCHEME,
         "keyval": {
-            "public": public_hex
+            "public": public_value
         }
     }
     
-    # Serialize to canonical JSON (sorted keys, no spaces)
-    canonical_json = json.dumps(key_dict, sort_keys=True, separators=(',', ':'))
-    canonical_bytes = canonical_json.encode('utf-8')
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
     
     # Calculate SHA256
     key_id = hashlib.sha256(canonical_bytes).hexdigest()
@@ -141,19 +141,19 @@ def calculate_key_id(public_key) -> str:
             encoding=serialization.Encoding.Raw,
             format=serialization.PublicFormat.Raw
         )
+        public_value = public_bytes.hex()
     else:
-        public_bytes = public_key.public_bytes(
-            encoding=serialization.Encoding.DER,
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-    public_hex = public_bytes.hex()
-    return calculate_key_id_from_public_hex(public_hex)
+        ).decode("utf-8")
+    return calculate_key_id_from_public_value(public_value)
 
 
 def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> str:
     """Sign the 'signed' portion of metadata."""
-    signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
-    signed_bytes = signed_json.encode('utf-8')
+    canonical_signed = encode_canonical(signed_data)
+    signed_bytes = canonical_signed if isinstance(canonical_signed, bytes) else canonical_signed.encode("utf-8")
     if KEY_ALGORITHM == "ed25519":
         signature_bytes = private_key.sign(signed_bytes)
     elif KEY_ALGORITHM == "rsa":
@@ -161,7 +161,7 @@ def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> st
             signed_bytes,
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH,
+                salt_length=hashes.SHA256().digest_size,
             ),
             hashes.SHA256(),
         )
@@ -206,10 +206,6 @@ def sign_metadata(
     
     existing_key_ids = {sig["keyid"] for sig in existing_signatures}
     
-    # Serialize signed data to canonical JSON
-    signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
-    signed_bytes = signed_json.encode('utf-8')
-    
     # Sign with each key
     new_signatures = []
     for i, (private_key, key_id) in enumerate(zip(private_keys[:threshold], key_ids[:threshold])):
@@ -218,8 +214,7 @@ def sign_metadata(
             print(f"   Key {i+1} (key ID: {key_id[:16]}...) already signed, skipping")
             continue
         
-        signature_bytes = private_key.sign(signed_bytes)
-        signature_hex = signature_bytes.hex()
+        signature_hex = sign_metadata_signed_portion(signed_data, private_key)
         
         # Verify key ID matches
         public_key = private_key.public_key()
@@ -505,7 +500,7 @@ def main():
                     if key_id in keys_dict:
                         key_info = keys_dict[key_id]
                         public_hex = key_info.get('keyval', {}).get('public', '')
-                        calculated_id = calculate_key_id_from_public_hex(public_hex)
+                        calculated_id = calculate_key_id_from_public_value(public_hex)
                         if calculated_id == key_id:
                             print(f"   Key {i+1} ID verified: {key_id}")
                         else:

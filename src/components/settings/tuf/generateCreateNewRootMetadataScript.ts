@@ -43,10 +43,11 @@ try:
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
+    from securesystemslib.formats import encode_canonical
     import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
-    print("Install with: pip install cryptography")
+    print("Install with: pip install cryptography securesystemslib")
     sys.exit(1)
 
 
@@ -55,17 +56,17 @@ KEY_TYPE = "${algorithm.tufKeyType}"
 KEY_SCHEME = "${algorithm.tufScheme}"
 
 
-def calculate_key_id_from_public_hex(public_hex: str) -> str:
-    """Calculate TUF key ID from hex-encoded public key."""
+def calculate_key_id_from_public_value(public_value: str) -> str:
+    """Calculate TUF key ID from canonical keyval.public value."""
     key_dict = {
         "keytype": KEY_TYPE,
         "scheme": KEY_SCHEME,
         "keyval": {
-            "public": public_hex
+            "public": public_value
         }
     }
-    canonical_json = json.dumps(key_dict, sort_keys=True, separators=(',', ':'))
-    canonical_bytes = canonical_json.encode('utf-8')
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
     key_id = hashlib.sha256(canonical_bytes).hexdigest()
     return key_id
 
@@ -117,8 +118,8 @@ def load_private_key(key_path: str):
 
 def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> str:
     """Sign the 'signed' portion of metadata."""
-    signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
-    signed_bytes = signed_json.encode('utf-8')
+    canonical_signed = encode_canonical(signed_data)
+    signed_bytes = canonical_signed if isinstance(canonical_signed, bytes) else canonical_signed.encode("utf-8")
     if KEY_ALGORITHM == "ed25519":
         signature_bytes = private_key.sign(signed_bytes)
     elif KEY_ALGORITHM == "rsa":
@@ -126,7 +127,7 @@ def sign_metadata_signed_portion(signed_data: Dict[str, Any], private_key) -> st
             signed_bytes,
             padding.PSS(
                 mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH,
+                salt_length=hashes.SHA256().digest_size,
             ),
             hashes.SHA256(),
         )
@@ -186,10 +187,14 @@ def create_new_root_metadata(
     new_root_key_ids = []
     for new_key in new_root_keys:
         key_id = new_key["key_id"]
-        public_hex = new_key["public_hex"]
+        public_value = new_key.get("public")
+        if public_value is None:
+            public_value = new_key.get("public_hex")
+        if public_value is None:
+            raise ValueError(f"No public key value found for key {key_id[:16]}...")
         
-        # Verify key ID matches public hex
-        calculated_key_id = calculate_key_id_from_public_hex(public_hex)
+        # Verify key ID matches public value
+        calculated_key_id = calculate_key_id_from_public_value(public_value)
         if calculated_key_id != key_id:
             raise ValueError(f"Key ID mismatch for {key_id[:16]}...: expected {key_id}, got {calculated_key_id}")
         
@@ -197,7 +202,7 @@ def create_new_root_metadata(
             "keytype": KEY_TYPE,
             "scheme": KEY_SCHEME,
             "keyval": {
-                "public": public_hex
+                "public": public_value
             }
         }
         new_root_key_ids.append(key_id)
