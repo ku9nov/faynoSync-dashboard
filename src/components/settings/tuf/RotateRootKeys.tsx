@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../../../hooks/useToast';
 import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
 import axiosInstance from '../../../config/axios';
@@ -8,7 +8,7 @@ import { generateCreateNewRootMetadataPythonScriptOffline } from './generateCrea
 import { generateSignMetadataOfflinePythonScript } from './generateSignMetadataOfflineScript';
 import { generateGenerateSignaturesPythonScript } from './generateGenerateSignaturesScript';
 import { deleteSigningMetadata } from './deleteSigningMetadata';
-import { DEFAULT_KEY_ALGORITHM, normalizeKeyAlgorithm } from './keyAlgorithm';
+import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from './keyAlgorithm';
 import { StepperModal, Step } from '../../common/StepperModal';
 
 interface RotateRootKeysProps {
@@ -31,6 +31,40 @@ interface SignatureProgress {
   missingNewKeys: string[];
 }
 
+const normalizeTrustedRootMetadata = (value: unknown): any | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return normalizeTrustedRootMetadata(JSON.parse(value));
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as Record<string, any>;
+
+  if (candidate.signed?.keys && candidate.signed?.roles) {
+    return candidate;
+  }
+
+  if (candidate.data?.trusted_root) {
+    return normalizeTrustedRootMetadata(candidate.data.trusted_root);
+  }
+
+  if (candidate.trusted_root) {
+    return normalizeTrustedRootMetadata(candidate.trusted_root);
+  }
+
+  return null;
+};
+
 export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   selectedApp,
   isBootstrapSuccess,
@@ -45,6 +79,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const [offlineExampleScript, setOfflineExampleScript] = useState<string>('');
   const [showOfflineScript, setShowOfflineScript] = useState(false);
   const [rootMetadata, setRootMetadata] = useState<any>(null);
+  const [rootMetadataAppName, setRootMetadataAppName] = useState<string | null>(null);
   const [showRootMetadataStep2, setShowRootMetadataStep2] = useState(false);
   const [showRootMetadataStep6, setShowRootMetadataStep6] = useState(false);
   const [loadingRootMetadata, setLoadingRootMetadata] = useState(false);
@@ -67,6 +102,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const [metadataStatusResult, setMetadataStatusResult] = useState<string | null>(null);
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
   const [showGuidedTour, setShowGuidedTour] = useState(false);
+  const [selectedKeyType, setSelectedKeyType] = useState<KeyAlgorithm>(DEFAULT_KEY_ALGORITHM);
   const { toastSuccess, toastError } = useToast();
   const { data: userData } = useUsersQuery();
 
@@ -96,16 +132,29 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const generateSignaturesScriptFileName = selectedApp && adminName
     ? `generate_signatures_${selectedApp}_${adminName}.py`
     : 'generate_signatures.py';
-  const rotationKeyType = useMemo(() => {
-    const keys = rootMetadata?.signed?.keys;
-    const firstKeyId = keys ? Object.keys(keys)[0] : null;
-    const rawType = firstKeyId ? keys[firstKeyId]?.keytype : null;
+  const detectedRootKeyType = useMemo(() => {
+    const normalizedRoot = normalizeTrustedRootMetadata(rootMetadata);
+    const keys = normalizedRoot?.signed?.keys;
+    const rootKeyIds = normalizedRoot?.signed?.roles?.root?.keyids;
+    const rootKeyId = Array.isArray(rootKeyIds) ? rootKeyIds[0] : null;
+    const fallbackKeyId = keys ? Object.keys(keys)[0] : null;
+    const keyIdForDetection = rootKeyId || fallbackKeyId;
+    const rawType = keyIdForDetection ? keys[keyIdForDetection]?.keytype : null;
     try {
       return normalizeKeyAlgorithm(rawType || DEFAULT_KEY_ALGORITHM);
     } catch {
       return DEFAULT_KEY_ALGORITHM;
     }
   }, [rootMetadata]);
+
+  useEffect(() => {
+    setSelectedKeyType(detectedRootKeyType);
+  }, [detectedRootKeyType]);
+
+  useEffect(() => {
+    setRootMetadata(null);
+    setRootMetadataAppName(null);
+  }, [selectedApp]);
 
   const generateExampleScript = () => {
     if (!selectedApp || keyCount < 1) {
@@ -117,7 +166,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateRotateRootKeysPythonScript({
       appName: selectedApp,
       keyCount,
-      keyType: rotationKeyType,
+      keyType: selectedKeyType,
       adminName,
       keyDirName: `root_keys_${selectedApp}_${adminName}`, // Online flow uses root_keys_{appName}_{adminName}
     });
@@ -137,7 +186,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateRotateRootKeysPythonScript({
       appName: selectedApp,
       keyCount,
-      keyType: rotationKeyType,
+      keyType: selectedKeyType,
       adminName,
       keyDirName: `root_keys_${selectedApp}_${adminName}`, // Offline flow uses root_keys_{appName}_{adminName}
     });
@@ -171,12 +220,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     }
   };
 
-  const handleGetCurrentRoot = async () => {
+  const fetchCurrentRootMetadata = async (showSuccessToast: boolean): Promise<boolean> => {
     if (!selectedApp) {
-      toastError('Please select an app');
-      return;
+      return false;
     }
-
     setLoadingRootMetadata(true);
     try {
       const response = await axiosInstance.get(`/tuf/v1/metadata/root?appName=${encodeURIComponent(selectedApp)}`);
@@ -186,17 +233,58 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
         throw new Error('Invalid response: missing trusted_root field');
       }
 
-      setRootMetadata(responseData.trusted_root);
-      toastSuccess('Root metadata loaded successfully!');
+      const normalizedRoot = normalizeTrustedRootMetadata(responseData.trusted_root);
+      if (!normalizedRoot) {
+        throw new Error('Invalid trusted_root format');
+      }
+
+      setRootMetadata(normalizedRoot);
+      setRootMetadataAppName(selectedApp);
+      if (showSuccessToast) {
+        toastSuccess('Root metadata loaded successfully!');
+      }
+      return true;
     } catch (error: any) {
       console.error('Failed to get root metadata:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to get root metadata';
-      toastError(errorMessage);
+      if (showSuccessToast) {
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to get root metadata';
+        toastError(errorMessage);
+      }
       setRootMetadata(null);
+      setRootMetadataAppName(null);
+      return false;
     } finally {
       setLoadingRootMetadata(false);
     }
   };
+
+  const handleGetCurrentRoot = async () => {
+    if (!selectedApp) {
+      toastError('Please select an app');
+      return;
+    }
+
+    await fetchCurrentRootMetadata(true);
+  };
+
+  useEffect(() => {
+    if (!showRotateKeys || !selectedApp || !isBootstrapSuccess || loadingRootMetadata) {
+      return;
+    }
+
+    if (rootMetadata && rootMetadataAppName === selectedApp) {
+      return;
+    }
+
+    void fetchCurrentRootMetadata(false);
+  }, [
+    showRotateKeys,
+    selectedApp,
+    isBootstrapSuccess,
+    loadingRootMetadata,
+    rootMetadata,
+    rootMetadataAppName,
+  ]);
 
   const handleCopyRootMetadata = async () => {
     if (rootMetadata) {
@@ -225,7 +313,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       script = generateCreateNewRootMetadataPythonScriptOffline({
         appName: selectedApp,
         adminName,
-        keyType: rotationKeyType,
+        keyType: selectedKeyType,
       });
     } else {
       // Use online script generator
@@ -233,7 +321,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       script = generateCreateNewRootMetadataPythonScript({
         appName: selectedApp,
         adminName,
-        keyType: rotationKeyType,
+        keyType: selectedKeyType,
         keyDirName,
       });
     }
@@ -265,7 +353,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateSignMetadataOfflinePythonScript({
       appName: selectedApp,
       adminName,
-      keyType: rotationKeyType,
+      keyType: selectedKeyType,
     });
 
     setSignMetadataOfflineScript(script);
@@ -295,7 +383,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     const script = generateGenerateSignaturesPythonScript({
       appName: selectedApp,
       adminName,
-      keyType: rotationKeyType,
+      keyType: selectedKeyType,
     });
 
     setGenerateSignaturesScript(script);
@@ -1874,6 +1962,22 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               </p>
             </div>
 
+            <div>
+              <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+              <select
+                value={selectedKeyType}
+                onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
+                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+              >
+                <option value="ed25519">ed25519</option>
+                <option value="rsa">rsa</option>
+                <option value="ecdsa">ecdsa</option>
+              </select>
+              <p className="text-xs text-theme-primary opacity-70 mt-1">
+                Auto-detected from current root metadata when available.
+              </p>
+            </div>
+
             <div className="space-y-3">
               <div>
                 <div className="flex gap-2 items-center">
@@ -2228,6 +2332,22 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   />
                   <p className="text-xs text-theme-primary opacity-70 mt-1">
                     Number of new root keys to generate for rotation
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+                  <select
+                    value={selectedKeyType}
+                    onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
+                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  >
+                    <option value="ed25519">ed25519</option>
+                    <option value="rsa">rsa</option>
+                    <option value="ecdsa">ecdsa</option>
+                  </select>
+                  <p className="text-xs text-theme-primary opacity-70 mt-1">
+                    Auto-detected from current root metadata when available.
                   </p>
                 </div>
 
