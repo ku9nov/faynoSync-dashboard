@@ -1,4 +1,4 @@
-import { TufHistoryEntry, TaskState } from './types';
+import { TaskResult, TufHistoryEntry, TaskState } from './types';
 
 export const loadHistoryFromStorage = (): TufHistoryEntry[] => {
   const savedHistory = localStorage.getItem('tuf-history');
@@ -29,7 +29,8 @@ export const saveToHistory = (
 export const updateHistoryStatus = (
   taskId: string,
   state: TaskState,
-  currentHistory: TufHistoryEntry[]
+  currentHistory: TufHistoryEntry[],
+  result?: TaskResult
 ): TufHistoryEntry[] => {
   const updatedHistory = currentHistory.map(entry => {
     if (entry.taskId === taskId) {
@@ -43,10 +44,16 @@ export const updateHistoryStatus = (
         newStatus = 'pending';
       }
       
-      return {
+      const updatedEntry: TufHistoryEntry = {
         ...entry,
         status: newStatus,
       };
+
+      if (result !== undefined) {
+        updatedEntry.result = result;
+      }
+
+      return updatedEntry;
     }
     return entry;
   });

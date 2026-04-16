@@ -236,7 +236,7 @@ export const TufSettings: React.FC = () => {
         
         // Update history status for completed bootstrap
         if (statusData.task_id) {
-          setHistory(prevHistory => updateHistoryStatus(statusData.task_id, statusData.state, prevHistory));
+          setHistory(prevHistory => updateHistoryStatus(statusData.task_id, statusData.state, prevHistory, statusData.result));
         }
         return;
       }
@@ -275,7 +275,7 @@ export const TufSettings: React.FC = () => {
       
       // Update history status based on actual task state
       if (statusData.task_id) {
-        setHistory(prevHistory => updateHistoryStatus(statusData.task_id, statusData.state, prevHistory));
+        setHistory(prevHistory => updateHistoryStatus(statusData.task_id, statusData.state, prevHistory, statusData.result));
       }
     } catch (error: any) {
       console.error('Failed to check bootstrap status:', error);
@@ -314,7 +314,7 @@ export const TufSettings: React.FC = () => {
         let updatedHistory = prevHistory;
         tasks.forEach(task => {
           if (task.task_id) {
-            updatedHistory = updateHistoryStatus(task.task_id, task.state, updatedHistory);
+            updatedHistory = updateHistoryStatus(task.task_id, task.state, updatedHistory, task.result);
           }
         });
         return updatedHistory;

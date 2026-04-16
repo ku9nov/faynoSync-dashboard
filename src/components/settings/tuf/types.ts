@@ -1,5 +1,17 @@
 export type StepStatus = 'ready' | 'in-progress' | 'success' | 'error' | 'waiting' | 'disabled';
 
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue = JsonPrimitive | { [key: string]: JsonValue } | JsonValue[];
+
+export type TaskResult = {
+  message?: string;
+  status?: boolean;
+  task?: string;
+  last_update?: string;
+  error?: string;
+  [key: string]: JsonValue | undefined;
+};
+
 export type TufHistoryEntry = {
   id: string;
   timestamp: string;
@@ -7,6 +19,7 @@ export type TufHistoryEntry = {
   operation: 'generate' | 'bootstrap' | 'publish' | 'unsign' | 'update-config' | 'root-meta-update' | 'metadata-update';
   status: 'success' | 'failed' | 'pending';
   taskId?: string;
+  result?: TaskResult;
   version?: string;
 };
 
@@ -15,13 +28,7 @@ export type TaskState = 'PENDING' | 'SUCCESS' | 'FAILURE';
 export type TaskData = {
   task_id: string;
   state: TaskState;
-  result?: {
-    message: string;
-    status?: boolean;
-    task?: string;
-    last_update?: string;
-    error?: string;
-  };
+  result?: TaskResult;
 };
 
 export type TufConfig = {
