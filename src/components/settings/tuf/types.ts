@@ -16,7 +16,7 @@ export type TufHistoryEntry = {
   id: string;
   timestamp: string;
   appName: string;
-  operation: 'generate' | 'bootstrap' | 'publish' | 'unsign' | 'update-config' | 'root-meta-update' | 'metadata-update';
+  operation: 'generate' | 'bootstrap' | 'bootstrap-recovery' | 'publish' | 'unsign' | 'update-config' | 'root-meta-update' | 'metadata-update';
   status: 'success' | 'failed' | 'pending';
   taskId?: string;
   result?: TaskResult;

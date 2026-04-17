@@ -30,6 +30,8 @@ export const TufSettings: React.FC = () => {
   // Step 3: Monitor Status
   const [step3Status, setStep3Status] = useState<StepStatus>('disabled');
   const [bootstrapStatus, setBootstrapStatus] = useState<TaskData | null>(null);
+  const [showBootstrapRecovery, setShowBootstrapRecovery] = useState<boolean>(false);
+  const [bootstrapRecoveryLoading, setBootstrapRecoveryLoading] = useState<boolean>(false);
   const [tufTasks, setTufTasks] = useState<TaskData[]>([]);
   const [history, setHistory] = useState<TufHistoryEntry[]>([]);
   
@@ -198,6 +200,7 @@ export const TufSettings: React.FC = () => {
       if (responseData.bootstrap === false) {
         console.log('[TufSettings] checkBootstrapStatus: bootstrap is false');
         setBootstrapStatus(null);
+        setShowBootstrapRecovery(false);
         setBootstrapTaskId('');
         setBootstrapLastUpdate('');
         // Only set to 'ready' if not already in a bootstrap state (error, success, in-progress)
@@ -213,6 +216,10 @@ export const TufSettings: React.FC = () => {
       
       // Check if bootstrap is already completed (bootstrap: true, state: null)
       if (responseData.bootstrap === true && responseData.state === null) {
+        const hasBootstrapId = Boolean(String(responseData.id ?? '').trim());
+        const hasRedisBootstrapLock = Boolean(String(responseData.redis_locks?.bootstrap_lock ?? '').trim());
+        setShowBootstrapRecovery(!hasBootstrapId || !hasRedisBootstrapLock);
+
         // Bootstrap completed successfully
         const statusData: TaskData = {
           task_id: responseData.id || '',
@@ -249,6 +256,7 @@ export const TufSettings: React.FC = () => {
       };
       
       setBootstrapStatus(statusData);
+      setShowBootstrapRecovery(false);
       
       // Update task_id if it wasn't set before
       if (!bootstrapTaskId && statusData.task_id) {
@@ -281,6 +289,44 @@ export const TufSettings: React.FC = () => {
       console.error('Failed to check bootstrap status:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to check bootstrap status';
       toastError(errorMessage);
+    }
+  };
+
+  const recoverBootstrapState = async () => {
+    if (!selectedApp) return;
+
+    setBootstrapRecoveryLoading(true);
+    try {
+      const response = await axiosInstance.post('/tuf/v1/bootstrap/recovery', {
+        appName: selectedApp,
+      });
+
+      const responseData = response.data?.data;
+      const recoveryTaskId = responseData?.task_id;
+      const recoveryLastUpdate = responseData?.last_update;
+      const message = response.data?.message || 'Bootstrap recovery completed successfully.';
+      toastSuccess(message);
+
+      if (recoveryTaskId) {
+        setHistory(prevHistory => saveToHistory({
+          timestamp: recoveryLastUpdate || new Date().toISOString(),
+          appName: selectedApp,
+          operation: 'bootstrap-recovery',
+          status: 'pending',
+          taskId: recoveryTaskId,
+        }, prevHistory));
+
+        setTimeout(() => {
+          checkTufTasks(recoveryTaskId, { silent: true });
+        }, 1000);
+      }
+
+      await checkBootstrapStatus();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to recover bootstrap state';
+      toastError(errorMessage);
+    } finally {
+      setBootstrapRecoveryLoading(false);
     }
   };
 
@@ -579,8 +625,11 @@ export const TufSettings: React.FC = () => {
         step3Status={step3Status}
         bootstrapStatus={bootstrapStatus}
         bootstrapTaskId={bootstrapTaskId}
+        showBootstrapRecovery={showBootstrapRecovery}
+        bootstrapRecoveryLoading={bootstrapRecoveryLoading}
         tufTasks={tufTasks}
         onCheckBootstrapStatus={checkBootstrapStatus}
+        onRecoverBootstrapState={recoverBootstrapState}
         onCheckTufTasks={checkTufTasks}
       />
 
