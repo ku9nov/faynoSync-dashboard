@@ -8,7 +8,7 @@ interface UpdateKeyInfoRoleRotationScriptParams {
 export const generateUpdateKeyInfoRoleRotationPythonScript = (
   params: UpdateKeyInfoRoleRotationScriptParams
 ): string => {
-  const { appName, adminName, roleName, roleFileTag } = params;
+  const { roleName, roleFileTag } = params;
 
   return `#!/usr/bin/env python3
 """

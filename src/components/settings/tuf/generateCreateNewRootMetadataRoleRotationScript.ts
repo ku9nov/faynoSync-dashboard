@@ -11,7 +11,7 @@ interface CreateNewRootMetadataRoleRotationScriptParams {
 export const generateCreateNewRootMetadataRoleRotationPythonScript = (
   params: CreateNewRootMetadataRoleRotationScriptParams
 ): string => {
-  const { appName, adminName, roleName, roleFileTag, keyType } = params;
+  const { roleName, roleFileTag, keyType } = params;
   const algorithm = getKeyAlgorithmConfig(keyType);
 
   return `#!/usr/bin/env python3
