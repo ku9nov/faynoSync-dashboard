@@ -128,6 +128,14 @@ body {
   --tw-ring-color: var(--auth-input-focus);
 }
 
+/* Fix for hover-time blur seam artifacts in content area */
+.backdrop-blur-sm,
+.backdrop-blur-lg,
+.backdrop-blur-2xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 
 
 
