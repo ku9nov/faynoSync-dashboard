@@ -1,10 +1,14 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface GenerateSignaturesScriptParams {
   appName: string;
   adminName: string;
+  keyType: string;
 }
 
 export const generateGenerateSignaturesPythonScript = (params: GenerateSignaturesScriptParams): string => {
-  const { appName, adminName } = params;
+  const { appName, adminName, keyType } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
 
   return `#!/usr/bin/env python3
 """
@@ -38,17 +42,24 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 try:
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
     from cryptography.hazmat.backends import default_backend
+    from securesystemslib.formats import encode_canonical
+    import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
-    print("Install with: pip install cryptography")
+    print("Install with: pip install cryptography securesystemslib")
     sys.exit(1)
 
 
-def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
-    """Load Ed25519 private key from file."""
+KEY_ALGORITHM = "${algorithm.algorithm}"
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
+def load_private_key(key_path: str):
+    """Load private key from file."""
     key_file = Path(key_path)
     if not key_file.exists():
         raise FileNotFoundError(f"Private key file not found: {key_path}")
@@ -62,23 +73,27 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
             password=None,
             backend=default_backend()
         )
-        if isinstance(private_key, ed25519.Ed25519PrivateKey):
+        if KEY_ALGORITHM == "ed25519" and isinstance(private_key, ed25519.Ed25519PrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "rsa" and isinstance(private_key, rsa.RSAPrivateKey):
+            return private_key
+        if KEY_ALGORITHM == "ecdsa" and isinstance(private_key, ec.EllipticCurvePrivateKey):
             return private_key
     except Exception:
         pass
     
-    # Try raw 32-byte seed
-    if len(key_data) == 32:
+    # Try raw 32-byte seed (ed25519 only)
+    if KEY_ALGORITHM == "ed25519" and len(key_data) == 32:
         try:
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_data)
             return private_key
         except Exception:
             pass
     
-    # Try hex-encoded seed
+    # Try hex-encoded seed (ed25519 only)
     try:
         key_hex = key_data.decode('utf-8').strip()
-        if len(key_hex) == 64:
+        if KEY_ALGORITHM == "ed25519" and len(key_hex) == 64:
             key_bytes = bytes.fromhex(key_hex)
             private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
             return private_key
@@ -86,6 +101,34 @@ def load_private_key(key_path: str) -> ed25519.Ed25519PrivateKey:
         pass
     
     raise ValueError(f"Could not load private key from {key_path}")
+
+
+def calculate_key_id_from_public_value(public_value: str) -> str:
+    key_dict = {
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
+        "keyval": {
+            "public": public_value
+        }
+    }
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
+    return hashlib.sha256(canonical_bytes).hexdigest()
+
+
+def calculate_key_id(public_key) -> str:
+    if KEY_ALGORITHM == "ed25519":
+        public_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        )
+        public_value = public_bytes.hex()
+    else:
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
+    return calculate_key_id_from_public_value(public_value)
 
 
 def generate_signature(
@@ -102,13 +145,31 @@ def generate_signature(
     # Load private key
     private_key = load_private_key(key_path)
     
-    # Serialize signed data to canonical JSON
-    signed_json = json.dumps(signed_data, sort_keys=True, separators=(',', ':'))
-    signed_bytes = signed_json.encode('utf-8')
+    canonical_signed = encode_canonical(signed_data)
+    signed_bytes = canonical_signed if isinstance(canonical_signed, bytes) else canonical_signed.encode("utf-8")
     
     # Sign
-    signature_bytes = private_key.sign(signed_bytes)
+    if KEY_ALGORITHM == "ed25519":
+        signature_bytes = private_key.sign(signed_bytes)
+    elif KEY_ALGORITHM == "rsa":
+        signature_bytes = private_key.sign(
+            signed_bytes,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=hashes.SHA256().digest_size,
+            ),
+            hashes.SHA256(),
+        )
+    else:
+        signature_bytes = private_key.sign(signed_bytes, ec.ECDSA(hashes.SHA256()))
     signature_hex = signature_bytes.hex()
+
+    calculated_key_id = calculate_key_id(private_key.public_key())
+    if calculated_key_id != key_id:
+        raise ValueError(
+            f"Key ID mismatch: expected {key_id}, got {calculated_key_id}. "
+            "Private key does not match key_id."
+        )
     
     # Create signature object
     signature = {

@@ -1,11 +1,15 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface CreateNewRootMetadataScriptOfflineParams {
   appName: string;
   adminName: string;
+  keyType: string;
   keyDirName?: string; // Optional: defaults to "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateCreateNewRootMetadataPythonScriptOffline = (params: CreateNewRootMetadataScriptOfflineParams): string => {
-  const { appName, adminName } = params;
+  const { appName, adminName, keyType } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
   
 
   return `#!/usr/bin/env python3
@@ -30,22 +34,34 @@ Usage:
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any
 
+try:
+    from securesystemslib.formats import encode_canonical
+except ImportError:
+    print("Error: Required packages not installed.")
+    print("Install with: pip install securesystemslib")
+    sys.exit(1)
 
-def calculate_key_id_from_public_hex(public_hex: str) -> str:
-    """Calculate TUF key ID from hex-encoded public key."""
+
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
+def calculate_key_id_from_public_value(public_value: str) -> str:
+    """Calculate TUF key ID from canonical keyval.public value."""
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
-            "public": public_hex
+            "public": public_value
         }
     }
-    canonical_json = json.dumps(key_dict, sort_keys=True, separators=(',', ':'))
-    canonical_bytes = canonical_json.encode('utf-8')
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
     key_id = hashlib.sha256(canonical_bytes).hexdigest()
     return key_id
 
@@ -101,18 +117,22 @@ def create_new_root_metadata(
     new_root_key_ids = []
     for new_key in new_root_keys:
         key_id = new_key["key_id"]
-        public_hex = new_key["public_hex"]
+        public_value = new_key.get("public")
+        if public_value is None:
+            public_value = new_key.get("public_hex")
+        if public_value is None:
+            raise ValueError(f"No public key value found for key {key_id[:16]}...")
         
-        # Verify key ID matches public hex
-        calculated_key_id = calculate_key_id_from_public_hex(public_hex)
+        # Verify key ID matches public value
+        calculated_key_id = calculate_key_id_from_public_value(public_value)
         if calculated_key_id != key_id:
             raise ValueError(f"Key ID mismatch for {key_id[:16]}...: expected {key_id}, got {calculated_key_id}")
         
         current_keys[key_id] = {
-            "keytype": "ed25519",
-            "scheme": "ed25519",
+            "keytype": KEY_TYPE,
+            "scheme": KEY_SCHEME,
             "keyval": {
-                "public": public_hex
+                "public": public_value
             }
         }
         new_root_key_ids.append(key_id)

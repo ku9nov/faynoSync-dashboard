@@ -63,6 +63,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
     try {
       const requestPayload = {
         appName: selectedApp,
+        keyType,
         rootExpiration: expiration.root,
         targetsExpiration: expiration.targets,
         snapshotExpiration: expiration.snapshot,

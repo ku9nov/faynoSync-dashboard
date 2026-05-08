@@ -1,8 +1,8 @@
 /* Header styles harmonized with card and sidebar design */
 .header-container {
   background: linear-gradient(135deg, #ffffff1a, #ffffff0d);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-radius: 1.5rem;
   box-shadow: 0 4px 32px 0 rgba(16, 24, 40, 0.14);
   padding: 1.5rem 2rem;

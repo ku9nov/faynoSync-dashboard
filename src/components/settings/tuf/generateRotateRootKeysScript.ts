@@ -1,12 +1,16 @@
+import { getKeyAlgorithmConfig } from './keyAlgorithm';
+
 interface RotateRootKeysScriptParams {
   appName: string;
   keyCount: number;
+  keyType: string;
   adminName: string;
   keyDirName?: string; // Optional: defaults to "private_keys" for online flow, or "root_keys_{appName}_{adminName}" for offline
 }
 
 export const generateRotateRootKeysPythonScript = (params: RotateRootKeysScriptParams): string => {
-  const { appName, keyCount, adminName, keyDirName } = params;
+  const { appName, keyCount, keyType, adminName, keyDirName } = params;
+  const algorithm = getKeyAlgorithmConfig(keyType);
   
   // Determine key directory name
   const defaultKeyDir = keyDirName || "private_keys";
@@ -26,52 +30,69 @@ import sys
 from pathlib import Path
 
 try:
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
-    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, padding, rsa
+    from securesystemslib.formats import encode_canonical
     import hashlib
 except ImportError:
     print("Error: Required packages not installed.")
-    print("Install with: pip install cryptography")
+    print("Install with: pip install cryptography securesystemslib")
     sys.exit(1)
 
 
-def calculate_key_id_from_public_hex(public_hex: str) -> str:
+KEY_ALGORITHM = "${algorithm.algorithm}"
+KEY_TYPE = "${algorithm.tufKeyType}"
+KEY_SCHEME = "${algorithm.tufScheme}"
+
+
+def calculate_key_id_from_public_value(public_value: str) -> str:
     """
     Calculate TUF key ID from hex-encoded public key.
     
     TUF key ID is SHA256 of the canonical JSON representation of the key.
     """
     key_dict = {
-        "keytype": "ed25519",
-        "scheme": "ed25519",
+        "keytype": KEY_TYPE,
+        "scheme": KEY_SCHEME,
         "keyval": {
-            "public": public_hex
+            "public": public_value
         }
     }
-    
-    canonical_json = json.dumps(key_dict, sort_keys=True, separators=(',', ':'))
-    canonical_bytes = canonical_json.encode('utf-8')
+    canonical = encode_canonical(key_dict)
+    canonical_bytes = canonical if isinstance(canonical, bytes) else canonical.encode("utf-8")
     key_id = hashlib.sha256(canonical_bytes).hexdigest()
     return key_id
 
 
-def generate_key_pair() -> tuple[ed25519.Ed25519PrivateKey, str, str]:
-    """Generate Ed25519 key pair and return private key, public hex, and key ID."""
-    private_key = ed25519.Ed25519PrivateKey.generate()
-    public_key = private_key.public_key()
+def generate_key_pair():
+    """Generate key pair and return private key, public value, and key ID."""
+    if KEY_ALGORITHM == "ed25519":
+        private_key = ed25519.Ed25519PrivateKey.generate()
+        public_key = private_key.public_key()
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw
+        ).hex()
+    elif KEY_ALGORITHM == "rsa":
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=3072)
+        public_key = private_key.public_key()
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
+    else:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        public_key = private_key.public_key()
+        public_value = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
+    key_id = calculate_key_id_from_public_value(public_value)
     
-    public_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
-    )
-    public_hex = public_bytes.hex()
-    key_id = calculate_key_id_from_public_hex(public_hex)
-    
-    return private_key, public_hex, key_id
+    return private_key, public_value, key_id
 
 
-def save_private_key(private_key: ed25519.Ed25519PrivateKey, filepath: Path):
+def save_private_key(private_key, filepath: Path):
     """Save private key in PEM format."""
     pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
@@ -92,7 +113,7 @@ def main():
     key_dir.mkdir(parents=True, exist_ok=True)
     
     print("=" * 70)
-    print("Generating New Root Keys for Rotation${flowTypeSuffix}")
+    print(f"Generating New Root Keys for Rotation${flowTypeSuffix} (algorithm: {KEY_ALGORITHM})")
     print("=" * 70)
     print()
     
@@ -101,10 +122,11 @@ def main():
     new_keys = []
     
     for i in range(new_root_keys_count):
-        private_key, public_hex, key_id = generate_key_pair()
+        private_key, public_value, key_id = generate_key_pair()
         new_keys.append({
             "private_key": private_key,
-            "public_hex": public_hex,
+            "public": public_value,
+            "public_hex": public_value,
             "key_id": key_id
         })
         print(f"  Root key {i+1}: {key_id[:16]}...")
@@ -163,7 +185,7 @@ def main():
     print("New root keys:")
     for i, key_info in enumerate(saved_keys, 1):
         print(f"  {i}. Key ID: {key_info['key_id']}")
-        print(f"     Public: {key_info['public_hex']}")
+        print(f"     Public: {key_info['public']}")
         print(f"     File:   ${defaultKeyDir}/{key_info['key_id']}")
     print()
 

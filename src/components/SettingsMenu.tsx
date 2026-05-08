@@ -65,6 +65,20 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
     };
   }, [onClose, showSettingsModal]);
 
+  React.useEffect(() => {
+    const handleViewportChange = () => {
+      onClose();
+    };
+
+    window.addEventListener('resize', handleViewportChange);
+    document.addEventListener('scroll', handleViewportChange, true);
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      document.removeEventListener('scroll', handleViewportChange, true);
+    };
+  }, [onClose]);
+
   const handleLogout = () => {
     logout();
     onClose();

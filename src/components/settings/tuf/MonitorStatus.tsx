@@ -7,8 +7,11 @@ interface MonitorStatusProps {
   step3Status: StepStatus;
   bootstrapStatus: TaskData | null;
   bootstrapTaskId: string;
+  showBootstrapRecovery: boolean;
+  bootstrapRecoveryLoading: boolean;
   tufTasks: TaskData[];
   onCheckBootstrapStatus: () => void;
+  onRecoverBootstrapState: () => void;
   onCheckTufTasks: () => void;
 }
 
@@ -17,8 +20,11 @@ export const MonitorStatus: React.FC<MonitorStatusProps> = ({
   step3Status,
   bootstrapStatus,
   // bootstrapTaskId,
+  showBootstrapRecovery,
+  bootstrapRecoveryLoading,
   tufTasks,
   onCheckBootstrapStatus,
+  onRecoverBootstrapState,
   // onCheckTufTasks,
 }) => {
   if (!selectedApp) {
@@ -47,6 +53,25 @@ export const MonitorStatus: React.FC<MonitorStatusProps> = ({
             <i className="fas fa-sync mr-2"></i>
             Check Bootstrap Status
           </button>
+          {showBootstrapRecovery && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onRecoverBootstrapState}
+                disabled={bootstrapRecoveryLoading || !selectedApp}
+                className="bg-amber-600 text-white px-4 py-2 rounded-lg font-roboto hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className={`fas ${bootstrapRecoveryLoading ? 'fa-spinner fa-spin' : 'fa-wrench'} mr-2`}></i>
+                {bootstrapRecoveryLoading ? 'Recovering...' : 'Recovery'}
+              </button>
+              <span
+                className="text-amber-400 text-sm cursor-help"
+                title="Looks like Redis bootstrap data was lost. Recovery from metadata is recommended."
+                aria-label="Recovery recommendation info"
+              >
+                <i className="fas fa-info-circle"></i>
+              </span>
+            </div>
+          )}
           {/* <button
             onClick={onCheckTufTasks}
             disabled={!bootstrapTaskId && !bootstrapStatus?.task_id}
