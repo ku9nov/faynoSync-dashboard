@@ -2,33 +2,43 @@ import React, { useState } from 'react';
 import { useTelemetryQuery } from '../hooks/use-query/useTelemetryQuery';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, Area, AreaChart } from 'recharts';
 import { useAppsQuery } from '../hooks/use-query/useAppsQuery';
 import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
+import { useTheme } from '../providers/themeProvider';
 import { AppListItem } from '../hooks/use-query/useAppsQuery';
 import { Channel } from '../hooks/use-query/useChannelQuery';
 import { Platform } from '../hooks/use-query/usePlatformQuery';
 import { Architecture } from '../hooks/use-query/useArchitectureQuery';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import type { PieLabelRenderProps } from 'recharts';
 
-const COLORS = [
-  '#026dc9', // main blue
-  '#006b57', // dark green
-  '#FFBB28', // golden
-  '#FF8042', // orange
-  '#7874c2', // lavender
-  '#00C49F', // turquoise
-  '#FF6B6B', // coral
-  '#4ECDC4', // mint
-  '#45B7D1', // light blue
-  '#96CEB4', // pastel green
-  '#FFEEAD', // light yellow
-  '#D4A5A5', // pink beige
-];
+const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
+const CHART_GRID_STROKE = 'rgba(148, 163, 184, 0.25)';
+const CHART_AXIS_STROKE = 'rgba(148, 163, 184, 0.7)';
+const TOOLTIP_STYLE = {
+  backgroundColor: 'var(--theme-card)',
+  border: '1px solid var(--theme-card-hover)',
+  color: 'var(--theme-primary)',
+  borderRadius: '12px',
+  boxShadow: '0 10px 30px rgba(15, 23, 42, 0.25)',
+};
+const DROPDOWN_MENU_STYLE = {
+  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92))',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+const DATE_PICKER_POPUP_STYLE = {
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
+const DARK_CHART_COLORS = ['#5AA9FF', '#34D399', '#F59E0B', '#F97316', '#A78BFA', '#2DD4BF', '#FB7185', '#22D3EE'];
+const LIGHT_CHART_COLORS = ['#2563EB', '#059669', '#D97706', '#EA580C', '#7C3AED', '#0D9488', '#E11D48', '#0891B2'];
 
 type Filters = {
   apps: string[];
@@ -40,43 +50,69 @@ type Filters = {
 };
 
 const StatCard = ({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) => (
-  <div className="bg-theme-card rounded-lg shadow-md p-6">
-    <div className="flex items-center justify-between">
+  <div className={`${PANEL_CLASS} relative overflow-hidden p-5 sm:p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl`}>
+    <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-r from-white/10 via-transparent to-transparent" />
+    <div className="relative flex items-center justify-between gap-3">
       <div>
-        <p className="text-theme-primary text-sm">{title}</p>
-        <p className="text-2xl font-semibold mt-1 text-theme-primary">{value}</p>
+        <p className="text-theme-secondary text-xs uppercase tracking-[0.08em]">{title}</p>
+        <p className="text-2xl sm:text-3xl font-semibold mt-2 text-theme-primary tabular-nums">{value}</p>
       </div>
-      <div className="text-theme-primary">{icon}</div>
+      <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-theme-primary shrink-0">
+        {icon}
+      </div>
     </div>
   </div>
 );
 
-const renderBoldLabel = (props: PieLabelRenderProps) => {
-  const { cx, cy, midAngle, outerRadius, name, percent = 0, fill } = props;
-  const RADIAN = Math.PI / 180;
-  const radius = Number(outerRadius ?? 80) + 50; // 20px за межі діаграми
-  const centerX = Number(cx ?? 0);
-  const centerY = Number(cy ?? 0);
-  const x = centerX + radius * Math.cos(-midAngle * RADIAN);
-  const y = centerY + radius * Math.sin(-midAngle * RADIAN);
+const numberFormatter = new Intl.NumberFormat('en-US');
 
-  return (
-    <text
-      x={x}
-      y={y}
-      fill={fill}
-      fontWeight={700}
-      fontSize={14}
-      textAnchor="middle"
-      dominantBaseline="central"
-    >
-      {`${name} ${(percent * 100).toFixed(0)}%`}
-    </text>
-  );
+const formatNumber = (value: number | string) => {
+  const normalizedValue = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(normalizedValue)) {
+    return String(value);
+  }
+  return numberFormatter.format(normalizedValue);
 };
+
+const formatChartDate = (value: string) => {
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+  return parsedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+const formatChartDateLong = (value: string) => {
+  const parsedDate = new Date(value);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+  return parsedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+};
+
+const SinglePointTrendView = ({
+  value,
+  color,
+  dateLabel,
+}: {
+  value: number;
+  color: string;
+  dateLabel: string;
+}) => (
+  <div className="h-full w-full flex items-center justify-center">
+    <div className="text-center">
+      <p className="text-theme-secondary text-xs sm:text-sm uppercase tracking-[0.08em]">Single Day Snapshot</p>
+      <p className="mt-3 text-4xl sm:text-5xl font-semibold tabular-nums" style={{ color }}>
+        {formatNumber(value)}
+      </p>
+      <p className="mt-3 text-theme-secondary text-sm">{dateLabel}</p>
+    </div>
+  </div>
+);
 
 export const StatisticsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { theme } = useTheme();
   const [filters, setFilters] = useState<Filters>({
     apps: [],
     channels: [],
@@ -88,12 +124,58 @@ export const StatisticsPage = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
+  const tooltipTextColor = theme === 'dark' ? '#FFFFFF' : '#000000';
+  const tooltipContentStyle = React.useMemo(
+    () => ({ ...TOOLTIP_STYLE, color: tooltipTextColor }),
+    [tooltipTextColor]
+  );
+  const tooltipLabelStyle = React.useMemo(
+    () => ({
+      color: tooltipTextColor,
+      fontWeight: 'bold',
+      marginBottom: '4px',
+    }),
+    [tooltipTextColor]
+  );
+  const tooltipItemStyle = React.useMemo(
+    () => ({
+      color: tooltipTextColor,
+      padding: '4px 0',
+    }),
+    [tooltipTextColor]
+  );
+  const chartColors = React.useMemo(
+    () => (theme === 'dark' ? DARK_CHART_COLORS : LIGHT_CHART_COLORS),
+    [theme]
+  );
+  const lineChartConfig = React.useMemo(
+    () => ({
+      requests: chartColors[0],
+      uniqueClients: chartColors[1],
+      latestUsers: chartColors[2],
+      outdatedClients: chartColors[3],
+    }),
+    [chartColors]
+  );
 
+  const sharedTooltipProps = React.useMemo(
+    () => ({
+      contentStyle: tooltipContentStyle,
+      labelStyle: tooltipLabelStyle,
+      itemStyle: tooltipItemStyle,
+      formatter: (value: number | string) => formatNumber(value),
+    }),
+    [tooltipContentStyle, tooltipLabelStyle, tooltipItemStyle]
+  );
   const { apps = [] } = useAppsQuery();
   const { channels = [] } = useChannelQuery();
   const { platforms = [] } = usePlatformQuery();
   const { architectures = [] } = useArchitectureQuery();
   const { data, isLoading, refetch } = useTelemetryQuery(filters);
+  const dailyStats = React.useMemo(() => (Array.isArray(data?.daily_stats) ? data.daily_stats : []), [data?.daily_stats]);
+  const hasTrendData = dailyStats.length > 0;
+  const showSinglePointTrend = dailyStats.length === 1;
+  const singlePointDateLabel = showSinglePointTrend ? formatChartDateLong(String(dailyStats[0].date)) : '';
 
   const handleDropdownClick = (dropdownName: string) => {
     setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
@@ -225,8 +307,15 @@ export const StatisticsPage = () => {
             hideSearch={true}
           />
 
-          {/* Time Range Selector */}
-          <div className="mb-4 sm:mb-8">
+          <div className={`${PANEL_CLASS} relative z-30 p-4 sm:p-6 mb-4 sm:mb-8`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-theme-primary text-base sm:text-lg font-semibold">Filters & Time Range</h2>
+              <span className="text-theme-secondary text-xs sm:text-sm">
+                {data.summary?.total_requests || 0} requests in view
+              </span>
+            </div>
+
+            {/* Time Range Selector */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={e => { e.currentTarget.blur(); refetch(); }}
@@ -275,7 +364,7 @@ export const StatisticsPage = () => {
                     {filters.date ? new Date(filters.date).toLocaleDateString() : 'Custom Date'}
                   </button>
                   {showDatePicker && (
-                    <div className="absolute z-10 mt-2 right-0">
+                    <div className="absolute z-[90] mt-2 right-0" style={DATE_PICKER_POPUP_STYLE}>
                       <DatePicker
                         selected={selectedDate}
                         onChange={handleDateChange}
@@ -289,11 +378,9 @@ export const StatisticsPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
-            <div className="mb-4">
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
+              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
               <label className="block text-theme-primary mb-2 font-roboto">Apps</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
@@ -332,7 +419,7 @@ export const StatisticsPage = () => {
                   )}
                 </div>
                 {openDropdown === 'apps' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
                     {Array.isArray(apps) && apps.length > 0 ? (
                       (apps as AppListItem[]).map((app) => (
                         <button
@@ -377,9 +464,9 @@ export const StatisticsPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
 
-            <div className="mb-4">
+              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
               <label className="block text-theme-primary mb-2 font-roboto">Channels</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
@@ -418,7 +505,7 @@ export const StatisticsPage = () => {
                   )}
                 </div>
                 {openDropdown === 'channels' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
                     {channels && channels.length > 0 ? (
                       (channels as Channel[]).map((channel) => (
                         <button
@@ -463,9 +550,9 @@ export const StatisticsPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
 
-            <div className="mb-4">
+              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
               <label className="block text-theme-primary mb-2 font-roboto">Platforms</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
@@ -504,7 +591,7 @@ export const StatisticsPage = () => {
                   )}
                 </div>
                 {openDropdown === 'platforms' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
                     {platforms && platforms.length > 0 ? (
                       (platforms as Platform[]).map((platform) => (
                         <button
@@ -549,9 +636,9 @@ export const StatisticsPage = () => {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
 
-            <div className="mb-4">
+              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
               <label className="block text-theme-primary mb-2 font-roboto">Architectures</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
@@ -590,7 +677,7 @@ export const StatisticsPage = () => {
                   )}
                 </div>
                 {openDropdown === 'architectures' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
                     {architectures && architectures.length > 0 ? (
                       (architectures as Architecture[]).map((arch) => (
                         <button
@@ -635,6 +722,7 @@ export const StatisticsPage = () => {
                   </div>
                 )}
               </div>
+              </div>
             </div>
           </div>
 
@@ -670,25 +758,47 @@ export const StatisticsPage = () => {
           {/* Trend Graphs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
             {/* Total Requests Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Total Requests Trend</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
-                {data.daily_stats ? (
+                {hasTrendData ? (
+                  showSinglePointTrend ? (
+                    <SinglePointTrendView
+                      value={Number(dailyStats[0].total_requests ?? 0)}
+                      color={lineChartConfig.requests}
+                      dateLabel={singlePointDateLabel}
+                    />
+                  ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.daily_stats}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                      <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.5)" />
-                      <YAxis stroke="rgba(255, 255, 255, 0.5)" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                    <AreaChart data={dailyStats}>
+                      <defs>
+                        <linearGradient id="requestsTrendArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={lineChartConfig.requests} stopOpacity={0.32} />
+                          <stop offset="100%" stopColor={lineChartConfig.requests} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                      <XAxis dataKey="date" stroke={CHART_AXIS_STROKE} tickFormatter={formatChartDate} />
+                      <YAxis stroke={CHART_AXIS_STROKE} tickFormatter={(value) => formatNumber(value)} />
+                      <Tooltip {...sharedTooltipProps} labelFormatter={(value) => formatChartDateLong(String(value))} />
+                      <Area
+                        type="monotoneX"
+                        dataKey="total_requests"
+                        stroke={lineChartConfig.requests}
+                        strokeWidth={3}
+                        fill="url(#requestsTrendArea)"
+                        fillOpacity={1}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0, fill: lineChartConfig.requests }}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        isAnimationActive={true}
+                        animationDuration={700}
+                        animationEasing="ease-out"
                       />
-                      <Line type="monotone" dataKey="total_requests" stroke="#8884d8" strokeWidth={2} dot={false} />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
+                  )
                 ) : (
                   <NoDataMessage />
                 )}
@@ -696,25 +806,47 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Unique Clients Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Unique Clients Trend</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
-                {data.daily_stats ? (
+                {hasTrendData ? (
+                  showSinglePointTrend ? (
+                    <SinglePointTrendView
+                      value={Number(dailyStats[0].unique_clients ?? 0)}
+                      color={lineChartConfig.uniqueClients}
+                      dateLabel={singlePointDateLabel}
+                    />
+                  ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.daily_stats}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                      <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.5)" />
-                      <YAxis stroke="rgba(255, 255, 255, 0.5)" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                    <AreaChart data={dailyStats}>
+                      <defs>
+                        <linearGradient id="uniqueClientsTrendArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={lineChartConfig.uniqueClients} stopOpacity={0.32} />
+                          <stop offset="100%" stopColor={lineChartConfig.uniqueClients} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                      <XAxis dataKey="date" stroke={CHART_AXIS_STROKE} tickFormatter={formatChartDate} />
+                      <YAxis stroke={CHART_AXIS_STROKE} tickFormatter={(value) => formatNumber(value)} />
+                      <Tooltip {...sharedTooltipProps} labelFormatter={(value) => formatChartDateLong(String(value))} />
+                      <Area
+                        type="monotoneX"
+                        dataKey="unique_clients"
+                        stroke={lineChartConfig.uniqueClients}
+                        strokeWidth={3}
+                        fill="url(#uniqueClientsTrendArea)"
+                        fillOpacity={1}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0, fill: lineChartConfig.uniqueClients }}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        isAnimationActive={true}
+                        animationDuration={700}
+                        animationEasing="ease-out"
                       />
-                      <Line type="monotone" dataKey="unique_clients" stroke="#00C49F" strokeWidth={2} dot={false} />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
+                  )
                 ) : (
                   <NoDataMessage />
                 )}
@@ -722,25 +854,47 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Latest Version Users Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Latest Version Users Trend</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
-                {data.daily_stats ? (
+                {hasTrendData ? (
+                  showSinglePointTrend ? (
+                    <SinglePointTrendView
+                      value={Number(dailyStats[0].clients_using_latest_version ?? 0)}
+                      color={lineChartConfig.latestUsers}
+                      dateLabel={singlePointDateLabel}
+                    />
+                  ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.daily_stats}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                      <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.5)" />
-                      <YAxis stroke="rgba(255, 255, 255, 0.5)" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                    <AreaChart data={dailyStats}>
+                      <defs>
+                        <linearGradient id="latestUsersTrendArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={lineChartConfig.latestUsers} stopOpacity={0.32} />
+                          <stop offset="100%" stopColor={lineChartConfig.latestUsers} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                      <XAxis dataKey="date" stroke={CHART_AXIS_STROKE} tickFormatter={formatChartDate} />
+                      <YAxis stroke={CHART_AXIS_STROKE} tickFormatter={(value) => formatNumber(value)} />
+                      <Tooltip {...sharedTooltipProps} labelFormatter={(value) => formatChartDateLong(String(value))} />
+                      <Area
+                        type="monotoneX"
+                        dataKey="clients_using_latest_version"
+                        stroke={lineChartConfig.latestUsers}
+                        strokeWidth={3}
+                        fill="url(#latestUsersTrendArea)"
+                        fillOpacity={1}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0, fill: lineChartConfig.latestUsers }}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        isAnimationActive={true}
+                        animationDuration={700}
+                        animationEasing="ease-out"
                       />
-                      <Line type="monotone" dataKey="clients_using_latest_version" stroke="#FFBB28" strokeWidth={2} dot={false} />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
+                  )
                 ) : (
                   <NoDataMessage />
                 )}
@@ -748,25 +902,47 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Outdated Clients Trend */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Outdated Clients Trend</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
-                {data.daily_stats ? (
+                {hasTrendData ? (
+                  showSinglePointTrend ? (
+                    <SinglePointTrendView
+                      value={Number(dailyStats[0].clients_outdated ?? 0)}
+                      color={lineChartConfig.outdatedClients}
+                      dateLabel={singlePointDateLabel}
+                    />
+                  ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.daily_stats}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                      <XAxis dataKey="date" stroke="rgba(255, 255, 255, 0.5)" />
-                      <YAxis stroke="rgba(255, 255, 255, 0.5)" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                    <AreaChart data={dailyStats}>
+                      <defs>
+                        <linearGradient id="outdatedClientsTrendArea" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={lineChartConfig.outdatedClients} stopOpacity={0.32} />
+                          <stop offset="100%" stopColor={lineChartConfig.outdatedClients} stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                      <XAxis dataKey="date" stroke={CHART_AXIS_STROKE} tickFormatter={formatChartDate} />
+                      <YAxis stroke={CHART_AXIS_STROKE} tickFormatter={(value) => formatNumber(value)} />
+                      <Tooltip {...sharedTooltipProps} labelFormatter={(value) => formatChartDateLong(String(value))} />
+                      <Area
+                        type="monotoneX"
+                        dataKey="clients_outdated"
+                        stroke={lineChartConfig.outdatedClients}
+                        strokeWidth={3}
+                        fill="url(#outdatedClientsTrendArea)"
+                        fillOpacity={1}
+                        dot={false}
+                        activeDot={{ r: 6, strokeWidth: 0, fill: lineChartConfig.outdatedClients }}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                        isAnimationActive={true}
+                        animationDuration={700}
+                        animationEasing="ease-out"
                       />
-                      <Line type="monotone" dataKey="clients_outdated" stroke="#FF8042" strokeWidth={2} dot={false} />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
+                  )
                 ) : (
                   <NoDataMessage />
                 )}
@@ -777,35 +953,34 @@ export const StatisticsPage = () => {
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
             {/* Version Usage Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Version Usage</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.versions?.usage ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data.versions.usage}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-                      <XAxis dataKey="version" stroke="rgba(255, 255, 255, 0.5)" />
-                      <YAxis stroke="rgba(255, 255, 255, 0.5)" />
+                      <defs>
+                        <linearGradient id="versionUsageGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={chartColors[0]} stopOpacity={0.95} />
+                          <stop offset="100%" stopColor={chartColors[4]} stopOpacity={0.85} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
+                      <XAxis dataKey="version" stroke={CHART_AXIS_STROKE} />
+                      <YAxis stroke={CHART_AXIS_STROKE} tickFormatter={(value) => formatNumber(value)} />
                       <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)',
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                        }}
-                        labelStyle={{
-                          color: 'var(--theme-primary)',
-                          fontWeight: 'bold',
-                          marginBottom: '4px'
-                        }}
-                        itemStyle={{
-                          color: 'var(--theme-primary)',
-                          padding: '4px 0'
+                        {...sharedTooltipProps}
+                        cursor={false}
+                      />
+                      <Bar
+                        dataKey="client_count"
+                        fill="url(#versionUsageGradient)"
+                        radius={[8, 8, 0, 0]}
+                        activeBar={{
+                          fill: chartColors[0],
+                          stroke: 'none'
                         }}
                       />
-                      <Bar dataKey="client_count" fill="var(--button-secondary)" activeBar={{ fill: '#b388ff' }} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -815,7 +990,7 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Platform Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Platform Distribution</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.platforms ? (
@@ -826,20 +1001,23 @@ export const StatisticsPage = () => {
                         dataKey="client_count"
                         nameKey="platform"
                         cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={renderBoldLabel}
+                        cy="45%"
+                        innerRadius={50}
+                        outerRadius={86}
+                        paddingAngle={2}
+                        cornerRadius={6}
+                        label={false}
+                        labelLine={false}
                       >
                         {data.platforms.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                      <Tooltip {...sharedTooltipProps} />
+                      <Legend
+                        verticalAlign="bottom"
+                        iconType="circle"
+                        formatter={(value) => <span style={{ color: 'var(--theme-primary)' }}>{value}</span>}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -850,7 +1028,7 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Architecture Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Architecture Distribution</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.architectures ? (
@@ -861,20 +1039,23 @@ export const StatisticsPage = () => {
                         dataKey="client_count"
                         nameKey="arch"
                         cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={renderBoldLabel}
+                        cy="45%"
+                        innerRadius={50}
+                        outerRadius={86}
+                        paddingAngle={2}
+                        cornerRadius={6}
+                        label={false}
+                        labelLine={false}
                       >
                         {data.architectures.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                      <Tooltip {...sharedTooltipProps} />
+                      <Legend
+                        verticalAlign="bottom"
+                        iconType="circle"
+                        formatter={(value) => <span style={{ color: 'var(--theme-primary)' }}>{value}</span>}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -885,7 +1066,7 @@ export const StatisticsPage = () => {
             </div>
 
             {/* Channel Distribution Chart */}
-            <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+            <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
               <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Channel Distribution</h3>
               <div className="h-60 sm:h-80 min-w-0 overflow-x-auto">
                 {data.channels ? (
@@ -896,20 +1077,23 @@ export const StatisticsPage = () => {
                         dataKey="client_count"
                         nameKey="channel"
                         cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={renderBoldLabel}
+                        cy="45%"
+                        innerRadius={50}
+                        outerRadius={86}
+                        paddingAngle={2}
+                        cornerRadius={6}
+                        label={false}
+                        labelLine={false}
                       >
                         {data.channels.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'var(--theme-card)', 
-                          border: '1px solid var(--theme-card-hover)',
-                          color: 'var(--theme-primary)'
-                        }}
+                      <Tooltip {...sharedTooltipProps} />
+                      <Legend
+                        verticalAlign="bottom"
+                        iconType="circle"
+                        formatter={(value) => <span style={{ color: 'var(--theme-primary)' }}>{value}</span>}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -921,12 +1105,12 @@ export const StatisticsPage = () => {
           </div>
 
           {/* Version Table */}
-          <div className="bg-theme-card rounded-lg shadow-md p-2 sm:p-6">
+          <div className={`${PANEL_CLASS} p-3 sm:p-6`}>
             <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-4 text-theme-primary">Version Details</h3>
             <div className="overflow-x-auto">
               {data.versions?.usage ? (
                 <table className="min-w-full divide-y divide-theme-card-hover">
-                  <thead>
+                  <thead className="bg-white/5">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-primary uppercase tracking-wider">Version</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-theme-primary uppercase tracking-wider">Client Count</th>
