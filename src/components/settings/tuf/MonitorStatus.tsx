@@ -124,47 +124,6 @@ export const MonitorStatus: React.FC<MonitorStatusProps> = ({
           </div>
         )}
 
-        {tufTasks.length > 0 && (
-          <div className="p-4 bg-theme-input rounded-lg border border-theme">
-            <h3 className="text-theme-primary font-semibold mb-2">TUF Tasks</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-theme-card-hover">
-                    <th className="text-left py-2 px-2 text-theme-primary">Task ID</th>
-                    <th className="text-left py-2 px-2 text-theme-primary">State</th>
-                    <th className="text-left py-2 px-2 text-theme-primary">Message</th>
-                    <th className="text-left py-2 px-2 text-theme-primary">Last Update</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tufTasks.map((task) => (
-                    <tr key={task.task_id} className="border-b border-theme-card-hover">
-                      <td className="py-2 px-2 text-theme-primary font-mono text-xs">
-                        {task.task_id}
-                      </td>
-                      <td className="py-2 px-2">
-                        <span className={getTaskStateColor(task.state)}>
-                          {task.state}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-theme-primary">
-                        {task.state === 'FAILURE' && task.result?.error
-                          ? task.result.error
-                          : task.result?.message || '-'}
-                      </td>
-                      <td className="py-2 px-2 text-theme-primary text-xs">
-                        {task.result?.last_update
-                          ? new Date(task.result.last_update).toLocaleString()
-                          : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
