@@ -12,6 +12,7 @@ import { MonitorStatus } from './tuf/MonitorStatus';
 import { Config } from './tuf/Config';
 import { RotateRootKeys } from './tuf/RotateRootKeys';
 import { RotateRoleKeys } from './tuf/RotateRoleKeys';
+import { RotateDelegatedKeys } from './tuf/RotateDelegatedKeys';
 import { HistoryTable } from './tuf/HistoryTable';
 
 export const TufSettings: React.FC = () => {
@@ -662,6 +663,13 @@ export const TufSettings: React.FC = () => {
         onSaveToHistory={handleSaveToHistory}
         onCheckTufTasks={checkTufTasks}
         onUpdateMetadata={updateMetadata}
+      />
+
+      <RotateDelegatedKeys
+        selectedApp={selectedApp}
+        isBootstrapSuccess={isBootstrapSuccess}
+        onSaveToHistory={handleSaveToHistory}
+        onCheckTufTasks={checkTufTasks}
       />
 
       {/* History - Show last */}

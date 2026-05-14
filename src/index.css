@@ -13,10 +13,6 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Custom utility classes using CSS variables */
 .bg-theme-gradient {
   background-image: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
