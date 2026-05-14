@@ -649,28 +649,47 @@ export const TufSettings: React.FC = () => {
         onUpdateMetadata={updateMetadata}
       />
 
-      {/* Rotate Root Keys Section */}
-      <RotateRootKeys
-        selectedApp={selectedApp}
-        isBootstrapSuccess={isBootstrapSuccess}
-        onSaveToHistory={handleSaveToHistory}
-        onCheckTufTasks={checkTufTasks}
-      />
+      {/* Key Rotation Section */}
+      <div className="rounded-lg border border-gray-200 p-4">
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+          <p className="font-semibold">About key rotation workflow</p>
+          <p className="mt-2">
+            This dashboard helps you manage TUF metadata and key rotation with Python scripts and helper metadata files.
+            If you follow the instructions carefully, it can help you keep your TUF repository in a healthy working state.
+          </p>
+          <p className="mt-2">
+            The process is intentionally split into small steps, which can generate many scripts and temporary files.
+            To avoid confusion and folder clutter, make sure you understand each step and clean up artifacts you no longer need.
+          </p>
+          <p className="mt-2">
+            If you are an experienced TUF user, you do not have to use these scripts for key rotation.
+            You can prepare metadata and signatures directly and submit them without going through the helper scripts.
+          </p>
+        </div>
+        <div className="space-y-4">
+          <RotateRootKeys
+            selectedApp={selectedApp}
+            isBootstrapSuccess={isBootstrapSuccess}
+            onSaveToHistory={handleSaveToHistory}
+            onCheckTufTasks={checkTufTasks}
+          />
 
-      <RotateRoleKeys
-        selectedApp={selectedApp}
-        isBootstrapSuccess={isBootstrapSuccess}
-        onSaveToHistory={handleSaveToHistory}
-        onCheckTufTasks={checkTufTasks}
-        onUpdateMetadata={updateMetadata}
-      />
+          <RotateRoleKeys
+            selectedApp={selectedApp}
+            isBootstrapSuccess={isBootstrapSuccess}
+            onSaveToHistory={handleSaveToHistory}
+            onCheckTufTasks={checkTufTasks}
+            onUpdateMetadata={updateMetadata}
+          />
 
-      <RotateDelegatedKeys
-        selectedApp={selectedApp}
-        isBootstrapSuccess={isBootstrapSuccess}
-        onSaveToHistory={handleSaveToHistory}
-        onCheckTufTasks={checkTufTasks}
-      />
+          <RotateDelegatedKeys
+            selectedApp={selectedApp}
+            isBootstrapSuccess={isBootstrapSuccess}
+            onSaveToHistory={handleSaveToHistory}
+            onCheckTufTasks={checkTufTasks}
+          />
+        </div>
+      </div>
 
       {/* History - Show last */}
       <HistoryTable
