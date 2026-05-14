@@ -198,7 +198,13 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
                   </svg>
                 </button>
                 {openDropdown === 'keyType' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                  <div
+                    className="absolute top-full left-0 right-0 mt-1 bg-theme-card rounded-lg shadow-lg z-10 border border-theme-card-hover"
+                    style={{
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                    }}
+                  >
                     {['ed25519', 'rsa', 'ecdsa'].map((type) => (
                       <button
                         key={type}
