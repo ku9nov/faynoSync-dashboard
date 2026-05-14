@@ -9,6 +9,7 @@ import { generateBuildDelegatedRotationRequestPythonScript } from './generateBui
 import { generateSignMetadataForApiPythonScript } from './generateSignMetadataForApiScript';
 import { generateUpdateKeyInfoDelegatedRotationPythonScript } from './generateUpdateKeyInfoDelegatedRotationScript';
 import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm } from './keyAlgorithm';
+import { deleteSigningMetadata } from './deleteSigningMetadata';
 
 interface RotateDelegatedKeysProps {
   selectedApp: string;
@@ -133,6 +134,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
 
   const [checkingSigningQueue, setCheckingSigningQueue] = useState(false);
   const [signingQueueMessage, setSigningQueueMessage] = useState('');
+  const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
 
   const adminName = userData?.owner || userData?.username || 'admin';
   const roleFileTag = sanitizeRoleForFileTag(roleName);
@@ -488,6 +490,50 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
       }
     } finally {
       setSubmittingSignature(false);
+    }
+  };
+
+  const handleDeleteSigningMetadata = async () => {
+    if (!selectedApp) {
+      toastError('Please select an app');
+      return;
+    }
+
+    setDeletingSigningMetadata(true);
+    try {
+      const rolesToDelete = ['targets', normalizedRoleName];
+      const uniqueRoles = Array.from(new Set(rolesToDelete));
+      const results: string[] = [];
+
+      for (const role of uniqueRoles) {
+        const result = await deleteSigningMetadata({
+          appName: selectedApp,
+          role,
+        });
+
+        if (result.hasTask && result.taskId) {
+          onSaveToHistory({
+            timestamp: result.lastUpdate || new Date().toISOString(),
+            appName: selectedApp,
+            operation: 'metadata-update',
+            status: 'pending',
+            taskId: result.taskId,
+          });
+          setTimeout(() => onCheckTufTasks(result.taskId), 1000);
+        }
+
+        results.push(`${role}: ${result.message || 'Signing metadata deleted successfully.'}`);
+      }
+
+      toastSuccess(results.join(' | '));
+      setSignatureStatus('');
+      setSignatureStatusMessage('');
+      setSignatureErrorMessage('');
+      setSignaturePayload('');
+    } catch (error: any) {
+      toastError(error.message || 'Failed to delete signing metadata');
+    } finally {
+      setDeletingSigningMetadata(false);
     }
   };
 
@@ -1097,23 +1143,61 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               </div>
             )}
 
-            <button
-              onClick={handleSubmitSignaturePayload}
-              disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submittingSignature ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-paper-plane mr-2"></i>
-                  Submit Sign Payload
-                </>
-              )}
-            </button>
+            <div className="flex gap-2 items-center flex-wrap">
+              <button
+                onClick={handleSubmitSignaturePayload}
+                disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
+                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingSignature ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane mr-2"></i>
+                    Submit Sign Payload
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleCheckSigningQueue}
+                disabled={!selectedApp || checkingSigningQueue}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {checkingSigningQueue ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check-circle mr-2"></i>
+                    Check Status
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleDeleteSigningMetadata}
+                disabled={!selectedApp || deletingSigningMetadata}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deletingSigningMetadata ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-trash mr-2"></i>
+                    Delete signing metadata
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 9: Update local key info</h2>
