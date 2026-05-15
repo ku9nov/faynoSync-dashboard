@@ -9,10 +9,8 @@ interface MonitorStatusProps {
   bootstrapTaskId: string;
   showBootstrapRecovery: boolean;
   bootstrapRecoveryLoading: boolean;
-  tufTasks: TaskData[];
   onCheckBootstrapStatus: () => void;
   onRecoverBootstrapState: () => void;
-  onCheckTufTasks: () => void;
 }
 
 export const MonitorStatus: React.FC<MonitorStatusProps> = ({
@@ -22,10 +20,8 @@ export const MonitorStatus: React.FC<MonitorStatusProps> = ({
   // bootstrapTaskId,
   showBootstrapRecovery,
   bootstrapRecoveryLoading,
-  tufTasks,
   onCheckBootstrapStatus,
   onRecoverBootstrapState,
-  // onCheckTufTasks,
 }) => {
   if (!selectedApp) {
     return null;

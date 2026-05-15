@@ -34,7 +34,6 @@ export const TufSettings: React.FC = () => {
   const [bootstrapStatus, setBootstrapStatus] = useState<TaskData | null>(null);
   const [showBootstrapRecovery, setShowBootstrapRecovery] = useState<boolean>(false);
   const [bootstrapRecoveryLoading, setBootstrapRecoveryLoading] = useState<boolean>(false);
-  const [tufTasks, setTufTasks] = useState<TaskData[]>([]);
   const [history, setHistory] = useState<TufHistoryEntry[]>([]);
   
   // Polling
@@ -355,8 +354,6 @@ export const TufSettings: React.FC = () => {
         ? responseData 
         : [responseData];
       
-      setTufTasks(tasks);
-      
       // Update history status based on actual task state
       setHistory(prevHistory => {
         let updatedHistory = prevHistory;
@@ -377,7 +374,6 @@ export const TufSettings: React.FC = () => {
       if (!options?.silent) {
         toastError(errorMessage);
       }
-      setTufTasks([]);
     }
   };
 
@@ -629,10 +625,8 @@ export const TufSettings: React.FC = () => {
         bootstrapTaskId={bootstrapTaskId}
         showBootstrapRecovery={showBootstrapRecovery}
         bootstrapRecoveryLoading={bootstrapRecoveryLoading}
-        tufTasks={tufTasks}
         onCheckBootstrapStatus={checkBootstrapStatus}
         onRecoverBootstrapState={recoverBootstrapState}
-        onCheckTufTasks={checkTufTasks}
       />
 
       {/* Config Section */}
