@@ -1173,24 +1173,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 >
                   {app.AppName}
                 </h3>
-                {app.Tuf && (
-                  <div className="mt-1 flex items-center gap-1">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                      <svg 
-                        className="w-3 h-3" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                        />
-                      </svg>
-                      TUF
-                    </span>
+                {(app.Tuf || app.Reports) && (
+                  <div className="mt-1 flex items-center gap-1 flex-wrap">
+                    {app.Tuf && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <svg 
+                          className="w-3 h-3" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2" 
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
+                        </svg>
+                        TUF
+                      </span>
+                    )}
+                    {app.Reports && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 17v-6m3 6V7m3 10v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h8l6 6v10a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Reports
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1249,7 +1269,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             app: selectedAppData.AppName,
             description: selectedAppData.Description,
             logo: selectedAppData.Logo,
-            tuf: selectedAppData.Tuf
+            tuf: selectedAppData.Tuf,
+            reports: selectedAppData.Reports
           }}
         />
       )}
