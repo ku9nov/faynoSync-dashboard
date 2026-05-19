@@ -120,6 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [openArtifactsPopoverId, setOpenArtifactsPopoverId] = React.useState<string | null>(null);
   const [hoveredArtifactsPopoverId, setHoveredArtifactsPopoverId] = React.useState<string | null>(null);
   const [suppressHoverArtifactsPopoverId, setSuppressHoverArtifactsPopoverId] = React.useState<string | null>(null);
+  const [isRegeneratingReportKey, setIsRegeneratingReportKey] = React.useState(false);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -188,6 +189,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
       toastSuccess('Report key copied');
     } catch (error) {
       toastError('Failed to copy report key');
+    }
+  };
+
+  const handleRegenerateReportKey = async () => {
+    if (!appData?.ID || isRegeneratingReportKey) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to regenerate the report key? This can affect clients and prevent them from sending reports.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsRegeneratingReportKey(true);
+
+    try {
+      await axiosInstance.post('/report-keys/regenerate', {
+        app_id: appData.ID,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['reportKeys', selectedApp] });
+      await queryClient.refetchQueries({ queryKey: ['reportKeys', selectedApp] });
+      toastSuccess('Report key regenerated');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to regenerate report key';
+      toastError(errorMessage);
+    } finally {
+      setIsRegeneratingReportKey(false);
     }
   };
 
@@ -583,13 +614,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     {reportKeyForApp.key_value}
                   </p>
-                  <button
-                    type="button"
-                    onClick={handleCopyReportKey}
-                    className="px-2 py-0.5 text-xs rounded-md bg-theme-card text-theme-primary hover:bg-theme-card-hover transition-colors flex-shrink-0"
-                  >
-                    Copy
-                  </button>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleCopyReportKey}
+                      className="p-1.5 rounded-md bg-theme-card text-theme-primary hover:bg-theme-card-hover transition-colors"
+                      aria-label="Copy report key"
+                      title="Copy report key"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateReportKey}
+                      disabled={isRegeneratingReportKey}
+                      className="p-1.5 rounded-md bg-red-500/20 text-red-300 border border-red-400/30 hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Regenerate report key"
+                      title={isRegeneratingReportKey ? 'Regenerating...' : 'Regenerate report key'}
+                    >
+                      <svg
+                        className={`w-3.5 h-3.5 ${isRegeneratingReportKey ? 'animate-spin' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M21 12a9 9 0 10-2.64 6.36M21 3v6h-6"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </>
               ) : (
                 <p className="text-xs text-theme-primary/70 truncate">Not available yet</p>
