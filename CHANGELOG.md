@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.2
+
+### Features
+
+- Added `reports` parameter to `POST /apps/create` and `POST /apps/update` endpoints.
+- Added report key management to the dashboard.
+
 ## v1.0.1
 
 ### Changed

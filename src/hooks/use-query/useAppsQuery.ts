@@ -39,6 +39,7 @@ export type AppListItem = {
   isExpanded?: boolean;
   Private?: boolean;
   Tuf?: boolean;
+  Reports?: boolean;
 };
 
 export type PaginatedResponse<T> = {

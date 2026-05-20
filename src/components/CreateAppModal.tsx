@@ -19,6 +19,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
     description: '',
     private: false,
     tuf: false,
+    reports: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -37,6 +38,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
         description: formData.description,
         ...(formData.private && { private: "true" }),
         tuf: formData.tuf ? "true" : "false",
+        reports: formData.reports ? "true" : "false",
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -143,6 +145,20 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
         <label htmlFor="tuf" className="text-theme-primary font-roboto cursor-pointer select-none">
           <div className="font-semibold">Enable tuf</div>
           <div className="text-sm text-purple-200">Enable TUF (The Update Framework) for this application</div>
+        </label>
+      </div>
+
+      <div className="mb-6 flex items-start">
+        <input
+          type="checkbox"
+          id="reports"
+          checked={formData.reports}
+          onChange={(e) => setFormData(prev => ({ ...prev, reports: e.target.checked }))}
+          className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+        />
+        <label htmlFor="reports" className="text-theme-primary font-roboto cursor-pointer select-none">
+          <div className="font-semibold">Enable reports</div>
+          <div className="text-sm text-purple-200">Enable Reports for this application</div>
         </label>
       </div>
     </AdvancedModal>

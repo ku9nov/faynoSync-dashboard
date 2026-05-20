@@ -34,6 +34,18 @@ interface VersionFilters {
   arch: string;
 }
 
+interface ReportKeyItem {
+  id: string;
+  app_id: string;
+  app_name: string;
+  key_value: string;
+  updated_at: string;
+}
+
+interface ReportKeysResponse {
+  report_keys: ReportKeyItem[];
+}
+
 export const Dashboard: React.FC<DashboardProps> = ({
   selectedApp,
   onAppClick,
@@ -108,6 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [openArtifactsPopoverId, setOpenArtifactsPopoverId] = React.useState<string | null>(null);
   const [hoveredArtifactsPopoverId, setHoveredArtifactsPopoverId] = React.useState<string | null>(null);
   const [suppressHoverArtifactsPopoverId, setSuppressHoverArtifactsPopoverId] = React.useState<string | null>(null);
+  const [isRegeneratingReportKey, setIsRegeneratingReportKey] = React.useState(false);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -143,6 +156,71 @@ export const Dashboard: React.FC<DashboardProps> = ({
     },
     enabled: !!selectedApp,
   });
+
+  const { data: reportKeysData, isLoading: isReportKeysLoading } = useQuery({
+    queryKey: ['reportKeys', selectedApp],
+    queryFn: async () => {
+      const response = await axiosInstance.get('/report-keys/list');
+      return response.data as ReportKeysResponse;
+    },
+    enabled: !!selectedApp,
+  });
+
+  const reportKeyForApp = React.useMemo(() => {
+    const keys = reportKeysData?.report_keys;
+    if (!keys || keys.length === 0 || !selectedApp) {
+      return null;
+    }
+
+    const matchedKeys = keys
+      .filter((key) => key.app_id === appData?.ID || key.app_name === selectedApp)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+    return matchedKeys[0] || null;
+  }, [reportKeysData, appData?.ID, selectedApp]);
+
+  const handleCopyReportKey = async () => {
+    if (!reportKeyForApp?.key_value) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(reportKeyForApp.key_value);
+      toastSuccess('Report key copied');
+    } catch (error) {
+      toastError('Failed to copy report key');
+    }
+  };
+
+  const handleRegenerateReportKey = async () => {
+    if (!appData?.ID || isRegeneratingReportKey) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Are you sure you want to regenerate the report key? This can affect clients and prevent them from sending reports.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsRegeneratingReportKey(true);
+
+    try {
+      await axiosInstance.post('/report-keys/regenerate', {
+        app_id: appData.ID,
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['reportKeys', selectedApp] });
+      await queryClient.refetchQueries({ queryKey: ['reportKeys', selectedApp] });
+      toastSuccess('Report key regenerated');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to regenerate report key';
+      toastError(errorMessage);
+    } finally {
+      setIsRegeneratingReportKey(false);
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setSearchParams({ page: page.toString() });
@@ -437,72 +515,162 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </svg>
           Back
         </button>
-        <div className="flex items-center gap-4 mb-6">
-          {appData?.Logo ? (
-            <div className="relative w-12 h-12">
-              <img 
-                src={appData.Logo} 
-                alt={`${selectedApp} logo`}
-                className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.opacity = '0';
-                  setTimeout(() => {
-                    target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4 min-w-0">
+            {appData?.Logo ? (
+              <div className="relative w-12 h-12">
+                <img 
+                  src={appData.Logo} 
+                  alt={`${selectedApp} logo`}
+                  className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.opacity = '0';
+                    setTimeout(() => {
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
+                      target.style.opacity = '1';
+                    }, 300);
+                  }}
+                  onLoad={(e) => {
+                    const target = e.target as HTMLImageElement;
                     target.style.opacity = '1';
-                  }, 300);
-                }}
-                onLoad={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.opacity = '1';
-                }}
-              />
-              <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
-              {appData?.Private && (
-                      <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
-                        <svg 
-                          className="w-3 h-3 text-theme-primary" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          viewBox="0 0 24 24"
-                        >
-                          <path 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            strokeWidth="2" 
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                          />
-                        </svg>
-                      </div>
-                    )}
-            </div>
-          ) : (
-            <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                className="text-theme-primary-hover"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <path d="M12 8v8"></path>
-                <path d="M8 12h8"></path>
-              </svg>
+                  }}
+                />
+                <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
+                {appData?.Private && (
+                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
+                          <svg 
+                            className="w-3 h-3 text-theme-primary" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth="2" 
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            />
+                          </svg>
+                        </div>
+                      )}
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="text-theme-primary-hover"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <path d="M12 8v8"></path>
+                  <path d="M8 12h8"></path>
+                </svg>
+              </div>
+            )}
+            <h2 
+              className="text-2xl font-bold text-theme-primary truncate" 
+              title={selectedApp}
+            >
+              {selectedApp}
+            </h2>
+          </div>
+
+          {appData?.Reports && (
+            <div
+              className="relative group w-full lg:w-auto lg:min-w-[420px] h-12 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 flex items-center gap-2"
+            >
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-blue-200 flex-shrink-0">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 8h10M7 12h6m-6 4h10M5 21h14a2 2 0 002-2V7l-5-5H5a2 2 0 00-2 2v15a2 2 0 002 2z"
+                  />
+                </svg>
+                Report key
+              </span>
+
+              {isReportKeysLoading ? (
+                <p className="text-xs text-theme-primary/70 truncate">Loading...</p>
+              ) : reportKeyForApp?.key_value ? (
+                <>
+                  <p
+                    className="font-mono text-xs text-theme-primary/95 overflow-x-auto whitespace-nowrap flex-1"
+                  >
+                    {reportKeyForApp.key_value}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleCopyReportKey}
+                      className="p-1.5 rounded-md bg-theme-card text-theme-primary hover:bg-theme-card-hover transition-colors"
+                      aria-label="Copy report key"
+                      title="Copy report key"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateReportKey}
+                      disabled={isRegeneratingReportKey}
+                      className="p-1.5 rounded-md bg-red-500/20 text-red-300 border border-red-400/30 hover:bg-red-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Regenerate report key"
+                      title={isRegeneratingReportKey ? 'Regenerating...' : 'Regenerate report key'}
+                    >
+                      <svg
+                        className={`w-3.5 h-3.5 ${isRegeneratingReportKey ? 'animate-spin' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M21 12a9 9 0 10-2.64 6.36M21 3v6h-6"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-theme-primary/70 truncate">Not available yet</p>
+              )}
+
+              {reportKeyForApp?.key_value && (
+                <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-theme-card-hover bg-gray-900 px-2 py-1 text-[11px] text-theme-primary opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                  Updated: {formatDate(reportKeyForApp.updated_at)}
+                </div>
+              )}
             </div>
           )}
-          <h2 
-            className="text-2xl font-bold text-theme-primary" 
-            title={selectedApp}
-          >
-            {selectedApp}
-          </h2>
         </div>
 
         {/* Filters Section */}
@@ -1173,24 +1341,44 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 >
                   {app.AppName}
                 </h3>
-                {app.Tuf && (
-                  <div className="mt-1 flex items-center gap-1">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                      <svg 
-                        className="w-3 h-3" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                        />
-                      </svg>
-                      TUF
-                    </span>
+                {(app.Tuf || app.Reports) && (
+                  <div className="mt-1 flex items-center gap-1 flex-wrap">
+                    {app.Tuf && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <svg 
+                          className="w-3 h-3" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth="2" 
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
+                        </svg>
+                        TUF
+                      </span>
+                    )}
+                    {app.Reports && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 17v-6m3 6V7m3 10v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h8l6 6v10a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Reports
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1249,7 +1437,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             app: selectedAppData.AppName,
             description: selectedAppData.Description,
             logo: selectedAppData.Logo,
-            tuf: selectedAppData.Tuf
+            tuf: selectedAppData.Tuf,
+            reports: selectedAppData.Reports
           }}
         />
       )}
