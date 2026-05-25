@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.0.3
+
+- Added `cdn` parameter to `POST /app/create` and `POST /app/update` endpoints.
+- Added `CDN` status badge for applications with CDN enabled.
+
 ## v1.0.2
 
 ### Features

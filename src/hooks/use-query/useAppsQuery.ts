@@ -40,6 +40,7 @@ export type AppListItem = {
   Private?: boolean;
   Tuf?: boolean;
   Reports?: boolean;
+  CdnEdge?: boolean;
 };
 
 export type PaginatedResponse<T> = {

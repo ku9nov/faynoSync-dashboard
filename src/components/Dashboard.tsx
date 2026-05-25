@@ -1341,7 +1341,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 >
                   {app.AppName}
                 </h3>
-                {(app.Tuf || app.Reports) && (
+                {(app.Tuf || app.Reports || app.CdnEdge) && (
                   <div className="mt-1 flex items-center gap-1 flex-wrap">
                     {app.Tuf && (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
@@ -1377,6 +1377,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           />
                         </svg>
                         Reports
+                      </span>
+                    )}
+                    {app.CdnEdge && (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M3 15a4 4 0 014-4 5 5 0 019.9-1A3.5 3.5 0 1120 16H7a4 4 0 01-4-1z"
+                          />
+                        </svg>
+                        CDN
                       </span>
                     )}
                   </div>
@@ -1438,7 +1456,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             description: selectedAppData.Description,
             logo: selectedAppData.Logo,
             tuf: selectedAppData.Tuf,
-            reports: selectedAppData.Reports
+            reports: selectedAppData.Reports,
+            cdn: selectedAppData.CdnEdge
           }}
         />
       )}
