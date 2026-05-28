@@ -42,6 +42,14 @@ interface ErrorResponse {
   error: string;
   details?: string;
 }
+
+const DROPDOWN_MENU_STYLE = {
+  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92))',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
 export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   appName,
   version,
@@ -824,7 +832,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         </svg>
                       </button>
                       {openDropdown === 'platform' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                           {platforms.map((p) => (
                             <button
                               key={p.ID}
@@ -868,7 +876,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         </svg>
                       </button>
                       {openDropdown === 'arch' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                           {architectures.map((a) => (
                             <button
                               key={a.ID}
@@ -915,7 +923,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         </svg>
                       </button>
                                              {openDropdown === 'updater' && (
-                         <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                         <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                            {availableUpdaters.map((u) => (
                              <button
                                key={u.type}
