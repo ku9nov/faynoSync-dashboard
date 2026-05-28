@@ -13,6 +13,7 @@ interface EditAppModalProps {
     logo?: string;
     tuf?: boolean;
     reports?: boolean;
+    cdn?: boolean;
   };
 }
 
@@ -28,6 +29,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
     file: null as File | null,
     tuf: appData.tuf || false,
     reports: appData.reports || false,
+    cdn: appData.cdn || false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -60,6 +62,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
         description: formData.description,
         tuf: formData.tuf ? "true" : "false",
         reports: formData.reports ? "true" : "false",
+        cdn: formData.cdn ? "true" : "false",
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -166,6 +169,20 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
           <label htmlFor="reports" className="text-theme-primary font-roboto cursor-pointer select-none">
             <div className="font-semibold">Enable reports</div>
             <div className="text-sm text-purple-200">Enable Reports for this application</div>
+          </label>
+        </div>
+
+        <div className="mb-6 flex items-start">
+          <input
+            type="checkbox"
+            id="cdn"
+            checked={formData.cdn}
+            onChange={(e) => setFormData(prev => ({ ...prev, cdn: e.target.checked }))}
+            className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+          />
+          <label htmlFor="cdn" className="text-theme-primary font-roboto cursor-pointer select-none">
+            <div className="font-semibold">Enable CDN</div>
+            <div className="text-sm text-purple-200">Serve artifacts through CDN for this application</div>
           </label>
         </div>
 
