@@ -15,6 +15,7 @@ const ChannelsPage = lazy(() => import('../pages/channelsPage.tsx').then(module 
 const PlatformsPage = lazy(() => import('../pages/platformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
 const ArchitecturesPage = lazy(() => import('../pages/architecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
 const StatisticsPage = lazy(() => import('../pages/StatisticsPage.tsx').then(module => ({ default: module.StatisticsPage })));
+const ReportsPage = lazy(() => import('../pages/ReportsPage.tsx').then(module => ({ default: module.ReportsPage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage.tsx').then(module => ({ default: module.SettingsPage })));
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
   {
     path: '/statistics',
     element: <RootLayout><PrivateRoute><StatisticsPage /></PrivateRoute></RootLayout>,
+  },
+  {
+    path: '/reports',
+    element: <RootLayout><PrivateRoute><ReportsPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/settings',

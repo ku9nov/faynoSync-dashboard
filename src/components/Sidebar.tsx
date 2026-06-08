@@ -100,12 +100,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <i className="fas fa-microchip"></i>
               <span>Architectures</span>
             </button>
-            <button 
+            <button
               className={getButtonClass('statistics')}
               onClick={() => handleNavigation('statistics')}
             >
               <i className="fas fa-chart-bar"></i>
               <span>Statistics</span>
+            </button>
+            <button
+              className={getButtonClass('reports')}
+              onClick={() => handleNavigation('reports')}
+            >
+              <i className="fas fa-flag"></i>
+              <span>Reports</span>
             </button>
           </nav>
         </div>
@@ -161,12 +168,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <i className="fas fa-microchip"></i>
               <span>Architectures</span>
             </button>
-            <button 
+            <button
               className={getButtonClass('statistics')}
               onClick={() => handleNavigation('statistics')}
             >
               <i className="fas fa-chart-bar"></i>
               <span>Statistics</span>
+            </button>
+            <button
+              className={getButtonClass('reports')}
+              onClick={() => handleNavigation('reports')}
+            >
+              <i className="fas fa-flag"></i>
+              <span>Reports</span>
             </button>
           </nav>
         </div>
