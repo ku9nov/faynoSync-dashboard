@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.1.0
+
+### Added
+
+- Reports page with download statistics, including a modal for viewing report blobs.
+- Sidebar navigation entry and route for the Reports page.
+
+### Changed
+
+- Restructured the project: grouped components into `cards`, `layout`, and `modals` directories and standardized page/route filenames to PascalCase.
+- Updated import paths, `vite.config.ts`, and `tsconfig.app.json` to match the new structure.
+
+### Fixed
+
+- Dropdown colors across Dashboard, Upload, Edit Version, Create User modals, and the Statistics page for correct theming.
+
 ## v1.0.3
 
 ### Features
