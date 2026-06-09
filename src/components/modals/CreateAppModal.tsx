@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axiosInstance from '../config/axios';
+import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
-import { AdvancedModal } from './common/AdvancedModal';
+import { AdvancedModal } from '@/components/common/AdvancedModal';
 
 interface ErrorResponse {
   error: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styles from './styles.module.css';
+import styles from '@/components/auth-logo/styles.module.css';
 
 interface AnimatedBannerProps {
   fadeOut?: boolean; // If true, banner fades out after animation

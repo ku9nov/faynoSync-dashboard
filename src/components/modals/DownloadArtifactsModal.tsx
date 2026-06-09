@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Artifact } from '../hooks/use-query/useAppsQuery';
-import axiosInstance from '../config/axios';
-import { copyToClipboard } from '../utils/clipboard';
+import { Artifact } from '@/hooks/use-query/useAppsQuery';
+import axiosInstance from '@/config/axios';
+import { copyToClipboard } from '@/utils/clipboard';
 
 interface DownloadArtifactsModalProps {
   artifacts: Artifact[];

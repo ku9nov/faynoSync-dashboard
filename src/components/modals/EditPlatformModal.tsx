@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { usePlatformQuery, Updater, Platform } from '../hooks/use-query/usePlatformQuery';
-import { UpdatersSelector } from './common/UpdatersSelector';
+import { usePlatformQuery, Updater, Platform } from '@/hooks/use-query/usePlatformQuery';
+import { UpdatersSelector } from '@/components/common/UpdatersSelector';
 
 interface EditPlatformModalProps {
   platform: Platform;

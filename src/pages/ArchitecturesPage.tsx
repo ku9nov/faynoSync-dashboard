@@ -1,13 +1,13 @@
 import React from 'react';
-import { Sidebar } from '../components/Sidebar';
-import { Header } from '../components/Header';
-import { CreateArchitectureModal } from '../components/CreateArchitectureModal';
-import { EditArchitectureModal } from '../components/EditArchitectureModal';
-import { ArchitectureCard } from '../components/ArchitectureCard';
-import { DeleteArchitectureConfirmationModal } from '../components/DeleteArchitectureConfirmationModal';
-import { useArchitectureQuery, Architecture } from '../hooks/use-query/useArchitectureQuery.ts';
-import { useSearch } from '../hooks/useSearch.ts';
-import '../styles/cards.css';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { CreateArchitectureModal } from '@/components/modals/CreateArchitectureModal';
+import { EditArchitectureModal } from '@/components/modals/EditArchitectureModal';
+import { ArchitectureCard } from '@/components/cards/ArchitectureCard';
+import { DeleteArchitectureConfirmationModal } from '@/components/modals/DeleteArchitectureConfirmationModal';
+import { useArchitectureQuery, Architecture } from '@/hooks/use-query/useArchitectureQuery.ts';
+import { useSearch } from '@/hooks/useSearch.ts';
+import '@/styles/cards.css';
 
 export const ArchitecturesPage = () => {
   const [createArchitectureOpen, setCreateArchitectureOpen] =

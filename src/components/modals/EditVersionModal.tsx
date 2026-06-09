@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
-import { Artifact, useAppsQuery } from '../hooks/use-query/useAppsQuery';
-import { DeleteArtifactConfirmationModal } from './DeleteArtifactConfirmationModal';
+import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { Artifact, useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { DeleteArtifactConfirmationModal } from '@/components/modals/DeleteArtifactConfirmationModal';
 import { AxiosError } from 'axios';
-import axiosInstance from '../config/axios';
-import { BaseModal } from './common/BaseModal';
+import axiosInstance from '@/config/axios';
+import { BaseModal } from '@/components/common/BaseModal';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { AppListItem } from '../hooks/use-query/useAppsQuery';
-import { useToast } from '../hooks/useToast';
+import { AppListItem } from '@/hooks/use-query/useAppsQuery';
+import { useToast } from '@/hooks/useToast';
 
 interface EditVersionModalProps {
   appName: string;

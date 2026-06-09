@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../config/axios';
-import { copyToClipboard } from '../utils/clipboard';
+import axiosInstance from '@/config/axios';
+import { copyToClipboard } from '@/utils/clipboard';
 
 interface ActionIconsProps {
   onDownload: () => void;

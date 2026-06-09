@@ -1,6 +1,6 @@
 import React from 'react';
-import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
-import { CreateEntityModal } from './common/CreateEntityModal';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { CreateEntityModal } from '@/components/common/CreateEntityModal';
 
 interface CreateChannelModalProps {
   onClose: () => void;

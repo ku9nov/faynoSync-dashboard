@@ -1,5 +1,5 @@
 import React from 'react';
-import { DeleteEntityModal } from './common/DeleteEntityModal';
+import { DeleteEntityModal } from '@/components/common/DeleteEntityModal';
 
 interface DeleteConfirmationModalProps {
   version: string;

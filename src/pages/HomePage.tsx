@@ -1,12 +1,12 @@
 "use client";
 import React from "react";
-import { Header } from "../components/Header";
-import { Sidebar } from "../components/Sidebar";
-import { Dashboard } from "../components/Dashboard";
-import { UploadModal } from "../components/UploadModal";
-import { ChangelogModal } from "../components/ChangelogModal";
-import { CreateAppModal } from "../components/CreateAppModal";
-import { ChangelogEntry } from "../hooks/use-query/useAppsQuery";
+import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Dashboard } from "@/components/Dashboard";
+import { UploadModal } from "@/components/modals/UploadModal";
+import { ChangelogModal } from "@/components/modals/ChangelogModal";
+import { CreateAppModal } from "@/components/modals/CreateAppModal";
+import { ChangelogEntry } from "@/hooks/use-query/useAppsQuery";
 import { useParams, useNavigate } from "react-router-dom";
 
 export const HomePage = () => {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
-import { EditModal } from './common/EditEntityModal';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { EditModal } from '@/components/common/EditEntityModal';
 
 interface EditArchitectureModalProps {
   archName: string;

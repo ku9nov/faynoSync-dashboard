@@ -2,12 +2,12 @@ import { useState } from 'react';
 import * as Yup from 'yup';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form } from 'formik';
-import { AuthWrapper } from '../components/auth-wrapper/authWrapper.tsx';
-import { AuthLogo } from '../components/auth-logo/authLogo.tsx';
-import { AuthButton } from '../components/buttons/authButton.tsx';
-import { AuthInputs } from '../components/inputs/authInputs.tsx';
-import { useAuth } from '../providers/authProvider.tsx';
-import '../styles/cards.css';
+import { AuthWrapper } from '@/components/auth-wrapper/authWrapper.tsx';
+import { AuthLogo } from '@/components/auth-logo/authLogo.tsx';
+import { AuthButton } from '@/components/buttons/authButton.tsx';
+import { AuthInputs } from '@/components/inputs/authInputs.tsx';
+import { useAuth } from '@/providers/authProvider.tsx';
+import '@/styles/cards.css';
 
 interface FormValues {
   username: string;

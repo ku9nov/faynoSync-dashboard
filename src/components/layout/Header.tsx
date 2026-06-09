@@ -1,9 +1,9 @@
 import React from 'react';
-import { SettingsMenu } from './SettingsMenu';
-import useMediaQuery from '../hooks/useMediaQuery';
-import '../styles/header.css';
-import { SettingsModal } from './SettingsModal';
-import { ProfileModal } from './ProfileModal';
+import { SettingsMenu } from '@/components/layout/SettingsMenu';
+import useMediaQuery from '@/hooks/useMediaQuery';
+import '@/styles/header.css';
+import { SettingsModal } from '@/components/modals/SettingsModal';
+import { ProfileModal } from '@/components/modals/ProfileModal';
 
 interface HeaderProps {
   title: string;

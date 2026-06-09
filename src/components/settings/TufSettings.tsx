@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAppsQuery, AppListItem } from '../../hooks/use-query/useAppsQuery';
-import { useToast } from '../../hooks/useToast';
-import axiosInstance from '../../config/axios';
-import { StepStatus, TaskData, TufHistoryEntry, TufConfig } from './tuf/types';
-import { loadHistoryFromStorage, saveToHistory, updateHistoryStatus, clearHistory } from './tuf/history';
-import { AppSelection } from './tuf/AppSelection';
-// import { GenerateKeys } from './tuf/GenerateKeys';
-import { GenerateKeysOffline } from './tuf/GenerateKeysOffline';
-import { Bootstrap } from './tuf/Bootstrap';
-import { MonitorStatus } from './tuf/MonitorStatus';
-import { Config } from './tuf/Config';
-import { RotateRootKeys } from './tuf/RotateRootKeys';
-import { RotateRoleKeys } from './tuf/RotateRoleKeys';
-import { RotateDelegatedKeys } from './tuf/RotateDelegatedKeys';
-import { HistoryTable } from './tuf/HistoryTable';
+import { useAppsQuery, AppListItem } from '@/hooks/use-query/useAppsQuery';
+import { useToast } from '@/hooks/useToast';
+import axiosInstance from '@/config/axios';
+import { StepStatus, TaskData, TufHistoryEntry, TufConfig } from '@/components/settings/tuf/types';
+import { loadHistoryFromStorage, saveToHistory, updateHistoryStatus, clearHistory } from '@/components/settings/tuf/history';
+import { AppSelection } from '@/components/settings/tuf/AppSelection';
+// import { GenerateKeys } from '@/components/settings/tuf/GenerateKeys';
+import { GenerateKeysOffline } from '@/components/settings/tuf/GenerateKeysOffline';
+import { Bootstrap } from '@/components/settings/tuf/Bootstrap';
+import { MonitorStatus } from '@/components/settings/tuf/MonitorStatus';
+import { Config } from '@/components/settings/tuf/Config';
+import { RotateRootKeys } from '@/components/settings/tuf/RotateRootKeys';
+import { RotateRoleKeys } from '@/components/settings/tuf/RotateRoleKeys';
+import { RotateDelegatedKeys } from '@/components/settings/tuf/RotateDelegatedKeys';
+import { HistoryTable } from '@/components/settings/tuf/HistoryTable';
 
 export const TufSettings: React.FC = () => {
   const { apps } = useAppsQuery();

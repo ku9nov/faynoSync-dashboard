@@ -1,6 +1,6 @@
 import React from 'react';
-import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
-import { EditModal } from './common/EditEntityModal';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { EditModal } from '@/components/common/EditEntityModal';
 
 interface EditChannelModalProps {
   channelName: string;

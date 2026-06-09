@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../providers/authProvider';
-import { useTheme } from '../providers/themeProvider';
-import { useUsersQuery } from '../hooks/use-query/useUsersQuery';
+import { useAuth } from '@/providers/authProvider';
+import { useTheme } from '@/providers/themeProvider';
+import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
 
 interface SettingsMenuProps {
   onClose: () => void;

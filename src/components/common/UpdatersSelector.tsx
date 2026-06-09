@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Updater } from '../../hooks/use-query/usePlatformQuery';
+import { Updater } from '@/hooks/use-query/usePlatformQuery';
 
 interface UpdatersSelectorProps {
   updaters: Updater[];

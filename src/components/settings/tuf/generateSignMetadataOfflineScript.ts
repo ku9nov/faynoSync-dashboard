@@ -1,4 +1,4 @@
-import { getKeyAlgorithmConfig } from './keyAlgorithm';
+import { getKeyAlgorithmConfig } from '@/components/settings/tuf/keyAlgorithm';
 
 interface SignMetadataOfflineScriptParams {
   appName: string;

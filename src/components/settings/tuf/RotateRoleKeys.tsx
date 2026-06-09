@@ -1,19 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axiosInstance from '../../../config/axios';
-import { useToast } from '../../../hooks/useToast';
-import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
-import { deleteSigningMetadata } from './deleteSigningMetadata';
-import { MetadataUpdatePanel } from './MetadataUpdatePanel';
-import { generateCreateNewRootMetadataRoleRotationPythonScript } from './generateCreateNewRootMetadataRoleRotationScript';
-import { generateGenerateSignaturesPythonScript } from './generateGenerateSignaturesScript';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from './keyAlgorithm';
-import { generateRotateRoleKeysPythonScript } from './generateRotateRoleKeysScript';
-import { generateUpdateKeyInfoRoleRotationPythonScript } from './generateUpdateKeyInfoRoleRotationScript';
+import axiosInstance from '@/config/axios';
+import { useToast } from '@/hooks/useToast';
+import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
+import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
+import { MetadataUpdatePanel } from '@/components/settings/tuf/MetadataUpdatePanel';
+import { generateCreateNewRootMetadataRoleRotationPythonScript } from '@/components/settings/tuf/generateCreateNewRootMetadataRoleRotationScript';
+import { generateGenerateSignaturesPythonScript } from '@/components/settings/tuf/generateGenerateSignaturesScript';
+import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
+import { generateRotateRoleKeysPythonScript } from '@/components/settings/tuf/generateRotateRoleKeysScript';
+import { generateUpdateKeyInfoRoleRotationPythonScript } from '@/components/settings/tuf/generateUpdateKeyInfoRoleRotationScript';
 
 interface RotateRoleKeysProps {
   selectedApp: string;
   isBootstrapSuccess: boolean;
-  onSaveToHistory: (entry: Omit<import('./types').TufHistoryEntry, 'id'>) => void;
+  onSaveToHistory: (entry: Omit<import('@/components/settings/tuf/types').TufHistoryEntry, 'id'>) => void;
   onCheckTufTasks: (taskId?: string) => void;
   onUpdateMetadata: (roles: string[]) => Promise<void> | void;
 }

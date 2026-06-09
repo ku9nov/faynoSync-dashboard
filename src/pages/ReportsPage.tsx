@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Header } from '../components/Header';
-import { Sidebar } from '../components/Sidebar';
-import { useReportsQuery, ReportGroup } from '../hooks/use-query/useReportsQuery';
-import { ReportBlobsModal } from '../components/ReportBlobsModal';
-import '../styles/cards.css';
+import { useState } from 'react';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { useReportsQuery, ReportGroup } from '@/hooks/use-query/useReportsQuery';
+import { ReportBlobsModal } from '@/components/modals/ReportBlobsModal';
+import '@/styles/cards.css';
 
 const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
 const REPORTS_PAGE_LIMIT = 20;

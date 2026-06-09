@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TufHistoryEntry } from './types';
+import { TufHistoryEntry } from '@/components/settings/tuf/types';
 
 interface HistoryProps {
   selectedApp: string | null;

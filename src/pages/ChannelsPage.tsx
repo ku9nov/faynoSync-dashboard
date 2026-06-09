@@ -1,13 +1,13 @@
 import React from 'react';
-import { Sidebar } from '../components/Sidebar';
-import { Header } from '../components/Header';
-import { CreateChannelModal } from '../components/CreateChannelModal';
-import { EditChannelModal } from '../components/EditChannelModal';
-import { ChannelCard } from '../components/ChannelCard';
-import { DeleteChannelConfirmationModal } from '../components/DeleteChannelConfirmationModal';
-import { useChannelQuery, Channel } from '../hooks/use-query/useChannelQuery';
-import { useSearch } from '../hooks/useSearch.ts';
-import '../styles/cards.css';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { CreateChannelModal } from '@/components/modals/CreateChannelModal';
+import { EditChannelModal } from '@/components/modals/EditChannelModal';
+import { ChannelCard } from '@/components/cards/ChannelCard';
+import { DeleteChannelConfirmationModal } from '@/components/modals/DeleteChannelConfirmationModal';
+import { useChannelQuery, Channel } from '@/hooks/use-query/useChannelQuery';
+import { useSearch } from '@/hooks/useSearch.ts';
+import '@/styles/cards.css';
 
 export const ChannelsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);

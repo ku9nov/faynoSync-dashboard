@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from '../hooks/use-query/usePlatformQuery';
+import { Platform } from '@/hooks/use-query/usePlatformQuery';
 
 interface PlatformCardProps {
   platform: Platform;

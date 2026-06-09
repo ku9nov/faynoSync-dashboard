@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UsersSettings } from './settings/UsersSettings';
+import { UsersSettings } from '@/components/settings/UsersSettings';
 
 interface SettingsModalProps {
   onClose: () => void;

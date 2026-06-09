@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChangelogEntry } from '../hooks/use-query/useAppsQuery';
+import { ChangelogEntry } from '@/hooks/use-query/useAppsQuery';
 import ReactMarkdown from 'react-markdown';
 
 interface ChangelogModalProps {

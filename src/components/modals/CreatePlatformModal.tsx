@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { usePlatformQuery, Updater } from '../hooks/use-query/usePlatformQuery';
-import { UpdatersSelector } from './common/UpdatersSelector';
+import { usePlatformQuery, Updater } from '@/hooks/use-query/usePlatformQuery';
+import { UpdatersSelector } from '@/components/common/UpdatersSelector';
 
 interface CreatePlatformModalProps {
   onClose: () => void;

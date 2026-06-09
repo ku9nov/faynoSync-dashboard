@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TufConfig } from './types';
-import { MetadataUpdatePanel } from './MetadataUpdatePanel';
+import { TufConfig } from '@/components/settings/tuf/types';
+import { MetadataUpdatePanel } from '@/components/settings/tuf/MetadataUpdatePanel';
 
 interface ConfigProps {
   selectedApp: string;

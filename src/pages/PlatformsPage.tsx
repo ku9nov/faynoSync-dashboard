@@ -1,13 +1,13 @@
 import React from 'react';
-import { Sidebar } from '../components/Sidebar';
-import { Header } from '../components/Header';
-import { CreatePlatformModal } from '../components/CreatePlatformModal';
-import { EditPlatformModal } from '../components/EditPlatformModal';
-import { PlatformCard } from '../components/PlatformCard';
-import { DeletePlatformConfirmationModal } from '../components/DeletePlatformConfirmationModal';
-import { usePlatformQuery, Platform } from '../hooks/use-query/usePlatformQuery';
-import { useSearch } from '../hooks/useSearch.ts';
-import '../styles/cards.css';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { CreatePlatformModal } from '@/components/modals/CreatePlatformModal';
+import { EditPlatformModal } from '@/components/modals/EditPlatformModal';
+import { PlatformCard } from '@/components/cards/PlatformCard';
+import { DeletePlatformConfirmationModal } from '@/components/modals/DeletePlatformConfirmationModal';
+import { usePlatformQuery, Platform } from '@/hooks/use-query/usePlatformQuery';
+import { useSearch } from '@/hooks/useSearch.ts';
+import '@/styles/cards.css';
 
 export const PlatformsPage = () => {
   const [createPlatformOpen, setCreatePlatformOpen] = React.useState(false);

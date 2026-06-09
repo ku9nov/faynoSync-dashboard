@@ -1,21 +1,21 @@
 import React from 'react';
-import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse } from '../hooks/use-query/useAppsQuery';
-import { ActionIcons } from './ActionIcons';
-import { EditVersionModal } from './EditVersionModal';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
-import { DownloadArtifactsModal } from './DownloadArtifactsModal';
-import { EditAppModal } from './EditAppModal';
-import { DeleteAppConfirmationModal } from './DeleteAppConfirmationModal';
+import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse } from '@/hooks/use-query/useAppsQuery';
+import { ActionIcons } from '@/components/ActionIcons';
+import { EditVersionModal } from '@/components/modals/EditVersionModal';
+import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
+import { DownloadArtifactsModal } from '@/components/modals/DownloadArtifactsModal';
+import { EditAppModal } from '@/components/modals/EditAppModal';
+import { DeleteAppConfirmationModal } from '@/components/modals/DeleteAppConfirmationModal';
 import { useSearchParams } from 'react-router-dom';
-import axiosInstance from '../config/axios';
+import axiosInstance from '@/config/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearch } from '../hooks/useSearch.ts';
-import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
-import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
-import { useToast } from '../hooks/useToast';
+import { useSearch } from '@/hooks/useSearch.ts';
+import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
-import '../styles/cards.css';
+import '@/styles/cards.css';
 
 interface DashboardProps {
   selectedApp: string | null;

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../../config/axios';
+import axiosInstance from '@/config/axios';
 import { useMemo } from 'react';
 
 export type TelemetryData = {

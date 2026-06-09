@@ -1,4 +1,4 @@
-import { TaskResult, TufHistoryEntry, TaskState } from './types';
+import { TaskResult, TufHistoryEntry, TaskState } from '@/components/settings/tuf/types';
 
 export const loadHistoryFromStorage = (): TufHistoryEntry[] => {
   const savedHistory = localStorage.getItem('tuf-history');

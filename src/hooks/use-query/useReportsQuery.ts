@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../../config/axios';
-import { PaginatedResponse } from './useAppsQuery';
+import axiosInstance from '@/config/axios';
+import { PaginatedResponse } from '@/hooks/use-query/useAppsQuery';
 
 export type ReportGroup = {
   id: string;

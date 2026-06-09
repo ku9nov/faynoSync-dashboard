@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ReportGroup, ReportBlob, useReportBlobsQuery } from '../hooks/use-query/useReportsQuery';
-import { copyToClipboard } from '../utils/clipboard';
+import { ReportGroup, ReportBlob, useReportBlobsQuery } from '@/hooks/use-query/useReportsQuery';
+import { copyToClipboard } from '@/utils/clipboard';
 
 interface ReportBlobsModalProps {
   group: ReportGroup;

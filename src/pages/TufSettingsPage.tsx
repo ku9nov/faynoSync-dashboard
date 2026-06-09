@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Sidebar } from '../components/Sidebar';
-import { TufSettings } from '../components/settings/TufSettings';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { TufSettings } from '@/components/settings/TufSettings';
 
 export const TufSettingsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

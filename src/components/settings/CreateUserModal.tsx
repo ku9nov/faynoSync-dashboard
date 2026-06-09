@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAppsQuery } from '../../hooks/use-query/useAppsQuery';
-import { useChannelQuery } from '../../hooks/use-query/useChannelQuery';
-import { usePlatformQuery } from '../../hooks/use-query/usePlatformQuery';
-import { useArchitectureQuery } from '../../hooks/use-query/useArchitectureQuery';
+import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 
 // Define proper types for permissions
 interface Permission {

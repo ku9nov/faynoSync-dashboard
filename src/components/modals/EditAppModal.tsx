@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axiosInstance from '../config/axios';
+import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
-import { BaseModal } from './common/BaseModal';
+import { BaseModal } from '@/components/common/BaseModal';
 
 interface EditAppModalProps {
   onClose: () => void;

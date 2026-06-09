@@ -1,6 +1,6 @@
 import React from 'react';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
-import { CreateEntityModal } from './common/CreateEntityModal';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { CreateEntityModal } from '@/components/common/CreateEntityModal';
 
 interface CreateArchitectureModalProps {
   onClose: () => void;

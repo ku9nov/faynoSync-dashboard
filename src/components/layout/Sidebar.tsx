@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import '../styles/sidebar.css';
+import '@/styles/sidebar.css';
 
 interface SidebarProps {
   isOpen?: boolean;
