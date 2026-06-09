@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Sidebar } from '../components/Sidebar';
-import { UsersSettings } from '../components/settings/UsersSettings';
-import { TufSettings } from '../components/settings/TufSettings';
-import { TokenSettings } from '../components/settings/TokenSettings';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { UsersSettings } from '@/components/settings/UsersSettings';
+import { TufSettings } from '@/components/settings/TufSettings';
+import { TokenSettings } from '@/components/settings/TokenSettings';
 
 type SettingsPage = 'users' | 'tokens' | 'tuf';
 

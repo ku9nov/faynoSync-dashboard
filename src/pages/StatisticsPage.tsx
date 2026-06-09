@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { useTelemetryQuery } from '../hooks/use-query/useTelemetryQuery';
-import { Header } from '../components/Header';
-import { Sidebar } from '../components/Sidebar';
+import { useTelemetryQuery } from '@/hooks/use-query/useTelemetryQuery';
+import { Header } from '@/components/layout/Header';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, Area, AreaChart } from 'recharts';
-import { useAppsQuery } from '../hooks/use-query/useAppsQuery';
-import { useChannelQuery } from '../hooks/use-query/useChannelQuery';
-import { usePlatformQuery } from '../hooks/use-query/usePlatformQuery';
-import { useArchitectureQuery } from '../hooks/use-query/useArchitectureQuery';
-import { useTheme } from '../providers/themeProvider';
-import { AppListItem } from '../hooks/use-query/useAppsQuery';
-import { Channel } from '../hooks/use-query/useChannelQuery';
-import { Platform } from '../hooks/use-query/usePlatformQuery';
-import { Architecture } from '../hooks/use-query/useArchitectureQuery';
+import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { useTheme } from '@/providers/themeProvider';
+import { AppListItem } from '@/hooks/use-query/useAppsQuery';
+import { Channel } from '@/hooks/use-query/useChannelQuery';
+import { Platform } from '@/hooks/use-query/usePlatformQuery';
+import { Architecture } from '@/hooks/use-query/useArchitectureQuery';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -26,7 +26,7 @@ const TOOLTIP_STYLE = {
   boxShadow: '0 10px 30px rgba(15, 23, 42, 0.25)',
 };
 const DROPDOWN_MENU_STYLE = {
-  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92))',
+  background: 'var(--dropdown-bg)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
   boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',

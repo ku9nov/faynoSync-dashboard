@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppListItem } from '../../../hooks/use-query/useAppsQuery';
+import { AppListItem } from '@/hooks/use-query/useAppsQuery';
 
 interface AppSelectionProps {
   apps: AppListItem[];

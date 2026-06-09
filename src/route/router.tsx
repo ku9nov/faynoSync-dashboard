@@ -1,21 +1,22 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
-import { PrivateRoute } from './privateRoute.tsx';
-import { PublicRoute } from './publicRoute.tsx';
-import { AuthProvider } from '../providers/authProvider.tsx';
+import { PrivateRoute } from '@/route/PrivateRoute.tsx';
+import { PublicRoute } from '@/route/PublicRoute.tsx';
+import { AuthProvider } from '@/providers/authProvider.tsx';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // Lazy load page components
-const SignInPage = lazy(() => import('../pages/signInPage.tsx').then(module => ({ default: module.SignInPage })));
-const SignUpPage = lazy(() => import('../pages/signUpPage.tsx').then(module => ({ default: module.SignUpPage })));
-const HomePage = lazy(() => import('../pages/homePage.tsx').then(module => ({ default: module.HomePage })));
-const ChannelsPage = lazy(() => import('../pages/channelsPage.tsx').then(module => ({ default: module.ChannelsPage })));
-const PlatformsPage = lazy(() => import('../pages/platformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
-const ArchitecturesPage = lazy(() => import('../pages/architecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
-const StatisticsPage = lazy(() => import('../pages/StatisticsPage.tsx').then(module => ({ default: module.StatisticsPage })));
-const SettingsPage = lazy(() => import('../pages/SettingsPage.tsx').then(module => ({ default: module.SettingsPage })));
+const SignInPage = lazy(() => import('@/pages/SignInPage.tsx').then(module => ({ default: module.SignInPage })));
+const SignUpPage = lazy(() => import('@/pages/SignUpPage.tsx').then(module => ({ default: module.SignUpPage })));
+const HomePage = lazy(() => import('@/pages/HomePage.tsx').then(module => ({ default: module.HomePage })));
+const ChannelsPage = lazy(() => import('@/pages/ChannelsPage.tsx').then(module => ({ default: module.ChannelsPage })));
+const PlatformsPage = lazy(() => import('@/pages/PlatformsPage.tsx').then(module => ({ default: module.PlatformsPage })));
+const ArchitecturesPage = lazy(() => import('@/pages/ArchitecturesPage.tsx').then(module => ({ default: module.ArchitecturesPage })));
+const StatisticsPage = lazy(() => import('@/pages/StatisticsPage.tsx').then(module => ({ default: module.StatisticsPage })));
+const ReportsPage = lazy(() => import('@/pages/ReportsPage.tsx').then(module => ({ default: module.ReportsPage })));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage.tsx').then(module => ({ default: module.SettingsPage })));
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <AuthProvider>
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
   {
     path: '/statistics',
     element: <RootLayout><PrivateRoute><StatisticsPage /></PrivateRoute></RootLayout>,
+  },
+  {
+    path: '/reports',
+    element: <RootLayout><PrivateRoute><ReportsPage /></PrivateRoute></RootLayout>,
   },
   {
     path: '/settings',

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useToast } from '../../../hooks/useToast';
-import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
-import { StepStatus, TufHistoryEntry } from './types';
-import { getStatusColor, getStatusIcon } from './utils';
-import { generateTufPythonScript } from './generateTufScript';
+import { useToast } from '@/hooks/useToast';
+import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
+import { StepStatus, TufHistoryEntry } from '@/components/settings/tuf/types';
+import { getStatusColor, getStatusIcon } from '@/components/settings/tuf/utils';
+import { generateTufPythonScript } from '@/components/settings/tuf/generateTufScript';
 
 interface GenerateKeysOfflineProps {
   selectedApp: string;

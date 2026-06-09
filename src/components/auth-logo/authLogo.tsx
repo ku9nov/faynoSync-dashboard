@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
-import { AnimatedBanner } from './AnimatedBanner';
+import { AnimatedBanner } from '@/components/auth-logo/AnimatedBanner';
 
 export const AuthLogo: FC<PropsWithChildren> = () => {
   return (

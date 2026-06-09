@@ -1,4 +1,4 @@
-import { StepStatus, TaskState } from './types';
+import { StepStatus, TaskState } from '@/components/settings/tuf/types';
 
 export const getStatusColor = (status: StepStatus) => {
   switch (status) {

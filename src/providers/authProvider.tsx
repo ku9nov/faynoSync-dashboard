@@ -1,6 +1,6 @@
 import { createContext, PropsWithChildren, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { env } from '../config/env';
+import { env } from '@/config/env';
 
 type LoginProviderProps = {
   username: string;

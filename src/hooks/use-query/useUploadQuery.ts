@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '../../config/axios';
+import axiosInstance from '@/config/axios';
 
 export type UploadData = {
   app_name: string;

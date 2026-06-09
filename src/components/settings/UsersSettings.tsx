@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useUsersListQuery } from '../../hooks/use-query/useUsersListQuery';
-import { useAppsQuery } from '../../hooks/use-query/useAppsQuery';
-import { useChannelQuery } from '../../hooks/use-query/useChannelQuery';
-import { usePlatformQuery } from '../../hooks/use-query/usePlatformQuery';
-import { useArchitectureQuery } from '../../hooks/use-query/useArchitectureQuery';
-import { AllowedItemsModal } from './AllowedItemsModal';
-import { EditUserModal } from './EditUserModal';
-import axiosInstance from '../../config/axios';
+import { useUsersListQuery } from '@/hooks/use-query/useUsersListQuery';
+import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
+import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
+import { AllowedItemsModal } from '@/components/settings/AllowedItemsModal';
+import { EditUserModal } from '@/components/settings/EditUserModal';
+import axiosInstance from '@/config/axios';
 import { useQueryClient } from '@tanstack/react-query';
-import { DeleteUserConfirmationModal } from './DeleteUserConfirmationModal';
-import { CreateUserModal } from './CreateUserModal';
+import { DeleteUserConfirmationModal } from '@/components/settings/DeleteUserConfirmationModal';
+import { CreateUserModal } from '@/components/settings/CreateUserModal';
 
 // Add styles for checkboxes
 const checkboxStyles = `

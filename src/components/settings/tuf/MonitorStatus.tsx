@@ -1,6 +1,6 @@
 import React from 'react';
-import { StepStatus, TaskData } from './types';
-import { getStatusColor, getStatusIcon, getTaskStateColor } from './utils';
+import { StepStatus, TaskData } from '@/components/settings/tuf/types';
+import { getStatusColor, getStatusIcon, getTaskStateColor } from '@/components/settings/tuf/utils';
 
 interface MonitorStatusProps {
   selectedApp: string;

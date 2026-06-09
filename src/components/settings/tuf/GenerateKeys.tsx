@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../../../config/axios';
-import { useToast } from '../../../hooks/useToast';
-import { StepStatus, TufHistoryEntry } from './types';
-import { getStatusColor, getStatusIcon } from './utils';
+import axiosInstance from '@/config/axios';
+import { useToast } from '@/hooks/useToast';
+import { StepStatus, TufHistoryEntry } from '@/components/settings/tuf/types';
+import { getStatusColor, getStatusIcon } from '@/components/settings/tuf/utils';
 
 interface GenerateKeysProps {
   selectedApp: string;

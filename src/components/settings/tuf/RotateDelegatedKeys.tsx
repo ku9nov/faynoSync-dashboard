@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import axiosInstance from '../../../config/axios';
-import { useToast } from '../../../hooks/useToast';
-import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
-import { generateRotateDelegatedRoleKeysPythonScript } from './generateRotateDelegatedRoleKeysScript';
-import { generateCreateNewTargetsDelegationMetadataPythonScript } from './generateCreateNewTargetsMetadataDelegationRotationScript';
-import { generateCreateNewDelegatedRoleMetadataPythonScript } from './generateCreateNewDelegatedRoleMetadataScript';
-import { generateBuildDelegatedRotationRequestPythonScript } from './generateBuildDelegatedRotationRequestScript';
-import { generateSignMetadataForApiPythonScript } from './generateSignMetadataForApiScript';
-import { generateUpdateKeyInfoDelegatedRotationPythonScript } from './generateUpdateKeyInfoDelegatedRotationScript';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm } from './keyAlgorithm';
-import { deleteSigningMetadata } from './deleteSigningMetadata';
+import axiosInstance from '@/config/axios';
+import { useToast } from '@/hooks/useToast';
+import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
+import { generateRotateDelegatedRoleKeysPythonScript } from '@/components/settings/tuf/generateRotateDelegatedRoleKeysScript';
+import { generateCreateNewTargetsDelegationMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewTargetsMetadataDelegationRotationScript';
+import { generateCreateNewDelegatedRoleMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewDelegatedRoleMetadataScript';
+import { generateBuildDelegatedRotationRequestPythonScript } from '@/components/settings/tuf/generateBuildDelegatedRotationRequestScript';
+import { generateSignMetadataForApiPythonScript } from '@/components/settings/tuf/generateSignMetadataForApiScript';
+import { generateUpdateKeyInfoDelegatedRotationPythonScript } from '@/components/settings/tuf/generateUpdateKeyInfoDelegatedRotationScript';
+import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
+import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
 
 interface RotateDelegatedKeysProps {
   selectedApp: string;
   isBootstrapSuccess: boolean;
-  onSaveToHistory: (entry: Omit<import('./types').TufHistoryEntry, 'id'>) => void;
+  onSaveToHistory: (entry: Omit<import('@/components/settings/tuf/types').TufHistoryEntry, 'id'>) => void;
   onCheckTufTasks: (taskId?: string) => void;
 }
 

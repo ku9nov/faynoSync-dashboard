@@ -1,20 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useToast } from '../../../hooks/useToast';
-import { useUsersQuery } from '../../../hooks/use-query/useUsersQuery';
-import axiosInstance from '../../../config/axios';
-import { generateRotateRootKeysPythonScript } from './generateRotateRootKeysScript';
-import { generateCreateNewRootMetadataPythonScript } from './generateCreateNewRootMetadataScript';
-import { generateCreateNewRootMetadataPythonScriptOffline } from './generateCreateNewRootMetadataScriptOffline';
-import { generateSignMetadataOfflinePythonScript } from './generateSignMetadataOfflineScript';
-import { generateGenerateSignaturesPythonScript } from './generateGenerateSignaturesScript';
-import { deleteSigningMetadata } from './deleteSigningMetadata';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from './keyAlgorithm';
-import { StepperModal, Step } from '../../common/StepperModal';
+import { useToast } from '@/hooks/useToast';
+import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
+import axiosInstance from '@/config/axios';
+import { generateRotateRootKeysPythonScript } from '@/components/settings/tuf/generateRotateRootKeysScript';
+import { generateCreateNewRootMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewRootMetadataScript';
+import { generateCreateNewRootMetadataPythonScriptOffline } from '@/components/settings/tuf/generateCreateNewRootMetadataScriptOffline';
+import { generateSignMetadataOfflinePythonScript } from '@/components/settings/tuf/generateSignMetadataOfflineScript';
+import { generateGenerateSignaturesPythonScript } from '@/components/settings/tuf/generateGenerateSignaturesScript';
+import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
+import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
+import { StepperModal, Step } from '@/components/common/StepperModal';
 
 interface RotateRootKeysProps {
   selectedApp: string;
   isBootstrapSuccess: boolean;
-  onSaveToHistory: (entry: Omit<import('./types').TufHistoryEntry, 'id'>) => void;
+  onSaveToHistory: (entry: Omit<import('@/components/settings/tuf/types').TufHistoryEntry, 'id'>) => void;
   onCheckTufTasks: (taskId?: string) => void;
 }
 

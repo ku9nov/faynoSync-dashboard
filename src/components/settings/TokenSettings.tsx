@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axiosInstance from '../../config/axios';
-import { useAppsQuery } from '../../hooks/use-query/useAppsQuery';
-import { useToast } from '../../hooks/useToast';
-import { AllowedItemsModal } from './AllowedItemsModal';
+import axiosInstance from '@/config/axios';
+import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { useToast } from '@/hooks/useToast';
+import { AllowedItemsModal } from '@/components/settings/AllowedItemsModal';
 
 type ExpirationValue = '1d' | '7d' | '30d' | '90d' | 'never';
 
