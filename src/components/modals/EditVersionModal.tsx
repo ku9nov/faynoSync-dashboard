@@ -44,7 +44,7 @@ interface ErrorResponse {
 }
 
 const DROPDOWN_MENU_STYLE = {
-  background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(30, 41, 59, 0.92))',
+  background: 'var(--dropdown-bg)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
   boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',

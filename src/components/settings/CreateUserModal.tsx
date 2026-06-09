@@ -4,6 +4,13 @@ import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 
+const DROPDOWN_MENU_STYLE = {
+  background: 'var(--dropdown-bg)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
 // Define proper types for permissions
 interface Permission {
   create: boolean;
@@ -452,7 +459,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </button>
                     
                     {showAppsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-input border border-theme rounded-lg shadow-lg backdrop-blur-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg max-h-60 overflow-y-auto' style={DROPDOWN_MENU_STYLE}>
                         {Array.isArray(apps) && apps.map(app => {
                           const isSelected = permissions.apps.allowed.includes(app.ID);
                           return (
@@ -564,7 +571,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </button>
                     
                     {showChannelsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-input border border-theme rounded-lg shadow-lg backdrop-blur-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg max-h-60 overflow-y-auto' style={DROPDOWN_MENU_STYLE}>
                         {Array.isArray(channels) && channels.map(channel => {
                           const isSelected = permissions.channels.allowed.includes(channel.ID);
                           return (
@@ -676,7 +683,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </button>
                     
                     {showPlatformsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-input border border-theme rounded-lg shadow-lg backdrop-blur-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg max-h-60 overflow-y-auto' style={DROPDOWN_MENU_STYLE}>
                         {Array.isArray(platforms) && platforms.map(platform => {
                           const isSelected = permissions.platforms.allowed.includes(platform.ID);
                           return (
@@ -788,7 +795,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </button>
                     
                     {showArchsDropdown && (
-                      <div className='absolute z-10 mt-1 w-full bg-theme-input border border-theme rounded-lg shadow-lg backdrop-blur-lg max-h-60 overflow-y-auto'>
+                      <div className='absolute z-10 mt-1 w-full backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg max-h-60 overflow-y-auto' style={DROPDOWN_MENU_STYLE}>
                         {Array.isArray(architectures) && architectures.map(arch => {
                           const isSelected = permissions.archs.allowed.includes(arch.ID);
                           return (

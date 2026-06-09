@@ -6,6 +6,13 @@ import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 import { useUploadQuery } from '@/hooks/use-query/useUploadQuery';
 import { AdvancedModal } from '@/components/common/AdvancedModal';
 
+const DROPDOWN_MENU_STYLE = {
+  background: 'var(--dropdown-bg)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
 interface UploadModalProps {
   onClose: () => void;
 }
@@ -185,7 +192,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 </svg>
               </button>
               {openDropdown === 'app_name' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
                   {apps.map((app) => (
                     <button
                       key={app.ID}
@@ -240,7 +247,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'channel' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
                     {channels.map((channel) => (
                       <button
                         key={channel.ID}
@@ -283,7 +290,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'platform' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
                     {platforms.map((platform) => (
                       <button
                         key={platform.ID}
@@ -331,7 +338,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'updater' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
                     {availableUpdaters.map((updater) => (
                       <button
                         key={updater.type}
@@ -389,7 +396,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'arch' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-theme-input border border-theme rounded-lg shadow-lg z-10 backdrop-blur-lg">
+                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
                     {architectures.map((arch) => (
                       <button
                         key={arch.ID}

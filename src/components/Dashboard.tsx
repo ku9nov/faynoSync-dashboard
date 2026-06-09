@@ -17,6 +17,13 @@ import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import '@/styles/cards.css';
 
+const DROPDOWN_MENU_STYLE = {
+  background: 'var(--dropdown-bg)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
 interface DashboardProps {
   selectedApp: string | null;
   onAppClick: (appName: string) => void;
@@ -698,7 +705,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </svg>
               </button>
               {openDropdown === 'channel' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                   <button
                     onClick={() => handleOptionClick('channel', '')}
                     className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
@@ -740,7 +747,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </svg>
               </button>
               {openDropdown === 'platform' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                   <button
                     onClick={() => handleOptionClick('platform', '')}
                     className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
@@ -782,7 +789,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </svg>
               </button>
               {openDropdown === 'arch' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                   <button
                     onClick={() => handleOptionClick('arch', '')}
                     className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
@@ -827,7 +834,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </svg>
               </button>
               {openDropdown === 'published' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                   <button
                     onClick={() => handleOptionClick('published', null)}
                     className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
@@ -875,7 +882,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </svg>
               </button>
               {openDropdown === 'critical' && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-theme-card backdrop-blur-lg rounded-lg shadow-lg z-10 border border-theme-card-hover">
+                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
                   <button
                     onClick={() => handleOptionClick('critical', null)}
                     className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
