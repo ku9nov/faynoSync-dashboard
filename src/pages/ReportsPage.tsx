@@ -1,12 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { useReportsQuery, ReportGroup } from '@/hooks/use-query/useReportsQuery';
+import { useReportsQuery, ReportGroup, ReportFilters } from '@/hooks/use-query/useReportsQuery';
+import { useAppsQuery, AppListItem } from '@/hooks/use-query/useAppsQuery';
+import { useChannelQuery, Channel } from '@/hooks/use-query/useChannelQuery';
+import { usePlatformQuery, Platform } from '@/hooks/use-query/usePlatformQuery';
+import { useArchitectureQuery, Architecture } from '@/hooks/use-query/useArchitectureQuery';
 import { ReportBlobsModal } from '@/components/modals/ReportBlobsModal';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/cards.css';
 
 const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
 const REPORTS_PAGE_LIMIT = 20;
+const EVENT_TYPES = ['crash', 'startup_failure', 'update_failure', 'install_failure', 'rollback_failure'];
+const INPUT_CLASS =
+  'w-full px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm';
+const DROPDOWN_MENU_STYLE = {
+  background: 'var(--dropdown-bg)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -39,69 +54,330 @@ const Badge = ({ label, className }: { label: string; className: string }) => (
   </span>
 );
 
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={`text-theme-primary transition-transform ${open ? 'rotate-180' : ''}`}
+  >
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
+const FilterSelect = ({
+  label,
+  value,
+  placeholder,
+  options,
+  name,
+  openDropdown,
+  onToggle,
+  onSelect,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  options: string[];
+  name: string;
+  openDropdown: string | null;
+  onToggle: (name: string) => void;
+  onSelect: (value: string) => void;
+}) => (
+  <div>
+    <label className="block text-theme-primary mb-2 text-sm font-roboto">{label}</label>
+    <div className="relative dropdown-container">
+      <div className="flex items-center space-x-2">
+        <button
+          type="button"
+          onClick={() => onToggle(name)}
+          className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
+        >
+          <span className={value ? '' : 'text-theme-secondary'}>{value || placeholder}</span>
+          <ChevronIcon open={openDropdown === name} />
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onSelect('')}
+            className="header-settings-btn p-2"
+            title="Clear"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
+      </div>
+      {openDropdown === name && (
+        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
+          {options.length > 0 ? (
+            options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => onSelect(option)}
+                className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
+                  value === option ? 'bg-theme-button-primary bg-opacity-50' : ''
+                }`}
+              >
+                <span className="mr-2">{value === option ? '✓' : ''}</span>
+                {option}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-theme-primary text-center">No options available</div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 export const ReportsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<ReportFilters>({});
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<ReportGroup | null>(null);
-  const { reports, isLoading } = useReportsQuery(page, REPORTS_PAGE_LIMIT);
+
+  const { apps = [] } = useAppsQuery();
+  const { channels = [] } = useChannelQuery();
+  const { platforms = [] } = usePlatformQuery();
+  const { architectures = [] } = useArchitectureQuery();
+  const { reports, isLoading } = useReportsQuery(page, REPORTS_PAGE_LIMIT, filters);
 
   const items = reports?.items ?? [];
   const total = reports?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / REPORTS_PAGE_LIMIT));
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   const handlePageChange = (nextPage: number) => {
     setPage(Math.min(Math.max(1, nextPage), totalPages));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-theme-gradient font-sans">
-        <div className="flex">
-          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-          <main className="flex-1 p-8">
-            <Header
-              title="Reports"
-              onMenuClick={() => setIsSidebarOpen(true)}
-              onCreateClick={() => {}}
-              createButtonText=""
-              hideSearch={true}
-            />
-            <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
-            </div>
-          </main>
-        </div>
-      </div>
-    );
-  }
+  const updateFilter = (key: keyof ReportFilters, value: string) => {
+    setPage(1);
+    setFilters((prev) => {
+      const next = { ...prev };
+      if (value) {
+        next[key] = value;
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+  };
+
+  const handleSelectToggle = (name: string) => {
+    setOpenDropdown((prev) => (prev === name ? null : name));
+  };
+
+  const handleSelect = (key: keyof ReportFilters, name: string) => (value: string) => {
+    updateFilter(key, value);
+    setOpenDropdown((prev) => (prev === name ? null : prev));
+  };
+
+  const handleFromChange = (date: Date | null) => {
+    setFromDate(date);
+    updateFilter('from', date ? date.toISOString() : '');
+  };
+
+  const handleToChange = (date: Date | null) => {
+    setToDate(date);
+    updateFilter('to', date ? date.toISOString() : '');
+  };
+
+  const handleClearAll = () => {
+    setPage(1);
+    setFilters({});
+    setFromDate(null);
+    setToDate(null);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-container') && !target.closest('.react-datepicker')) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const renderHeader = () => (
+    <Header
+      title="Reports"
+      onMenuClick={() => setIsSidebarOpen(true)}
+      onCreateClick={() => {}}
+      createButtonText=""
+      hideSearch={true}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex flex-col lg:flex-row">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="flex-1 p-2 sm:p-4 md:p-8">
-          <Header
-            title="Reports"
-            onMenuClick={() => setIsSidebarOpen(true)}
-            onCreateClick={() => {}}
-            createButtonText=""
-            hideSearch={true}
-          />
+          {renderHeader()}
 
-          <div className={`${PANEL_CLASS} p-4 sm:p-6 mb-4 sm:mb-8 flex items-center justify-between`}>
-            <h2 className="text-theme-primary text-base sm:text-lg font-semibold">Report Groups</h2>
-            <span className="text-theme-secondary text-xs sm:text-sm">
-              {total} group{total === 1 ? '' : 's'} total
-            </span>
+          <div className={`${PANEL_CLASS} relative z-30 p-4 sm:p-6 mb-4 sm:mb-8`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-theme-primary text-base sm:text-lg font-semibold">Filters</h2>
+              <div className="flex items-center gap-3">
+                <span className="text-theme-secondary text-xs sm:text-sm">
+                  {total} group{total === 1 ? '' : 's'} total
+                </span>
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleClearAll}
+                    className="header-additional-btn px-3 py-1.5 text-sm"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <FilterSelect
+                label="Application"
+                value={filters.app ?? ''}
+                placeholder="Select app"
+                options={(apps as AppListItem[]).map((app) => app.AppName)}
+                name="app"
+                openDropdown={openDropdown}
+                onToggle={handleSelectToggle}
+                onSelect={handleSelect('app', 'app')}
+              />
+              <FilterSelect
+                label="Channel"
+                value={filters.channel ?? ''}
+                placeholder="Select channel"
+                options={(channels as Channel[]).map((channel) => channel.ChannelName)}
+                name="channel"
+                openDropdown={openDropdown}
+                onToggle={handleSelectToggle}
+                onSelect={handleSelect('channel', 'channel')}
+              />
+              <FilterSelect
+                label="Platform"
+                value={filters.platform ?? ''}
+                placeholder="Select platform"
+                options={(platforms as Platform[]).map((platform) => platform.PlatformName)}
+                name="platform"
+                openDropdown={openDropdown}
+                onToggle={handleSelectToggle}
+                onSelect={handleSelect('platform', 'platform')}
+              />
+              <FilterSelect
+                label="Architecture"
+                value={filters.arch ?? ''}
+                placeholder="Select architecture"
+                options={(architectures as Architecture[]).map((arch) => arch.ArchID)}
+                name="arch"
+                openDropdown={openDropdown}
+                onToggle={handleSelectToggle}
+                onSelect={handleSelect('arch', 'arch')}
+              />
+
+              <div>
+                <label className="block text-theme-primary mb-2 text-sm font-roboto">Version</label>
+                <input
+                  type="text"
+                  value={filters.version ?? ''}
+                  onChange={(e) => updateFilter('version', e.target.value)}
+                  placeholder="e.g. 1.4.2"
+                  className={INPUT_CLASS}
+                />
+              </div>
+              <FilterSelect
+                label="Event Type"
+                value={filters.type ?? ''}
+                placeholder="Select event type"
+                options={EVENT_TYPES}
+                name="type"
+                openDropdown={openDropdown}
+                onToggle={handleSelectToggle}
+                onSelect={handleSelect('type', 'type')}
+              />
+              <div>
+                <label className="flex items-center gap-1.5 text-theme-primary mb-2 text-sm font-roboto">
+                  Reason
+                  <span className="relative group inline-flex">
+                    <i className="fas fa-info-circle text-theme-secondary cursor-help"></i>
+                    <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 rounded-lg border border-theme-card-hover backdrop-blur-2xl px-3 py-2 text-xs text-theme-primary normal-case font-normal opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-[95]" style={DROPDOWN_MENU_STYLE}>
+                      Use the raw value, not the label shown in the table. Lowercase with underscores instead of spaces — e.g. "Panic Nil Pointer" → <code>panic_nil_pointer</code>.
+                    </span>
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={filters.reason ?? ''}
+                  onChange={(e) => updateFilter('reason', e.target.value)}
+                  placeholder="e.g. checksum_mismatch"
+                  className={INPUT_CLASS}
+                />
+              </div>
+
+              <div>
+                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen From</label>
+                <DatePicker
+                  selected={fromDate}
+                  onChange={handleFromChange}
+                  showTimeSelect
+                  dateFormat="yyyy-MM-dd HH:mm"
+                  maxDate={new Date()}
+                  placeholderText="Start date"
+                  isClearable
+                  className={INPUT_CLASS}
+                  calendarClassName="react-datepicker"
+                  popperClassName="z-[90]"
+                />
+              </div>
+              <div>
+                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen To</label>
+                <DatePicker
+                  selected={toDate}
+                  onChange={handleToChange}
+                  showTimeSelect
+                  dateFormat="yyyy-MM-dd HH:mm"
+                  minDate={fromDate ?? undefined}
+                  maxDate={new Date()}
+                  placeholderText="End date"
+                  isClearable
+                  className={INPUT_CLASS}
+                  calendarClassName="react-datepicker"
+                  popperClassName="z-[90]"
+                />
+              </div>
+            </div>
           </div>
 
-          {items.length === 0 ? (
+          {isLoading ? (
+            <div className={`${PANEL_CLASS} flex items-center justify-center h-64`}>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-theme-primary"></div>
+            </div>
+          ) : items.length === 0 ? (
             <div className={`${PANEL_CLASS} flex items-center justify-center h-64`}>
               <div className="text-center">
                 <svg className="w-12 h-12 mx-auto text-theme-primary mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <p className="text-theme-primary opacity-75">No reports available yet</p>
+                <p className="text-theme-primary opacity-75">
+                  {hasActiveFilters ? 'No reports match the selected filters' : 'No reports available yet'}
+                </p>
               </div>
             </div>
           ) : (

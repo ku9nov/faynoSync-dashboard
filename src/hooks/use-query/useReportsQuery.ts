@@ -60,13 +60,30 @@ export type ReportBlob = {
   url: string;
 };
 
-export const useReportsQuery = (page: number = 1, limit: number = 20) => {
+export type ReportFilters = {
+  app?: string;
+  version?: string;
+  channel?: string;
+  platform?: string;
+  arch?: string;
+  type?: string;
+  reason?: string;
+  from?: string;
+  to?: string;
+};
+
+export const useReportsQuery = (page: number = 1, limit: number = 20, filters: ReportFilters = {}) => {
   const { data, isLoading, refetch } = useQuery<PaginatedResponse<ReportGroup>>({
-    queryKey: ['reports', page, limit],
+    queryKey: ['reports', page, limit, filters],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
+      });
+      (Object.entries(filters) as [keyof ReportFilters, string | undefined][]).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
       });
       const response = await axiosInstance.get(`/reports/groups?${params.toString()}`);
       return response.data;
