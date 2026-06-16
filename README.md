@@ -1,7 +1,7 @@
 # FaynoSync Dashboard
 
 
-![demo](https://github.com/user-attachments/assets/21b0bd02-484c-49fc-ad48-b1201f6e5d75)
+![demo](https://github.com/user-attachments/assets/7071cfb6-8293-4069-a0c1-b8fda70d431f)
 
 
 
