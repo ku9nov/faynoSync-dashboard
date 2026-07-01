@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { AxiosError } from 'axios';
 
 interface EditModalProps {
@@ -46,11 +47,7 @@ export const EditModal: React.FC<EditModalProps> = ({
     }
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   return (
     <>
@@ -86,7 +83,7 @@ export const EditModal: React.FC<EditModalProps> = ({
       )}
       <div 
         className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high'
-        onClick={handleBackdropClick}
+        {...backdropProps}
       >
         <div className='bg-theme-modal-gradient p-8 rounded-lg w-96'>
           <div className="flex justify-between items-center mb-4">

@@ -617,7 +617,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               ) : reportKeyForApp?.key_value ? (
                 <>
                   <p
-                    className="font-mono text-xs text-theme-primary/95 overflow-x-auto whitespace-nowrap flex-1"
+                    className="font-mono text-xs text-theme-primary/95 overflow-x-auto whitespace-nowrap flex-1 min-w-0"
                   >
                     {reportKeyForApp.key_value}
                   </p>

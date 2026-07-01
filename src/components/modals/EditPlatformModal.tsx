@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { usePlatformQuery, Updater, Platform } from '@/hooks/use-query/usePlatformQuery';
 import { UpdatersSelector } from '@/components/common/UpdatersSelector';
 
@@ -32,16 +33,12 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
     }
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-[500px] max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">

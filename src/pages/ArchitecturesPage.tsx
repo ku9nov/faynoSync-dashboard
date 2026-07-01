@@ -54,7 +54,7 @@ export const ArchitecturesPage = () => {
     <div className='min-h-screen bg-theme-gradient font-sans'>
       <div className='flex'>
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className='flex-1 p-8'>
+        <main className='flex-1 min-w-0 p-8'>
           <Header
             title='Architectures'
             onCreateClick={openCreateArchitecture}

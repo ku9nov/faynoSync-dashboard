@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { ReportGroup, ReportBlob, useReportBlobsQuery } from '@/hooks/use-query/useReportsQuery';
 import { copyToClipboard } from '@/utils/clipboard';
 
@@ -40,11 +41,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   const handleCopyLink = async (blob: ReportBlob) => {
     setCopyError(null);
@@ -61,7 +58,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto flex flex-col">
         <h2 className="text-2xl font-bold mb-1 text-theme-primary font-roboto">

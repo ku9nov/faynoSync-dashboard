@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 interface EditUserModalProps {
   userId: string;
@@ -76,11 +77,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
     );
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   if (!isOpen) return null;
 
@@ -118,7 +115,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
       )}
       <div 
         className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto min-h-screen p-4'
-        onClick={handleBackdropClick}
+        {...backdropProps}
       >
         <div className='bg-theme-modal-gradient p-8 rounded-lg w-full max-w-md max-h-[90vh]'>
           <h2 className='text-2xl font-bold mb-4 text-theme-primary font-roboto'>

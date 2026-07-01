@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 interface AllowedItemsModalProps {
   isOpen: boolean;
@@ -42,18 +43,14 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
     setSelected(items.map((item) => item.id));
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   if (!isOpen) return null;
 
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto min-h-screen p-4"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div 
         className="bg-theme-gradient rounded-lg w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
