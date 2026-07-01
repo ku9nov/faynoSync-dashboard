@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 interface BaseModalProps {
   title: string;
@@ -25,16 +26,12 @@ export const BaseModal: React.FC<BaseModalProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   return (
     <div 
       className="fixed inset-0 flex items-center justify-center animate-fade-in modal-overlay-high"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className={`bg-theme-modal-gradient p-8 rounded-lg ${className}`}>
         {isLoading && (

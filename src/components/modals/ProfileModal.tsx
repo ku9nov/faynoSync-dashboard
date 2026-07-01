@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import ReactDOM from 'react-dom';
 import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
 import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
@@ -34,11 +35,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
   }, [refetchUser, refetchApps, refetchChannels, refetchPlatforms, refetchArchitectures]);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   const generatePassword = () => {
     const length = 32;
@@ -142,7 +139,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   return ReactDOM.createPortal(
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[11000] overflow-y-auto min-h-screen p-4"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className="bg-theme-modal-gradient rounded-lg p-8 w-full max-w-[600px] max-h-[90vh] relative"
         onClick={e => e.stopPropagation()}

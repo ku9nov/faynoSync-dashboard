@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import ReactMarkdown from 'react-markdown';
 
 interface FileInfo {
@@ -53,11 +54,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && !isLoading) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose, !isLoading);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && onFilesChange) {
@@ -89,7 +86,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className="bg-theme-modal-gradient rounded-lg p-8 w-[500px] max-h-[80vh] overflow-y-auto relative">
         {isLoading && (

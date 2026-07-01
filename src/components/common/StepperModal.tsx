@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 export interface Step {
   title: string;
@@ -21,18 +22,14 @@ export const StepperModal: React.FC<StepperModalProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
-  if (!isOpen) return null;
-
   const handleClose = () => {
     setCurrentStep(0);
     onClose();
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
+  const backdropProps = useBackdropClose(handleClose);
+
+  if (!isOpen) return null;
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -55,7 +52,7 @@ export const StepperModal: React.FC<StepperModalProps> = ({
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto p-4"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div
         className="bg-theme-modal-gradient rounded-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative my-auto"

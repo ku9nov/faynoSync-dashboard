@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { Artifact } from '@/hooks/use-query/useAppsQuery';
 import axiosInstance from '@/config/axios';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -23,11 +24,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
     };
   }, []);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const backdropProps = useBackdropClose(onClose);
 
   const handleDownload = (artifact: Artifact) => {
     // First try to fetch the link with authentication
@@ -93,7 +90,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      onClick={handleBackdropClick}
+      {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto flex flex-col">
         <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
