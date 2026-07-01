@@ -229,7 +229,7 @@ export const ReportsPage = () => {
     <div className="min-h-screen bg-theme-gradient font-sans">
       <div className="flex flex-col lg:flex-row">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-1 p-2 sm:p-4 md:p-8">
+        <main className="flex-1 min-w-0 p-2 sm:p-4 md:p-8">
           {renderHeader()}
 
           <div className={`${PANEL_CLASS} relative z-30 p-4 sm:p-6 mb-4 sm:mb-8`}>
