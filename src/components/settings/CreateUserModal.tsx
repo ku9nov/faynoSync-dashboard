@@ -82,7 +82,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   const [showChannelsDropdown, setShowChannelsDropdown] = useState(false);
   const [showPlatformsDropdown, setShowPlatformsDropdown] = useState(false);
   const [showArchsDropdown, setShowArchsDropdown] = useState(false);
-  
+
+  const toggleDropdown = (name: 'apps' | 'channels' | 'platforms' | 'archs') => {
+    setShowAppsDropdown(name === 'apps' ? !showAppsDropdown : false);
+    setShowChannelsDropdown(name === 'channels' ? !showChannelsDropdown : false);
+    setShowPlatformsDropdown(name === 'platforms' ? !showPlatformsDropdown : false);
+    setShowArchsDropdown(name === 'archs' ? !showArchsDropdown : false);
+  };
+
   // Get data for dropdowns
   const { apps } = useAppsQuery();
   const { channels } = useChannelQuery();
@@ -431,7 +438,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <div className='relative dropdown-container'>
                     <button
                       type='button'
-                      onClick={() => setShowAppsDropdown(!showAppsDropdown)}
+                      onClick={() => toggleDropdown('apps')}
                       className='w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm'
                     >
                       <span className='text-theme-primary'>
@@ -543,7 +550,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <div className='relative dropdown-container'>
                     <button
                       type='button'
-                      onClick={() => setShowChannelsDropdown(!showChannelsDropdown)}
+                      onClick={() => toggleDropdown('channels')}
                       className='w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm'
                     >
                       <span className='text-theme-primary'>
@@ -655,7 +662,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <div className='relative dropdown-container'>
                     <button
                       type='button'
-                      onClick={() => setShowPlatformsDropdown(!showPlatformsDropdown)}
+                      onClick={() => toggleDropdown('platforms')}
                       className='w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm'
                     >
                       <span className='text-theme-primary'>
@@ -767,7 +774,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   <div className='relative dropdown-container'>
                     <button
                       type='button'
-                      onClick={() => setShowArchsDropdown(!showArchsDropdown)}
+                      onClick={() => toggleDropdown('archs')}
                       className='w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm'
                     >
                       <span className='text-theme-primary'>
