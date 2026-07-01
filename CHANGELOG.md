@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.2.0
+
+### Added
+
+- Filtering on the Reports page (by application, channel, platform, architecture, and date range).
+
+### Fixed
+
+- Modals (create, edit, delete, upload) no longer close when a click starts inside the modal and is dragged onto the backdrop (e.g. selecting text past the modal edge); only a genuine backdrop click closes them.
+- Report key field and page layout on mobile: the report key now scrolls within its field instead of stretching the page, and content areas no longer overflow horizontally on narrow screens.
+- Dropdowns in the Create User modal now close the previously open dropdown when another one is opened.
+
 ## v1.1.0
 
 ### Added
