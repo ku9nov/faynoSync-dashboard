@@ -42,12 +42,19 @@ const AVAILABLE_UPDATERS = [
     icon: '⚡',
     color: 'from-yellow-500 to-yellow-600'
   },
-  { 
-    type: 'tauri', 
-    label: 'Tauri', 
+  {
+    type: 'tauri',
+    label: 'Tauri',
     description: 'Tauri framework update mechanism',
     icon: '🚀',
     color: 'from-indigo-500 to-indigo-600'
+  },
+  {
+    type: 'velopack',
+    label: 'Velopack',
+    description: 'Velopack update mechanism',
+    icon: '📦',
+    color: 'from-teal-500 to-teal-600'
   }
 ];
 
