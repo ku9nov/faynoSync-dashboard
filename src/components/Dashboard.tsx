@@ -291,6 +291,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     app_name: string;
     version: string;
     channel: string;
+    rollout?: number;
   }) => {
     if (selectedVersion) {
       await updateApp(selectedVersion.ID, data);
@@ -1229,6 +1230,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Published: selectedVersion.Published,
               Critical: selectedVersion.Critical,
               Intermediate: selectedVersion.Intermediate,
+              RolloutPercent: selectedVersion.RolloutPercent,
               Changelog: selectedVersion.Changelog[0]?.Changes || '',
               Artifacts: selectedVersion.Artifacts
             }}
