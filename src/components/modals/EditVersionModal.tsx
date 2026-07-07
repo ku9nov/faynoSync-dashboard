@@ -20,6 +20,7 @@ interface EditVersionModalProps {
     Published: boolean;
     Critical: boolean;
     Intermediate: boolean;
+    RolloutPercent?: number | null;
     Changelog: string;
     Artifacts: Artifact[];
   };
@@ -36,6 +37,7 @@ interface EditVersionModalProps {
     version: string;
     channel: string;
     updater?: string;
+    rollout: number;
   }) => void;
 }
 interface ErrorResponse {
@@ -59,6 +61,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = React.useState(currentData);
+  const [rollout, setRollout] = React.useState<number>(currentData.RolloutPercent ?? 100);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [isPreview, setIsPreview] = React.useState(false);
   const [platform, setPlatform] = React.useState<string>('');
@@ -146,6 +149,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
   React.useEffect(() => {
     setFormData(currentData);
+    setRollout(currentData.RolloutPercent ?? 100);
   }, [currentData]);
 
   // Update formData when apps data is refetched after unsign operation
@@ -235,6 +239,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         app_name: appName,
         version: version,
         channel: channel,
+        rollout: rollout,
       };
 
       await onSave(requestData);
@@ -1015,6 +1020,55 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               />
               Intermediate
             </label>
+          </div>
+
+          <div>
+            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+              Staged rollout (%)
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={rollout}
+                  onChange={(e) => setRollout(Number(e.target.value))}
+                  className="w-full accent-purple-400"
+                />
+                <div className="flex justify-between mt-1 px-[7px]">
+                  {Array.from({ length: 11 }, (_, i) => i * 10).map((tick) => (
+                    <button
+                      key={tick}
+                      type="button"
+                      onClick={() => setRollout(tick)}
+                      className="flex flex-col items-center text-theme-secondary hover:text-theme-primary transition-colors"
+                    >
+                      <span className="w-px h-1.5 bg-current" />
+                      <span className="mt-1 text-[10px] font-roboto leading-none">{tick}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={rollout}
+                onChange={(e) => {
+                  const value = Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0)));
+                  setRollout(value);
+                }}
+                className="w-20 px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+              />
+            </div>
+            <p className="mt-2 text-sm text-theme-secondary font-roboto">
+              {rollout === 100
+                ? 'Full rollout'
+                : '100 = full rollout · 0 = paused (no new devices) · lower = canary'}
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 mt-6">

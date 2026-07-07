@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.1
+
+### Added
+
+- Added `velopack` updater, added `velopack` applications to TUF bootstrap script.
+
 ## v1.2.0
 
 ### Added

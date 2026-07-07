@@ -25,6 +25,7 @@ export type AppVersion = {
   Published: boolean;
   Critical: boolean;
   Intermediate: boolean;
+  RolloutPercent?: number | null;
   Artifacts: Artifact[];
   Changelog: ChangelogEntry[];
   Updated_at: string;
@@ -113,7 +114,8 @@ export const useAppsQuery = (
         channel: string;
         updater?: string;
         signature?: string;
-      } 
+        rollout?: number;
+      }
     }) => {
       const formData = new FormData();
       const dataObj = {
@@ -129,10 +131,11 @@ export const useAppsQuery = (
         changelog: data.Changelog,
         ...(data.updater && { updater: data.updater }),
         ...(data.signature && { signature: data.signature }),
+        ...(data.rollout !== undefined && { rollout: data.rollout }),
       };
-      
+
       formData.append('data', JSON.stringify(dataObj));
-      
+
       if (data.Files && data.Files.length > 0) {
         data.Files.forEach((file) => {
           formData.append('file', file);
@@ -206,6 +209,7 @@ export const useAppsQuery = (
     channel: string;
     updater?: string;
     signature?: string;
+    rollout?: number;
   }) => {
     await updateAppMutation.mutateAsync({ id, data });
   };
