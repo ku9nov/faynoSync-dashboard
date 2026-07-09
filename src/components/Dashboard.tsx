@@ -951,22 +951,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
             appVersions.map((app) => {
               const tufStatus = getTufSignStatus(app);
               const isDangerZone = app.Published && tufStatus !== null && tufStatus !== 'all-signed';
+              const isIncompleteRollout =
+                app.Published && app.RolloutPercent != null && app.RolloutPercent < 100;
               const artifactSummary = getArtifactSummary(app.Artifacts);
               
               return (
               <div
                 key={app.ID}
                 className={`sharedCard backdrop-blur-lg rounded-lg p-6 text-theme-primary transition-all relative ${
-                  isDangerZone 
-                    ? 'border-2 border-red-500' 
+                  isDangerZone
+                    ? 'border-2 border-red-500'
+                    : isIncompleteRollout
+                    ? 'border-2 border-amber-500 bg-theme-card hover:bg-theme-card-hover'
                     : 'bg-theme-card hover:bg-theme-card-hover'
                 }`}
-                style={{ 
-                  ['--card-color' as any]: isDangerZone ? '#EF4444' : '#8B5CF6',
+                style={{
+                  ['--card-color' as any]: isDangerZone ? '#EF4444' : isIncompleteRollout ? '#F59E0B' : '#8B5CF6',
                   ...(isDangerZone ? {
                     backgroundColor: 'rgba(239, 68, 68, 0.25)',
                     boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.3)',
                     animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                  } : isIncompleteRollout ? {
+                    boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.25)'
                   } : {})
                 }}
                 onMouseEnter={(e) => {
@@ -1079,6 +1085,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     {app.Intermediate && (
                       <span className="px-2 py-1 rounded text-sm bg-yellow-500">
                         Intermediate
+                      </span>
+                    )}
+                    {isIncompleteRollout && (
+                      <span
+                        className="px-2 py-1 rounded text-sm bg-amber-500 text-black"
+                        title="Staged rollout is not fully deployed"
+                      >
+                        Rollout {app.RolloutPercent}%
                       </span>
                     )}
                   </div>
