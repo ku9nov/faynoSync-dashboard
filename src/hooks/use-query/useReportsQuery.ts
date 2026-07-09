@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '@/config/axios';
 import { PaginatedResponse } from '@/hooks/use-query/useAppsQuery';
+
+export type ReportStatus = 'open' | 'resolved' | 'muted';
 
 export type ReportGroup = {
   id: string;
@@ -26,6 +28,11 @@ export type ReportGroup = {
     details_stored: number;
     details_rejected: number;
   };
+  status: ReportStatus;
+  tags?: string[] | null;
+  note?: string | null;
+  resolved_at?: string | null;
+  resolved_by?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -60,7 +67,10 @@ export type ReportBlob = {
   url: string;
 };
 
+export type ReportStatusFilter = ReportStatus | 'all';
+
 export type ReportFilters = {
+  status?: ReportStatusFilter;
   app?: string;
   version?: string;
   channel?: string;
@@ -104,4 +114,44 @@ export const useReportBlobsQuery = (groupHash: string | null) => {
   });
 
   return { blobs: data?.items ?? [], isLoading, refetch };
+};
+
+export const useReportGroupMutations = () => {
+  const queryClient = useQueryClient();
+
+  const updateGroupMutation = useMutation({
+    mutationFn: async ({
+      groupHash,
+      status,
+      tags,
+      note,
+    }: {
+      groupHash: string;
+      status?: ReportStatus;
+      tags?: string[];
+      note?: string;
+    }) => {
+      const body: Record<string, unknown> = {};
+      if (status !== undefined) body.status = status;
+      if (tags !== undefined) body.tags = tags;
+      if (note !== undefined) body.note = note;
+      const response = await axiosInstance.patch(`/reports/groups/${groupHash}`, body);
+      return response.data as { group_hash: string; status: ReportStatus };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupHash: string) => {
+      const response = await axiosInstance.delete(`/reports/groups/${groupHash}`);
+      return response.data as { group_hash: string; deleted: boolean };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+    },
+  });
+
+  return { updateGroupMutation, deleteGroupMutation };
 };

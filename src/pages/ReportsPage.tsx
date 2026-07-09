@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { useReportsQuery, ReportGroup, ReportFilters } from '@/hooks/use-query/useReportsQuery';
+import {
+  useReportsQuery,
+  useReportGroupMutations,
+  ReportGroup,
+  ReportFilters,
+  ReportStatus,
+  ReportStatusFilter,
+} from '@/hooks/use-query/useReportsQuery';
 import { useAppsQuery, AppListItem } from '@/hooks/use-query/useAppsQuery';
 import { useChannelQuery, Channel } from '@/hooks/use-query/useChannelQuery';
 import { usePlatformQuery, Platform } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery, Architecture } from '@/hooks/use-query/useArchitectureQuery';
 import { ReportBlobsModal } from '@/components/modals/ReportBlobsModal';
+import { DeleteReportConfirmationModal } from '@/components/modals/DeleteReportConfirmationModal';
+import { EditReportGroupModal } from '@/components/modals/EditReportGroupModal';
+import { useToast } from '@/hooks/useToast';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/cards.css';
@@ -14,6 +24,23 @@ import '@/styles/cards.css';
 const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
 const REPORTS_PAGE_LIMIT = 20;
 const EVENT_TYPES = ['crash', 'startup_failure', 'update_failure', 'install_failure', 'rollback_failure'];
+const STATUS_TABS: { value: ReportStatusFilter; label: string }[] = [
+  { value: 'open', label: 'Open' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'muted', label: 'Muted' },
+  { value: 'all', label: 'All' },
+];
+const DEFAULT_STATUS: ReportStatusFilter = 'open';
+const statusBadgeClass = (status: ReportStatus) => {
+  switch (status) {
+    case 'resolved':
+      return 'bg-green-500/20 text-green-300 border-green-400/30';
+    case 'muted':
+      return 'bg-gray-500/20 text-gray-300 border-gray-400/30';
+    default:
+      return 'bg-amber-500/20 text-amber-300 border-amber-400/30';
+  }
+};
 const INPUT_CLASS =
   'w-full px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm';
 const DROPDOWN_MENU_STYLE = {
@@ -42,6 +69,14 @@ const formatLabel = (value: string) =>
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (typeof error === 'object' && error !== null) {
+    const maybe = error as { response?: { data?: { error?: string; message?: string } }; message?: string };
+    return maybe.response?.data?.error || maybe.response?.data?.message || maybe.message || fallback;
+  }
+  return fallback;
+};
 
 const eventTypeBadgeClass = (type: string) =>
   type.toLowerCase().includes('failure') || type.toLowerCase().includes('error')
@@ -144,17 +179,23 @@ const FilterSelect = ({
 export const ReportsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<ReportStatusFilter>(DEFAULT_STATUS);
   const [filters, setFilters] = useState<ReportFilters>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<ReportGroup | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<ReportGroup | null>(null);
+  const [groupToEdit, setGroupToEdit] = useState<ReportGroup | null>(null);
+  const [pendingHash, setPendingHash] = useState<string | null>(null);
 
+  const { toastSuccess, toastError } = useToast();
   const { apps = [] } = useAppsQuery();
   const { channels = [] } = useChannelQuery();
   const { platforms = [] } = usePlatformQuery();
   const { architectures = [] } = useArchitectureQuery();
-  const { reports, isLoading } = useReportsQuery(page, REPORTS_PAGE_LIMIT, filters);
+  const { reports, isLoading } = useReportsQuery(page, REPORTS_PAGE_LIMIT, { ...filters, status });
+  const { updateGroupMutation, deleteGroupMutation } = useReportGroupMutations();
 
   const items = reports?.items ?? [];
   const total = reports?.total ?? 0;
@@ -165,7 +206,7 @@ export const ReportsPage = () => {
     setPage(Math.min(Math.max(1, nextPage), totalPages));
   };
 
-  const updateFilter = (key: keyof ReportFilters, value: string) => {
+  const updateFilter = (key: Exclude<keyof ReportFilters, 'status'>, value: string) => {
     setPage(1);
     setFilters((prev) => {
       const next = { ...prev };
@@ -182,7 +223,7 @@ export const ReportsPage = () => {
     setOpenDropdown((prev) => (prev === name ? null : name));
   };
 
-  const handleSelect = (key: keyof ReportFilters, name: string) => (value: string) => {
+  const handleSelect = (key: Exclude<keyof ReportFilters, 'status'>, name: string) => (value: string) => {
     updateFilter(key, value);
     setOpenDropdown((prev) => (prev === name ? null : prev));
   };
@@ -202,6 +243,50 @@ export const ReportsPage = () => {
     setFilters({});
     setFromDate(null);
     setToDate(null);
+  };
+
+  const handleStatusTab = (value: ReportStatusFilter) => {
+    setPage(1);
+    setStatus(value);
+  };
+
+  const handleUpdateStatus = (group: ReportGroup, next: ReportStatus) => {
+    setPendingHash(group.group_hash);
+    updateGroupMutation.mutate(
+      { groupHash: group.group_hash, status: next },
+      {
+        onSuccess: () => {
+          toastSuccess(`Group marked as ${next}`);
+          setPendingHash(null);
+        },
+        onError: (error) => {
+          toastError(getErrorMessage(error, 'Failed to update group status'));
+          setPendingHash(null);
+        },
+      }
+    );
+  };
+
+  const handleEditGroup = async (data: { tags: string[]; note: string }) => {
+    if (!groupToEdit) return;
+    try {
+      await updateGroupMutation.mutateAsync({ groupHash: groupToEdit.group_hash, ...data });
+      toastSuccess('Report group updated');
+      setGroupToEdit(null);
+    } catch (error) {
+      toastError(getErrorMessage(error, 'Failed to update report group'));
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!groupToDelete) return;
+    try {
+      await deleteGroupMutation.mutateAsync(groupToDelete.group_hash);
+      toastSuccess('Report group deleted');
+      setGroupToDelete(null);
+    } catch (error) {
+      toastError(getErrorMessage(error, 'Failed to delete report group'));
+    }
   };
 
   useEffect(() => {
@@ -231,6 +316,22 @@ export const ReportsPage = () => {
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="flex-1 min-w-0 p-2 sm:p-4 md:p-8">
           {renderHeader()}
+
+          <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => handleStatusTab(tab.value)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  status === tab.value
+                    ? 'bg-theme-button-primary text-theme-primary shadow-sm'
+                    : 'bg-theme-card text-theme-secondary hover:bg-theme-card-hover'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
           <div className={`${PANEL_CLASS} relative z-30 p-4 sm:p-6 mb-4 sm:mb-8`}>
             <div className="flex items-center justify-between mb-4">
@@ -392,7 +493,10 @@ export const ReportsPage = () => {
                       <th className="px-3 py-2 text-center">Occurrences</th>
                       <th className="px-3 py-2 text-left">First Seen</th>
                       <th className="px-3 py-2 text-left">Last Seen</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-left">Tags / Note</th>
                       <th className="px-3 py-2 text-center">Details</th>
+                      <th className="px-3 py-2 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -420,6 +524,37 @@ export const ReportsPage = () => {
                         <td className="px-3 py-2 text-theme-secondary whitespace-nowrap">{formatDateTime(group.stats.first_seen)}</td>
                         <td className="px-3 py-2 text-theme-secondary whitespace-nowrap">{formatDateTime(group.stats.last_seen)}</td>
                         <td className="px-3 py-2 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Badge label={formatLabel(group.status)} className={statusBadgeClass(group.status)} />
+                            {group.resolved_at && (
+                              <div className="text-theme-secondary text-xs whitespace-nowrap">
+                                {group.resolved_by && <span>by {group.resolved_by}</span>}
+                                <div>{formatDateTime(group.resolved_at)}</div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 align-top">
+                          <div className="flex flex-col gap-1 max-w-[220px]">
+                            {group.tags && group.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {group.tags.map((tag) => (
+                                  <Badge key={tag} label={tag} className="bg-purple-500/20 text-purple-300 border-purple-400/30" />
+                                ))}
+                              </div>
+                            )}
+                            {group.note && (
+                              <div className="flex items-start gap-1.5 text-theme-secondary text-xs" title={group.note}>
+                                <i className="fas fa-sticky-note mt-0.5 flex-shrink-0"></i>
+                                <span className="line-clamp-2 break-words">{group.note}</span>
+                              </div>
+                            )}
+                            {!(group.tags && group.tags.length > 0) && !group.note && (
+                              <span className="text-theme-secondary text-xs">—</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
                           <div className="flex justify-center">
                             {group.stats.details_stored > 0 ? (
                               <button
@@ -432,6 +567,54 @@ export const ReportsPage = () => {
                             ) : (
                               <span className="text-theme-secondary text-xs">—</span>
                             )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <div className="flex justify-center gap-1">
+                            <button
+                              onClick={() => setGroupToEdit(group)}
+                              className="users-table-action-btn"
+                              title="Edit tags & note"
+                            >
+                              <i className="fas fa-pen"></i>
+                            </button>
+                            {group.status !== 'resolved' && (
+                              <button
+                                onClick={() => handleUpdateStatus(group, 'resolved')}
+                                disabled={pendingHash === group.group_hash}
+                                className="users-table-action-btn disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Resolve"
+                              >
+                                <i className="fas fa-check text-green-400"></i>
+                              </button>
+                            )}
+                            {group.status !== 'open' && (
+                              <button
+                                onClick={() => handleUpdateStatus(group, 'open')}
+                                disabled={pendingHash === group.group_hash}
+                                className="users-table-action-btn disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Reopen"
+                              >
+                                <i className="fas fa-undo text-blue-400"></i>
+                              </button>
+                            )}
+                            {group.status !== 'muted' && (
+                              <button
+                                onClick={() => handleUpdateStatus(group, 'muted')}
+                                disabled={pendingHash === group.group_hash}
+                                className="users-table-action-btn disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Mute"
+                              >
+                                <i className="fas fa-bell-slash text-gray-400"></i>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setGroupToDelete(group)}
+                              className="users-table-action-btn"
+                              title="Delete permanently"
+                            >
+                              <i className="fas fa-trash text-red-400"></i>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -486,6 +669,22 @@ export const ReportsPage = () => {
 
       {selectedGroup && (
         <ReportBlobsModal group={selectedGroup} onClose={() => setSelectedGroup(null)} />
+      )}
+
+      {groupToEdit && (
+        <EditReportGroupModal
+          group={groupToEdit}
+          onClose={() => setGroupToEdit(null)}
+          onConfirm={handleEditGroup}
+        />
+      )}
+
+      {groupToDelete && (
+        <DeleteReportConfirmationModal
+          group={groupToDelete}
+          onClose={() => setGroupToDelete(null)}
+          onConfirm={handleDeleteGroup}
+        />
       )}
     </div>
   );

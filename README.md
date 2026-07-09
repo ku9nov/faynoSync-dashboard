@@ -6,9 +6,9 @@
 
 
 
-### 🧠 This frontend was built entirely with CursorAI
+### 🧠 This frontend is the result of vibe coding
 
-The entire UI was created with the help of [CursorAI](https://www.cursor.sh/) — an AI assistant in VSCode that made this possible, since I'm a **DevOps engineer**, not a frontend developer 😅
+The entire UI was built with the help of AI coding assistants — that's what made this possible, since I'm a **DevOps engineer**, not a frontend developer 😅
 
 I did my best, but if you see anything that can be improved — **any suggestions, feedback, or corrections are more than welcome!** 🙌
 

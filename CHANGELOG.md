@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.2
+
+- Added reports managment.
+- Added staged rollouts to telemetry.
+
 ## v1.2.1
 
 ### Added

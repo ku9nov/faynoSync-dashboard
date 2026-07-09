@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, Area, AreaChart } from 'recharts';
 import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
+import { useRolloutVersions, useRolloutAdoption } from '@/hooks/use-query/useRolloutQuery';
 import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
@@ -64,6 +65,69 @@ const StatCard = ({ title, value, icon }: { title: string; value: number; icon: 
   </div>
 );
 
+const RolloutHealthRow = ({
+  appName,
+  version,
+  channel,
+  configuredPercent,
+  observedPercent,
+  observedClients,
+  eligibleClients,
+  barColor,
+}: {
+  appName: string;
+  version: string;
+  channel: string;
+  configuredPercent: number;
+  observedPercent: number | null;
+  observedClients: number | null;
+  eligibleClients: number | null;
+  barColor: string;
+}) => {
+  const clampedObserved = observedPercent === null ? 0 : Math.min(Math.max(observedPercent, 0), 100);
+  const clampedTarget = Math.min(Math.max(configuredPercent, 0), 100);
+  return (
+    <div className={`${PANEL_CLASS} p-4`}>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-theme-primary font-semibold truncate">{appName}</span>
+          <span className="text-theme-secondary text-sm">v{version}</span>
+          <span className="text-theme-secondary text-xs px-2 py-0.5 rounded-full bg-white/10 border border-white/20">{channel}</span>
+        </div>
+        <div className="flex items-center gap-4 text-sm tabular-nums">
+          <span className="text-theme-secondary">
+            target <span className="text-theme-primary font-semibold">{configuredPercent}%</span>
+          </span>
+          <span className="text-theme-secondary">
+            observed{' '}
+            <span className="text-theme-primary font-semibold">
+              {observedPercent === null ? '—' : `${observedPercent.toFixed(1)}%`}
+            </span>
+          </span>
+        </div>
+      </div>
+      <div className="relative h-3 rounded-full bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${clampedObserved}%`, background: barColor }}
+        />
+      </div>
+      <div className="relative h-0">
+        <div
+          className="absolute -top-3 h-3 w-0.5 bg-theme-primary"
+          style={{ left: `${clampedTarget}%` }}
+          title={`Target ${configuredPercent}%`}
+        />
+      </div>
+      <p className="text-theme-secondary text-xs mt-3">
+        {observedClients === null || eligibleClients === null
+          ? 'No telemetry for this version in the selected period.'
+          : `${formatNumber(observedClients)} of ${formatNumber(eligibleClients)} eligible clients on this version or newer.`}
+      </p>
+    </div>
+  );
+};
+
 const numberFormatter = new Intl.NumberFormat('en-US');
 
 const formatNumber = (value: number | string) => {
@@ -88,6 +152,27 @@ const formatChartDateLong = (value: string) => {
     return value;
   }
   return parsedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+};
+
+const compareVersions = (a: string, b: string) => {
+  const partsA = a.replace(/^v/i, '').split('.').map(Number);
+  const partsB = b.replace(/^v/i, '').split('.').map(Number);
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const numA = partsA[i] ?? 0;
+    const numB = partsB[i] ?? 0;
+    if (Number.isNaN(numA) || Number.isNaN(numB)) {
+      const cmp = a.localeCompare(b);
+      if (cmp !== 0) {
+        return cmp;
+      }
+      continue;
+    }
+    if (numA !== numB) {
+      return numA - numB;
+    }
+  }
+  return 0;
 };
 
 const SinglePointTrendView = ({
@@ -172,6 +257,59 @@ export const StatisticsPage = () => {
   const { platforms = [] } = usePlatformQuery();
   const { architectures = [] } = useArchitectureQuery();
   const { data, isLoading, refetch } = useTelemetryQuery(filters);
+  const rolloutAppNames = React.useMemo(
+    () => (filters.apps.length ? filters.apps : (apps as AppListItem[]).map((a) => a.AppName)),
+    [filters.apps, apps]
+  );
+  const rolloutScope = React.useMemo(
+    () => ({ channels: filters.channels, platforms: filters.platforms, architectures: filters.architectures }),
+    [filters.channels, filters.platforms, filters.architectures]
+  );
+  const { rolloutVersions } = useRolloutVersions(rolloutAppNames, rolloutScope);
+  const rolloutAppList = React.useMemo(
+    () => [...new Set(rolloutVersions.map((r) => r.appName))],
+    [rolloutVersions]
+  );
+  const adoptionFilters = React.useMemo(
+    () => ({
+      channels: filters.channels,
+      platforms: filters.platforms,
+      architectures: filters.architectures,
+      range: filters.range,
+      date: filters.date,
+    }),
+    [filters.channels, filters.platforms, filters.architectures, filters.range, filters.date]
+  );
+  const { byApp: adoptionByApp } = useRolloutAdoption(rolloutAppList, adoptionFilters);
+  const rolloutRows = React.useMemo(() => {
+    return rolloutVersions
+      .map((r) => {
+        const app = adoptionByApp[r.appName];
+        // Hide rollouts for apps with no telemetry in view (idle/other apps),
+        // but keep apps that have traffic even if this version is at 0% adoption.
+        if (!app || app.uniqueClients <= 0) {
+          return null;
+        }
+        const usageList = app.usage;
+        const hasUsage = usageList.some((u) => u.version === r.version);
+        const geCount = (version: string) =>
+          usageList.reduce(
+            (acc, u) => acc + (compareVersions(u.version, version) >= 0 ? u.client_count : 0),
+            0
+          );
+        const predecessor = [...usageList]
+          .map((u) => u.version)
+          .sort(compareVersions)
+          .reverse()
+          .find((v) => compareVersions(v, r.version) < 0);
+        const observedClients = hasUsage ? geCount(r.version) : null;
+        const eligibleClients = predecessor ? geCount(predecessor) : app.uniqueClients;
+        const observedPercent =
+          hasUsage && eligibleClients > 0 ? ((observedClients as number) / eligibleClients) * 100 : null;
+        return { r, observedClients, eligibleClients, observedPercent };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+  }, [rolloutVersions, adoptionByApp]);
   const dailyStats = React.useMemo(() => (Array.isArray(data?.daily_stats) ? data.daily_stats : []), [data?.daily_stats]);
   const hasTrendData = dailyStats.length > 0;
   const showSinglePointTrend = dailyStats.length === 1;
@@ -754,6 +892,39 @@ export const StatisticsPage = () => {
               icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>}
             />
           </div>
+
+          {/* Rollout Health */}
+          {rolloutRows.length > 0 && (
+            <div className={`${PANEL_CLASS} p-3 sm:p-6 mb-4 sm:mb-8`}>
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-theme-primary">Rollout Health</h3>
+                <span className="text-theme-secondary text-xs sm:text-sm">
+                  {rolloutRows.length} staged {rolloutRows.length === 1 ? 'rollout' : 'rollouts'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-3">
+                {rolloutRows.map(({ r, observedClients, eligibleClients, observedPercent }, index) => (
+                  <RolloutHealthRow
+                    key={`${r.appName}|${r.channel}|${r.version}`}
+                    appName={r.appName}
+                    version={r.version}
+                    channel={r.channel}
+                    configuredPercent={r.configuredPercent}
+                    observedPercent={observedPercent}
+                    observedClients={observedClients}
+                    eligibleClients={eligibleClients}
+                    barColor={chartColors[index % chartColors.length]}
+                  />
+                ))}
+              </div>
+              <p className="text-theme-secondary text-xs mt-4">
+                Observed is adoption within the eligible pool: clients on the rollout version or newer, over clients on
+                the previous version or newer — the same base the rollout percent is defined against, so it lines up with
+                the target. It trails and converges as eligible clients check in, with a ~±2% bucketing margin. Filter by
+                the rollout's channel/platform to scope it.
+              </p>
+            </div>
+          )}
 
           {/* Trend Graphs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-4 sm:mb-8">
