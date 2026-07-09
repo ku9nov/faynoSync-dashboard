@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.3
+
+### Added
+
+- Highlight published versions with an incomplete staged rollout (`RolloutPercent < 100`).
+
 ## v1.2.2
 
 - Added reports managment.
