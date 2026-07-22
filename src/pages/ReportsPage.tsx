@@ -63,8 +63,8 @@ const formatDateTime = (value: string) => {
   return `${day} ${month} ${year}, ${hours}:${minutes}`;
 };
 
-const formatLabel = (value: string) =>
-  value
+const formatLabel = (value: string | null | undefined) =>
+  (value ?? '')
     .split('_')
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -78,8 +78,8 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
   return fallback;
 };
 
-const eventTypeBadgeClass = (type: string) =>
-  type.toLowerCase().includes('failure') || type.toLowerCase().includes('error')
+const eventTypeBadgeClass = (type: string | null | undefined) =>
+  (type ?? '').toLowerCase().includes('failure') || (type ?? '').toLowerCase().includes('error')
     ? 'bg-red-500/20 text-red-300 border-red-400/30'
     : 'bg-blue-500/20 text-blue-300 border-blue-400/30';
 

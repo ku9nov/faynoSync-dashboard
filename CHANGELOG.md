@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.4
+
+### Fixed
+
+- Reports page no longer crashes with `Cannot read properties of undefined (reading 'split')` when a report group is returned with a missing `event.type`, `event.reason`, or `status` field; label and badge helpers now handle null/undefined values.
+
 ## v1.2.3
 
 ### Added
