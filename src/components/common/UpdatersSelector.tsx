@@ -31,7 +31,7 @@ const AVAILABLE_UPDATERS = [
   { 
     type: 'sparkle', 
     label: 'Sparkle', 
-    description: 'Sparkle framework for macOS updates (Not implemented)',
+    description: 'Sparkle framework for macOS updates',
     icon: '✨',
     color: 'from-purple-500 to-purple-600'
   },
