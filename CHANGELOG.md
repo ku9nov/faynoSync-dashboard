@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.0
+
+- Add `Sparkle` updater.
+
 ## v1.2.4
 
 ### Fixed
