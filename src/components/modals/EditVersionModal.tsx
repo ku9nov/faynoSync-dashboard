@@ -11,6 +11,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { AppListItem } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
 import { getPlatformIcon } from '@/utils/platformIcon';
+import { Dropdown } from '@/components/common/Dropdown';
 import { FlagCheckbox } from '@/components/common/FlagCheckbox';
 import { ModalFeedback } from '@/components/common/ModalFeedback';
 import {
@@ -19,10 +20,6 @@ import {
   BTN_GHOST,
   BTN_PRIMARY,
   BTN_WARNING,
-  DROPDOWN_MENU,
-  DROPDOWN_MENU_STYLE,
-  DROPDOWN_OPTION,
-  DROPDOWN_TRIGGER,
   DROPZONE,
   FIELD_INPUT,
   FIELD_LABEL,
@@ -216,7 +213,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [arch, setArch] = React.useState<string>('');
   const [updater, setUpdater] = React.useState<string>('');
   const [signature, setSignature] = React.useState<string>('');
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -261,10 +257,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
     }
   }, [showUpdaterDropdown, updater]);
 
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
-
   const handleOptionClick = (dropdownName: string, value: string) => {
     if (dropdownName === 'platform') {
       setPlatform(value);
@@ -277,22 +269,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       setUpdater(value);
       setSignature('');
     }
-    setOpenDropdown(null);
   };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   React.useEffect(() => {
     setFormData(currentData);
@@ -971,91 +948,30 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <div className="mt-3 grid grid-cols-2 gap-3">
               {platforms.length > 0 && (
                 <div>
-                  <label className={FIELD_LABEL}>
-                    Platform
-                  </label>
-                  <div className="relative dropdown-container">
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownClick('platform')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    {openDropdown === 'platform' && (
-                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
-                        {platforms.map((p) => (
-                          <button
-                            key={p.ID}
-                            type="button"
-                            onClick={() => handleOptionClick('platform', p.PlatformName)}
-                            className={DROPDOWN_OPTION}
-                          >
-                            <i className={`${getPlatformIcon(p.PlatformName)} w-4 text-center opacity-90`}></i>
-                            {p.PlatformName}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <label className={FIELD_LABEL}>Platform</label>
+                  <Dropdown
+                    ariaLabel="Platform"
+                    placeholder="Select platform"
+                    value={platform}
+                    onChange={(value) => handleOptionClick('platform', value)}
+                    options={platforms.map((p) => ({
+                      value: p.PlatformName,
+                      label: p.PlatformName,
+                      icon: getPlatformIcon(p.PlatformName),
+                    }))}
+                  />
                 </div>
               )}
               {architectures.length > 0 && (
                 <div>
-                  <label className={FIELD_LABEL}>
-                    Architecture
-                  </label>
-                  <div className="relative dropdown-container">
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownClick('arch')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    {openDropdown === 'arch' && (
-                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
-                        {architectures.map((a) => (
-                          <button
-                            key={a.ID}
-                            type="button"
-                            onClick={() => handleOptionClick('arch', a.ArchID)}
-                            className={DROPDOWN_OPTION}
-                          >
-                            {a.ArchID}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <label className={FIELD_LABEL}>Architecture</label>
+                  <Dropdown
+                    ariaLabel="Architecture"
+                    placeholder="Select architecture"
+                    value={arch}
+                    onChange={(value) => handleOptionClick('arch', value)}
+                    options={architectures.map((a) => ({ value: a.ArchID, label: a.ArchID }))}
+                  />
                 </div>
               )}
               {showUpdaterDropdown && (
@@ -1066,50 +982,18 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       This platform has several enabled updaters — pick one if needed.
                     </span>
                   </label>
-                  <div className="relative dropdown-container">
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownClick('updater')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    {openDropdown === 'updater' && (
-                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
-                        {availableUpdaters.map((u) => (
-                          <button
-                            key={u.type}
-                            type="button"
-                            onClick={() => handleOptionClick('updater', u.type)}
-                            className={DROPDOWN_OPTION}
-                          >
-                            {u.type}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <Dropdown
+                    ariaLabel="Updater"
+                    placeholder="manual (default)"
+                    value={updater}
+                    onChange={(value) => handleOptionClick('updater', value)}
+                    options={availableUpdaters.map((u) => ({ value: u.type, label: u.type }))}
+                  />
                 </div>
               )}
               {updater === 'tauri' && (
                 <div className="col-span-2">
-                  <label className={FIELD_LABEL}>
-                    Signature
-                  </label>
+                  <label className={FIELD_LABEL}>Signature</label>
                   <input
                     type="text"
                     name="signature"

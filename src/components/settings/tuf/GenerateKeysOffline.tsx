@@ -4,6 +4,8 @@ import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
 import { StepStatus, TufHistoryEntry } from '@/components/settings/tuf/types';
 import { getStatusColor, getStatusIcon } from '@/components/settings/tuf/utils';
 import { generateTufPythonScript } from '@/components/settings/tuf/generateTufScript';
+import { Dropdown } from '@/components/common/Dropdown';
+import { FIELD_INPUT, FIELD_LABEL } from '@/components/common/ui';
 
 interface GenerateKeysOfflineProps {
   selectedApp: string;
@@ -39,7 +41,6 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
   });
   const [generatedScript, setGeneratedScript] = useState<string>('');
   const [showScript, setShowScript] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { toastSuccess, toastError } = useToast();
   const { data: userData } = useUsersQuery();
 
@@ -53,20 +54,6 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
     : 'bootstrap_payload.json';
 
   // Handle dropdown clicks
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   // Update step status when app changes
   useEffect(() => {
     if (!selectedApp) {
@@ -183,78 +170,38 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-theme-primary mb-2">App Name</label>
+              <label className={FIELD_LABEL}>App Name</label>
               <input
                 type="text"
                 value={selectedApp}
                 disabled
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 disabled:opacity-50"
+                className={`${FIELD_INPUT} disabled:opacity-50`}
               />
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2">Key Type</label>
-              <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => setOpenDropdown(openDropdown === 'keyType' ? null : 'keyType')}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover"
-                >
-                  <span>{keyType}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform ${openDropdown === 'keyType' ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                {openDropdown === 'keyType' && (
-                  <div
-                    className="absolute top-full left-0 right-0 mt-1 bg-theme-card rounded-lg shadow-lg z-10 border border-theme-card-hover"
-                    style={{
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                    }}
-                  >
-                    {['ed25519', 'rsa', 'ecdsa'].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => {
-                          setKeyType(type);
-                          setOpenDropdown(null);
-                        }}
-                        className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <label className={FIELD_LABEL}>Key Type</label>
+              <Dropdown
+                ariaLabel="Key type"
+                value={keyType}
+                onChange={setKeyType}
+                options={['ed25519', 'rsa', 'ecdsa'].map((type) => ({ value: type, label: type }))}
+              />
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2">Role Name</label>
+              <label className={FIELD_LABEL}>Role Name</label>
               <input
                 type="text"
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 placeholder="Enter role name (e.g., root, timestamp, snapshot, targets)"
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                className={FIELD_INPUT}
               />
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2">Keys Threshold</label>
+              <label className={FIELD_LABEL}>Keys Threshold</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-theme-primary mb-1">Root</label>
@@ -263,7 +210,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     min={1}
                     value={thresholds.root}
                     onChange={(e) => setThresholds(prev => ({ ...prev, root: Math.max(1, parseInt(e.target.value) || 1) }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -273,7 +220,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     min={1}
                     value={thresholds.targets}
                     onChange={(e) => setThresholds(prev => ({ ...prev, targets: Math.max(1, parseInt(e.target.value) || 1) }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -283,7 +230,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     min={1}
                     value={thresholds.timestamp}
                     onChange={(e) => setThresholds(prev => ({ ...prev, timestamp: Math.max(1, parseInt(e.target.value) || 1) }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -293,7 +240,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     min={1}
                     value={thresholds.snapshot}
                     onChange={(e) => setThresholds(prev => ({ ...prev, snapshot: Math.max(1, parseInt(e.target.value) || 1) }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -303,14 +250,14 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     min={1}
                     value={thresholds.delegation}
                     onChange={(e) => setThresholds(prev => ({ ...prev, delegation: Math.max(1, parseInt(e.target.value) || 1) }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2">Expiration Settings</label>
+              <label className={FIELD_LABEL}>Expiration Settings</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-theme-primary mb-1">Root (days)</label>
@@ -318,7 +265,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     type="number"
                     value={expiration.root}
                     onChange={(e) => setExpiration(prev => ({ ...prev, root: parseInt(e.target.value) || 0 }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -327,7 +274,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     type="number"
                     value={expiration.timestamp}
                     onChange={(e) => setExpiration(prev => ({ ...prev, timestamp: parseInt(e.target.value) || 0 }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -336,7 +283,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     type="number"
                     value={expiration.snapshot}
                     onChange={(e) => setExpiration(prev => ({ ...prev, snapshot: parseInt(e.target.value) || 0 }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
                 <div>
@@ -345,7 +292,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
                     type="number"
                     value={expiration.targets}
                     onChange={(e) => setExpiration(prev => ({ ...prev, targets: parseInt(e.target.value) || 0 }))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                    className={FIELD_INPUT}
                   />
                 </div>
               </div>

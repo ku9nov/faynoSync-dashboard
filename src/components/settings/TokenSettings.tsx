@@ -3,6 +3,7 @@ import axiosInstance from '@/config/axios';
 import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
 import { AllowedItemsModal } from '@/components/settings/AllowedItemsModal';
+import { Dropdown } from '@/components/common/Dropdown';
 
 type ExpirationValue = '1d' | '7d' | '30d' | '90d' | 'never';
 
@@ -261,17 +262,12 @@ export const TokenSettings: React.FC = () => {
 
           <div>
             <label className="block text-sm text-theme-primary mb-2">Expiration</label>
-            <select
+            <Dropdown
+              ariaLabel="Expiration"
               value={expiration}
-              onChange={(event) => setExpiration(event.target.value as ExpirationValue)}
-              className="w-full rounded-lg border border-theme-modal bg-theme-input text-theme-primary px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              {expirationOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setExpiration(value as ExpirationValue)}
+              options={expirationOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
           </div>
         </div>
 

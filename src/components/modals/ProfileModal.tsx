@@ -198,8 +198,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <h3 className={`${SECTION_LABEL} mb-3`}>Change password</h3>
                 <form onSubmit={handlePasswordChange}>
                   <div className="mb-3">
-                    <label className={FIELD_LABEL}>New Password</label>
-                    <div className="flex">
+                    <label className={FIELD_LABEL}>New password</label>
+                    <div className="flex gap-2">
                       <input
                         type="password"
                         value={newPassword}
@@ -210,7 +210,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                       <button
                         type="button"
                         onClick={generatePassword}
-                        className={`${BTN_GHOST} ml-2 shrink-0`}
+                        className={`${BTN_GHOST} shrink-0`}
                       >
                         Generate
                       </button>
@@ -218,7 +218,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(newPassword)}
-                          className={`${BTN_GHOST} ml-2 shrink-0`}
+                          className={`${BTN_GHOST} shrink-0`}
+                          aria-label="Copy password"
                         >
                           <i className="fas fa-copy"></i>
                         </button>
@@ -226,7 +227,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className={FIELD_LABEL}>Confirm New Password</label>
+                    <label className={FIELD_LABEL}>Confirm new password</label>
                     <input
                       type="password"
                       value={confirmPassword}

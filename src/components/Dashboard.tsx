@@ -16,10 +16,10 @@ import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import { getPlatformIcon } from '@/utils/platformIcon';
+import { Dropdown } from '@/components/common/Dropdown';
 import '@/styles/cards.css';
 
 import {
-  DROPDOWN_MENU_STYLE,
   PLATFORM_CHIP,
   SECTION_LABEL,
   STATUS_BADGE,
@@ -83,31 +83,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     platform: '',
     arch: ''
   });
-
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
-
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
-
-  const handleOptionClick = (dropdownName: string, value: any) => {
-    setFilters(prev => ({ ...prev, [dropdownName]: value }));
-    setOpenDropdown(null);
-  };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   React.useEffect(() => {
     if (!selectedApp || typeof window === 'undefined') {
@@ -701,227 +676,66 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Filters Section */}
         <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('channel')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.channel || 'All Channels'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'channel' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('channel', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Channels
-                  </button>
-                  {channels.map(channel => (
-                    <button
-                      key={channel.ID}
-                      onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {channel.ChannelName}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Channel"
+              placeholder="All channels"
+              value={filters.channel}
+              onChange={(channel) => setFilters(prev => ({ ...prev, channel }))}
+              options={[
+                { value: '', label: 'All channels' },
+                ...channels.map(channel => ({ value: channel.ChannelName, label: channel.ChannelName })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('platform')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.platform || 'All Platforms'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'platform' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('platform', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Platforms
-                  </button>
-                  {platforms.map(platform => (
-                    <button
-                      key={platform.ID}
-                      onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {platform.PlatformName}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Platform"
+              placeholder="All platforms"
+              value={filters.platform}
+              onChange={(platform) => setFilters(prev => ({ ...prev, platform }))}
+              options={[
+                { value: '', label: 'All platforms' },
+                ...platforms.map(platform => ({
+                  value: platform.PlatformName,
+                  label: platform.PlatformName,
+                  icon: getPlatformIcon(platform.PlatformName),
+                })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('arch')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.arch || 'All Architectures'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'arch' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('arch', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Architectures
-                  </button>
-                  {architectures.map(arch => (
-                    <button
-                      key={arch.ID}
-                      onClick={() => handleOptionClick('arch', arch.ArchID)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {arch.ArchID}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Architecture"
+              placeholder="All architectures"
+              value={filters.arch}
+              onChange={(arch) => setFilters(prev => ({ ...prev, arch }))}
+              options={[
+                { value: '', label: 'All architectures' },
+                ...architectures.map(arch => ({ value: arch.ArchID, label: arch.ArchID })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('published')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span>
-                  {filters.published === null ? 'Publication Status' :
-                   filters.published ? 'Published' : 'Not Published'}
-                </span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'published' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'published' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('published', null)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    Publication Status
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('published', true)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
-                  >
-                    Published
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('published', false)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                  >
-                    Not Published
-                  </button>
-                </div>
-              )}
-            </div>
+            <Dropdown<boolean | null>
+              ariaLabel="Publication status"
+              placeholder="Publication status"
+              value={filters.published}
+              onChange={(published) => setFilters(prev => ({ ...prev, published }))}
+              options={[
+                { value: null, label: 'Any publication status' },
+                { value: true, label: 'Published' },
+                { value: false, label: 'Not published' },
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('critical')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span>
-                  {filters.critical === null ? 'Critical Status' :
-                   filters.critical ? 'Critical' : 'Not Critical'}
-                </span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'critical' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'critical' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('critical', null)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    Critical Status
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('critical', true)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
-                  >
-                    Critical
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('critical', false)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                  >
-                    Not Critical
-                  </button>
-                </div>
-              )}
-            </div>
+            <Dropdown<boolean | null>
+              ariaLabel="Critical status"
+              placeholder="Critical status"
+              value={filters.critical}
+              onChange={(critical) => setFilters(prev => ({ ...prev, critical }))}
+              options={[
+                { value: null, label: 'Any critical status' },
+                { value: true, label: 'Critical' },
+                { value: false, label: 'Not critical' },
+              ]}
+            />
           </div>
 
           {/* Reset Filters Button */}

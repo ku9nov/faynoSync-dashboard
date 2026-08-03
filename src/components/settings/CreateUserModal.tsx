@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
+import { Dropdown } from '@/components/common/Dropdown';
 import { FlagCheckbox } from '@/components/common/FlagCheckbox';
 import { ModalFeedback } from '@/components/common/ModalFeedback';
 import {
   BTN_GHOST,
   BTN_PRIMARY,
-  DROPDOWN_TRIGGER,
   FIELD_INPUT,
   FIELD_LABEL,
   MODAL_CLOSE,
@@ -20,13 +20,6 @@ import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
 import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
-
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-};
 
 // Define proper types for permissions
 interface Permission {
@@ -93,17 +86,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
   });
   
   // State for allowed items dropdowns
-  const [showAppsDropdown, setShowAppsDropdown] = useState(false);
-  const [showChannelsDropdown, setShowChannelsDropdown] = useState(false);
-  const [showPlatformsDropdown, setShowPlatformsDropdown] = useState(false);
-  const [showArchsDropdown, setShowArchsDropdown] = useState(false);
-
-  const toggleDropdown = (name: 'apps' | 'channels' | 'platforms' | 'archs') => {
-    setShowAppsDropdown(name === 'apps' ? !showAppsDropdown : false);
-    setShowChannelsDropdown(name === 'channels' ? !showChannelsDropdown : false);
-    setShowPlatformsDropdown(name === 'platforms' ? !showPlatformsDropdown : false);
-    setShowArchsDropdown(name === 'archs' ? !showArchsDropdown : false);
-  };
 
   // Get data for dropdowns
   const { apps } = useAppsQuery();
@@ -148,26 +130,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       });
     }
   }, [isOpen]);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      
-      // Check if click is outside of dropdowns
-      if (!target.closest('.dropdown-container')) {
-        setShowAppsDropdown(false);
-        setShowChannelsDropdown(false);
-        setShowPlatformsDropdown(false);
-        setShowArchsDropdown(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const handleSave = async () => {
     if (!username.trim()) {
@@ -338,7 +300,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               </div>
               <div className='mb-4'>
                 <label className={FIELD_LABEL}>Password</label>
-                <div className='flex'>
+                <div className='flex gap-2'>
                   <input
                     type='password'
                     value={password}
@@ -358,6 +320,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                       type='button'
                       onClick={() => copyToClipboard(password)}
                       className={`${BTN_GHOST} shrink-0`}
+                      aria-label='Copy password'
                     >
                       <i className='fas fa-copy'></i>
                     </button>
@@ -403,80 +366,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </div>
                 
                 <div className='mt-2'>
-                  <div className='relative dropdown-container'>
-                    <button
-                      type='button'
-                      onClick={() => toggleDropdown('apps')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className='text-theme-primary'>
-                        {permissions.apps.allowed.length > 0 
-                          ? `${permissions.apps.allowed.length} items selected` 
-                          : 'Select allowed apps'}
-                      </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform ${showAppsDropdown ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    
-                    {showAppsDropdown && (
-                      <div className='absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-white/15 shadow-lg' style={DROPDOWN_MENU_STYLE}>
-                        {Array.isArray(apps) && apps.map(app => {
-                          const isSelected = permissions.apps.allowed.includes(app.ID);
-                          return (
-                            <div 
-                              key={app.ID}
-                              className='flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/10'
-                              onClick={() => {
-                                if (isSelected) {
-                                  handleRemoveAllowedItem('apps', app.ID);
-                                } else {
-                                  handleAllowedItemSelect('apps', app.ID);
-                                }
-                              }}
-                            >
-                              <span
-                                className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-                                  isSelected ? 'border-violet-500 bg-violet-500 text-white' : 'border-white/40 text-transparent'
-                                }`}
-                              >
-                                <i className='fas fa-check text-[10px]'></i>
-                              </span>
-                              <span className='text-sm text-theme-primary'>{app.AppName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  
+                  <Dropdown
+                    multiple
+                    ariaLabel="Allowed apps"
+                    placeholder="Select allowed apps"
+                    value={permissions.apps.allowed}
+                    onChange={(id) =>
+                      permissions.apps.allowed.includes(id)
+                        ? handleRemoveAllowedItem('apps', id)
+                        : handleAllowedItemSelect('apps', id)
+                    }
+                    options={(Array.isArray(apps) ? apps : []).map((item) => ({
+                      value: item.ID,
+                      label: item.AppName,
+                    }))}
+                  />
                   {permissions.apps.allowed.length > 0 && (
                     <div className='mt-2 flex flex-wrap gap-2'>
                       {permissions.apps.allowed.map(id => (
-                        <div 
-                          key={id}
-                          className={`${STATUS_BADGE} border-white/15 text-white/85`}
-                        >
-                          <span>{getNameById(id, 'app')}</span>
+                        <span key={id} className={`${STATUS_BADGE} border-white/15 text-white/85`}>
+                          {getNameById(id, 'app')}
                           <button
                             type='button'
                             onClick={() => handleRemoveAllowedItem('apps', id)}
                             className='ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300'
+                            aria-label='Remove'
                           >
                             <i className='fas fa-times'></i>
                           </button>
-                        </div>
+                        </span>
                       ))}
                     </div>
                   )}
@@ -504,80 +422,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </div>
                 
                 <div className='mt-2'>
-                  <div className='relative dropdown-container'>
-                    <button
-                      type='button'
-                      onClick={() => toggleDropdown('channels')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className='text-theme-primary'>
-                        {permissions.channels.allowed.length > 0 
-                          ? `${permissions.channels.allowed.length} items selected` 
-                          : 'Select allowed channels'}
-                      </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform ${showChannelsDropdown ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    
-                    {showChannelsDropdown && (
-                      <div className='absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-white/15 shadow-lg' style={DROPDOWN_MENU_STYLE}>
-                        {Array.isArray(channels) && channels.map(channel => {
-                          const isSelected = permissions.channels.allowed.includes(channel.ID);
-                          return (
-                            <div 
-                              key={channel.ID}
-                              className='flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/10'
-                              onClick={() => {
-                                if (isSelected) {
-                                  handleRemoveAllowedItem('channels', channel.ID);
-                                } else {
-                                  handleAllowedItemSelect('channels', channel.ID);
-                                }
-                              }}
-                            >
-                              <span
-                                className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-                                  isSelected ? 'border-violet-500 bg-violet-500 text-white' : 'border-white/40 text-transparent'
-                                }`}
-                              >
-                                <i className='fas fa-check text-[10px]'></i>
-                              </span>
-                              <span className='text-theme-primary'>{channel.ChannelName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  
+                  <Dropdown
+                    multiple
+                    ariaLabel="Allowed channels"
+                    placeholder="Select allowed channels"
+                    value={permissions.channels.allowed}
+                    onChange={(id) =>
+                      permissions.channels.allowed.includes(id)
+                        ? handleRemoveAllowedItem('channels', id)
+                        : handleAllowedItemSelect('channels', id)
+                    }
+                    options={(Array.isArray(channels) ? channels : []).map((item) => ({
+                      value: item.ID,
+                      label: item.ChannelName,
+                    }))}
+                  />
                   {permissions.channels.allowed.length > 0 && (
                     <div className='mt-2 flex flex-wrap gap-2'>
                       {permissions.channels.allowed.map(id => (
-                        <div 
-                          key={id}
-                          className={`${STATUS_BADGE} border-white/15 text-white/85`}
-                        >
-                          <span>{getNameById(id, 'channel')}</span>
+                        <span key={id} className={`${STATUS_BADGE} border-white/15 text-white/85`}>
+                          {getNameById(id, 'channel')}
                           <button
                             type='button'
                             onClick={() => handleRemoveAllowedItem('channels', id)}
                             className='ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300'
+                            aria-label='Remove'
                           >
                             <i className='fas fa-times'></i>
                           </button>
-                        </div>
+                        </span>
                       ))}
                     </div>
                   )}
@@ -605,80 +478,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </div>
                 
                 <div className='mt-2'>
-                  <div className='relative dropdown-container'>
-                    <button
-                      type='button'
-                      onClick={() => toggleDropdown('platforms')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className='text-theme-primary'>
-                        {permissions.platforms.allowed.length > 0 
-                          ? `${permissions.platforms.allowed.length} items selected` 
-                          : 'Select allowed platforms'}
-                      </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform ${showPlatformsDropdown ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    
-                    {showPlatformsDropdown && (
-                      <div className='absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-white/15 shadow-lg' style={DROPDOWN_MENU_STYLE}>
-                        {Array.isArray(platforms) && platforms.map(platform => {
-                          const isSelected = permissions.platforms.allowed.includes(platform.ID);
-                          return (
-                            <div 
-                              key={platform.ID}
-                              className='flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/10'
-                              onClick={() => {
-                                if (isSelected) {
-                                  handleRemoveAllowedItem('platforms', platform.ID);
-                                } else {
-                                  handleAllowedItemSelect('platforms', platform.ID);
-                                }
-                              }}
-                            >
-                              <span
-                                className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-                                  isSelected ? 'border-violet-500 bg-violet-500 text-white' : 'border-white/40 text-transparent'
-                                }`}
-                              >
-                                <i className='fas fa-check text-[10px]'></i>
-                              </span>
-                              <span className='text-theme-primary'>{platform.PlatformName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  
+                  <Dropdown
+                    multiple
+                    ariaLabel="Allowed platforms"
+                    placeholder="Select allowed platforms"
+                    value={permissions.platforms.allowed}
+                    onChange={(id) =>
+                      permissions.platforms.allowed.includes(id)
+                        ? handleRemoveAllowedItem('platforms', id)
+                        : handleAllowedItemSelect('platforms', id)
+                    }
+                    options={(Array.isArray(platforms) ? platforms : []).map((item) => ({
+                      value: item.ID,
+                      label: item.PlatformName,
+                    }))}
+                  />
                   {permissions.platforms.allowed.length > 0 && (
                     <div className='mt-2 flex flex-wrap gap-2'>
                       {permissions.platforms.allowed.map(id => (
-                        <div 
-                          key={id}
-                          className={`${STATUS_BADGE} border-white/15 text-white/85`}
-                        >
-                          <span>{getNameById(id, 'platform')}</span>
+                        <span key={id} className={`${STATUS_BADGE} border-white/15 text-white/85`}>
+                          {getNameById(id, 'platform')}
                           <button
                             type='button'
                             onClick={() => handleRemoveAllowedItem('platforms', id)}
                             className='ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300'
+                            aria-label='Remove'
                           >
                             <i className='fas fa-times'></i>
                           </button>
-                        </div>
+                        </span>
                       ))}
                     </div>
                   )}
@@ -706,80 +534,35 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </div>
                 
                 <div className='mt-2'>
-                  <div className='relative dropdown-container'>
-                    <button
-                      type='button'
-                      onClick={() => toggleDropdown('archs')}
-                      className={DROPDOWN_TRIGGER}
-                    >
-                      <span className='text-theme-primary'>
-                        {permissions.archs.allowed.length > 0 
-                          ? `${permissions.archs.allowed.length} items selected` 
-                          : 'Select allowed architectures'}
-                      </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                        className={`text-theme-primary transition-transform ${showArchsDropdown ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
-                    
-                    {showArchsDropdown && (
-                      <div className='absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-white/15 shadow-lg' style={DROPDOWN_MENU_STYLE}>
-                        {Array.isArray(architectures) && architectures.map(arch => {
-                          const isSelected = permissions.archs.allowed.includes(arch.ID);
-                          return (
-                            <div 
-                              key={arch.ID}
-                              className='flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/10'
-                              onClick={() => {
-                                if (isSelected) {
-                                  handleRemoveAllowedItem('archs', arch.ID);
-                                } else {
-                                  handleAllowedItemSelect('archs', arch.ID);
-                                }
-                              }}
-                            >
-                              <span
-                                className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-                                  isSelected ? 'border-violet-500 bg-violet-500 text-white' : 'border-white/40 text-transparent'
-                                }`}
-                              >
-                                <i className='fas fa-check text-[10px]'></i>
-                              </span>
-                              <span className='text-theme-primary'>{arch.ArchID}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  
+                  <Dropdown
+                    multiple
+                    ariaLabel="Allowed architectures"
+                    placeholder="Select allowed architectures"
+                    value={permissions.archs.allowed}
+                    onChange={(id) =>
+                      permissions.archs.allowed.includes(id)
+                        ? handleRemoveAllowedItem('archs', id)
+                        : handleAllowedItemSelect('archs', id)
+                    }
+                    options={(Array.isArray(architectures) ? architectures : []).map((item) => ({
+                      value: item.ID,
+                      label: item.ArchID,
+                    }))}
+                  />
                   {permissions.archs.allowed.length > 0 && (
                     <div className='mt-2 flex flex-wrap gap-2'>
                       {permissions.archs.allowed.map(id => (
-                        <div 
-                          key={id}
-                          className={`${STATUS_BADGE} border-white/15 text-white/85`}
-                        >
-                          <span>{getNameById(id, 'arch')}</span>
+                        <span key={id} className={`${STATUS_BADGE} border-white/15 text-white/85`}>
+                          {getNameById(id, 'arch')}
                           <button
                             type='button'
                             onClick={() => handleRemoveAllowedItem('archs', id)}
                             className='ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300'
+                            aria-label='Remove'
                           >
                             <i className='fas fa-times'></i>
                           </button>
-                        </div>
+                        </span>
                       ))}
                     </div>
                   )}

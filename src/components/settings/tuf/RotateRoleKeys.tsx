@@ -9,6 +9,7 @@ import { generateGenerateSignaturesPythonScript } from '@/components/settings/tu
 import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
 import { generateRotateRoleKeysPythonScript } from '@/components/settings/tuf/generateRotateRoleKeysScript';
 import { generateUpdateKeyInfoRoleRotationPythonScript } from '@/components/settings/tuf/generateUpdateKeyInfoRoleRotationScript';
+import { Dropdown } from '@/components/common/Dropdown';
 
 interface RotateRoleKeysProps {
   selectedApp: string;
@@ -558,15 +559,12 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-theme-primary mb-2">Role</label>
-                <select
+                <Dropdown
+                  ariaLabel="Role"
                   value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as BuiltInRole)}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                >
-                  <option value="timestamp">timestamp</option>
-                  <option value="snapshot">snapshot</option>
-                  <option value="targets">targets</option>
-                </select>
+                  onChange={(value) => setSelectedRole(value as BuiltInRole)}
+                  options={['timestamp', 'snapshot', 'targets'].map((role) => ({ value: role, label: role }))}
+                />
               </div>
             </div>
 
@@ -594,15 +592,12 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               </div>
               <div>
                 <label className="block text-theme-primary mb-2">Key algorithm</label>
-                <select
+                <Dropdown
+                  ariaLabel="Key type"
                   value={selectedKeyType}
-                  onChange={(e) => setSelectedKeyType(e.target.value as KeyAlgorithm)}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                >
-                  <option value="ed25519">ed25519</option>
-                  <option value="ecdsa">ecdsa</option>
-                  <option value="rsa">rsa</option>
-                </select>
+                  onChange={(value) => setSelectedKeyType(value as KeyAlgorithm)}
+                  options={['ed25519', 'rsa', 'ecdsa'].map((type) => ({ value: type, label: type }))}
+                />
               </div>
             </div>
 

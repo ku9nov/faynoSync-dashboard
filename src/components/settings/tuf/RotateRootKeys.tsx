@@ -10,6 +10,7 @@ import { generateGenerateSignaturesPythonScript } from '@/components/settings/tu
 import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
 import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
 import { StepperModal, Step } from '@/components/common/StepperModal';
+import { Dropdown } from '@/components/common/Dropdown';
 
 interface RotateRootKeysProps {
   selectedApp: string;
@@ -1964,15 +1965,12 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
             <div>
               <label className="block text-theme-primary mb-2">Key Type</label>
-              <select
+              <Dropdown
+                ariaLabel="Key type"
                 value={selectedKeyType}
-                onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              >
-                <option value="ed25519">ed25519</option>
-                <option value="rsa">rsa</option>
-                <option value="ecdsa">ecdsa</option>
-              </select>
+                onChange={(value) => setSelectedKeyType(normalizeKeyAlgorithm(value))}
+                options={['ed25519', 'rsa', 'ecdsa'].map((type) => ({ value: type, label: type }))}
+              />
               <p className="text-xs text-theme-primary opacity-70 mt-1">
                 Auto-detected from current root metadata when available.
               </p>
@@ -2337,15 +2335,12 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
                 <div>
                   <label className="block text-theme-primary mb-2">Key Type</label>
-                  <select
+                  <Dropdown
+                    ariaLabel="Key type"
                     value={selectedKeyType}
-                    onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
-                    className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                  >
-                    <option value="ed25519">ed25519</option>
-                    <option value="rsa">rsa</option>
-                    <option value="ecdsa">ecdsa</option>
-                  </select>
+                    onChange={(value) => setSelectedKeyType(normalizeKeyAlgorithm(value))}
+                    options={['ed25519', 'rsa', 'ecdsa'].map((type) => ({ value: type, label: type }))}
+                  />
                   <p className="text-xs text-theme-primary opacity-70 mt-1">
                     Auto-detected from current root metadata when available.
                   </p>

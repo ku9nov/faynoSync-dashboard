@@ -5,21 +5,13 @@ import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 import { useUploadQuery } from '@/hooks/use-query/useUploadQuery';
 import { AdvancedModal } from '@/components/common/AdvancedModal';
+import { Dropdown } from '@/components/common/Dropdown';
 import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import { getPlatformIcon } from '@/utils/platformIcon';
 import {
-  DROPDOWN_MENU,
-  DROPDOWN_OPTION,
-  DROPDOWN_TRIGGER,
   FIELD_INPUT,
   FIELD_LABEL,
 } from '@/components/common/ui';
-
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-};
 
 interface UploadModalProps {
   onClose: () => void;
@@ -40,11 +32,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
     signature: '',
   });
 
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
-
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
 
   const handleOptionClick = (dropdownName: string, value: string) => {
     setFormData(prev => ({ 
@@ -55,22 +42,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       // Reset signature when updater changes
       ...(dropdownName === 'updater' && { signature: '' })
     }));
-    setOpenDropdown(null);
   };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const [previewChangelog, setPreviewChangelog] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -177,43 +149,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
         <>
           <div className="mb-4">
             <label className={FIELD_LABEL}>App Name</label>
-            <div className="relative dropdown-container">
-              <button
-                type="button"
-                onClick={() => handleDropdownClick('app_name')}
-                className={DROPDOWN_TRIGGER}
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{formData.app_name || 'Select an app'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'app_name' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'app_name' && (
-                <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
-                  {apps.map((app) => (
-                    <button
-                      key={app.ID}
-                      type="button"
-                      onClick={() => handleOptionClick('app_name', app.AppName)}
-                      className={DROPDOWN_OPTION}
-                    >
-                      {app.AppName}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="App name"
+              placeholder="Select an app"
+              value={formData.app_name}
+              onChange={(value) => handleOptionClick('app_name', value)}
+              options={apps.map((app) => ({ value: app.AppName, label: app.AppName }))}
+            />
           </div>
 
           <div className="mb-4">
@@ -232,86 +174,30 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           {channels.length > 0 && (
             <div className="mb-4">
               <label className={FIELD_LABEL}>Channel</label>
-              <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('channel')}
-                  className={DROPDOWN_TRIGGER}
-                >
-                  <span className="block min-w-0 flex-1 truncate text-left">{formData.channel || 'Select a channel'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                {openDropdown === 'channel' && (
-                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
-                    {channels.map((channel) => (
-                      <button
-                        key={channel.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                        className={DROPDOWN_OPTION}
-                      >
-                        {channel.ChannelName}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Dropdown
+                ariaLabel="Channel"
+                placeholder="Select a channel"
+                value={formData.channel}
+                onChange={(value) => handleOptionClick('channel', value)}
+                options={channels.map((channel) => ({ value: channel.ChannelName, label: channel.ChannelName }))}
+              />
             </div>
           )}
 
           {platforms.length > 0 && (
             <div className="mb-4">
               <label className={FIELD_LABEL}>Platform</label>
-              <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('platform')}
-                  className={DROPDOWN_TRIGGER}
-                >
-                  <span className="block min-w-0 flex-1 truncate text-left">{formData.platform || 'Select a platform'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                {openDropdown === 'platform' && (
-                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
-                    {platforms.map((platform) => (
-                      <button
-                        key={platform.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                        className={DROPDOWN_OPTION}
-                      >
-                        {platform.PlatformName}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Dropdown
+                ariaLabel="Platform"
+                placeholder="Select a platform"
+                value={formData.platform}
+                onChange={(value) => handleOptionClick('platform', value)}
+                options={platforms.map((platform) => ({
+                  value: platform.PlatformName,
+                  label: platform.PlatformName,
+                  icon: getPlatformIcon(platform.PlatformName),
+                }))}
+              />
             </div>
           )}
 
@@ -323,43 +209,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   (This platform has multiple enabled updaters, select desired updater if necessary)
                 </span>
               </label>
-              <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('updater')}
-                  className={DROPDOWN_TRIGGER}
-                >
-                  <span className="block min-w-0 flex-1 truncate text-left">{formData.updater || 'manual (default)'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                {openDropdown === 'updater' && (
-                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
-                    {availableUpdaters.map((updater) => (
-                      <button
-                        key={updater.type}
-                        type="button"
-                        onClick={() => handleOptionClick('updater', updater.type)}
-                        className={DROPDOWN_OPTION}
-                      >
-                        {updater.type}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Dropdown
+                ariaLabel="Updater"
+                placeholder="manual (default)"
+                value={formData.updater}
+                onChange={(value) => handleOptionClick('updater', value)}
+                options={availableUpdaters.map((u) => ({ value: u.type, label: u.type }))}
+              />
             </div>
           )}
 
@@ -381,43 +237,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           {architectures.length > 0 && (
             <div className="mb-4">
               <label className={FIELD_LABEL}>Architecture</label>
-              <div className="relative dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => handleDropdownClick('arch')}
-                  className={DROPDOWN_TRIGGER}
-                >
-                  <span className="block min-w-0 flex-1 truncate text-left">{formData.arch || 'Select an architecture'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-                {openDropdown === 'arch' && (
-                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
-                    {architectures.map((arch) => (
-                      <button
-                        key={arch.ID}
-                        type="button"
-                        onClick={() => handleOptionClick('arch', arch.ArchID)}
-                        className={DROPDOWN_OPTION}
-                      >
-                        {arch.ArchID}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Dropdown
+                ariaLabel="Architecture"
+                placeholder="Select an architecture"
+                value={formData.arch}
+                onChange={(value) => handleOptionClick('arch', value)}
+                options={architectures.map((arch) => ({ value: arch.ArchID, label: arch.ArchID }))}
+              />
             </div>
           )}
 

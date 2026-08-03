@@ -15,6 +15,9 @@ import { Platform } from '@/hooks/use-query/usePlatformQuery';
 import { Architecture } from '@/hooks/use-query/useArchitectureQuery';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import { Dropdown } from '@/components/common/Dropdown';
+import { FIELD_LABEL, STATUS_BADGE } from '@/components/common/ui';
+import { getPlatformIcon } from '@/utils/platformIcon';
 
 const PANEL_CLASS = 'bg-theme-card rounded-lg border border-theme-card-hover shadow-md backdrop-blur-lg';
 const CHART_GRID_STROKE = 'rgba(148, 163, 184, 0.25)';
@@ -25,12 +28,6 @@ const TOOLTIP_STYLE = {
   color: 'var(--theme-primary)',
   borderRadius: '12px',
   boxShadow: '0 10px 30px rgba(15, 23, 42, 0.25)',
-};
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
 };
 const DATE_PICKER_POPUP_STYLE = {
   backdropFilter: 'blur(20px)',
@@ -195,6 +192,51 @@ const SinglePointTrendView = ({
   </div>
 );
 
+const MultiFilter = ({
+  label,
+  placeholder,
+  values,
+  options,
+  onToggle,
+  panelClassName,
+}: {
+  label: string;
+  placeholder: string;
+  values: string[];
+  options: { value: string; label: string; icon?: string }[];
+  onToggle: (value: string) => void;
+  panelClassName: string;
+}) => (
+  <div className={panelClassName}>
+    <label className={FIELD_LABEL}>{label}</label>
+    <Dropdown
+      multiple
+      ariaLabel={label}
+      placeholder={placeholder}
+      value={values}
+      onChange={onToggle}
+      options={options}
+    />
+    {values.length > 0 && (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {values.map((value) => (
+          <span key={value} className={`${STATUS_BADGE} border-white/15 text-white/85`}>
+            {value}
+            <button
+              type="button"
+              onClick={() => onToggle(value)}
+              className="ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300"
+              aria-label={`Remove ${value}`}
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
 export const StatisticsPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { theme } = useTheme();
@@ -208,7 +250,6 @@ export const StatisticsPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const tooltipTextColor = theme === 'dark' ? '#FFFFFF' : '#000000';
   const tooltipContentStyle = React.useMemo(
     () => ({ ...TOOLTIP_STYLE, color: tooltipTextColor }),
@@ -315,10 +356,6 @@ export const StatisticsPage = () => {
   const showSinglePointTrend = dailyStats.length === 1;
   const singlePointDateLabel = showSinglePointTrend ? formatChartDateLong(String(dailyStats[0].date)) : '';
 
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
-
   const handleOptionClick = (dropdownName: keyof Filters, value: string) => {
     setFilters(prev => {
       const currentValues = prev[dropdownName] as string[];
@@ -327,10 +364,6 @@ export const StatisticsPage = () => {
         : [...currentValues, value];
       return { ...prev, [dropdownName]: newValues };
     });
-  };
-
-  const handleClearFilter = (dropdownName: keyof Filters) => {
-    setFilters(prev => ({ ...prev, [dropdownName]: [] }));
   };
 
   const handleTimeRangeChange = (range: 'today' | 'week' | 'month' | 'custom') => {
@@ -359,8 +392,7 @@ export const StatisticsPage = () => {
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container') && !target.closest('.react-datepicker')) {
-        setOpenDropdown(null);
+      if (!target.closest('.react-datepicker') && !target.closest('.date-picker-container')) {
         setShowDatePicker(false);
       }
     };
@@ -494,7 +526,7 @@ export const StatisticsPage = () => {
                 >
                   Last Month
                 </button>
-                <div className="relative w-full sm:w-auto">
+                <div className="date-picker-container relative w-full sm:w-auto">
                   <button
                     onClick={() => handleTimeRangeChange('custom')}
                     className={`header-additional-btn w-full sm:w-auto px-2 sm:px-4 py-2 text-sm sm:text-base ${filters.date ? 'header-action-btn' : ''}`}
@@ -518,349 +550,51 @@ export const StatisticsPage = () => {
             </div>
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
-              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2">Apps</label>
-              <div className="relative dropdown-container">
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDropdownClick('apps')}
-                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
-                  >
-                    <span>{filters.apps.length > 0 ? `${filters.apps.length} selected` : 'Select apps'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className={`text-theme-primary transition-transform ${openDropdown === 'apps' ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-                  {filters.apps.length > 0 && (
-                    <button
-                      onClick={() => handleClearFilter('apps')}
-                      className="header-settings-btn p-2"
-                      title="Clear selection"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {openDropdown === 'apps' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
-                    {Array.isArray(apps) && apps.length > 0 ? (
-                      (apps as AppListItem[]).map((app) => (
-                        <button
-                          key={app.ID}
-                          type="button"
-                          onClick={() => handleOptionClick('apps', app.AppName)}
-                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                            filters.apps.includes(app.AppName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                          }`}
-                        >
-                          <span className="mr-2">{filters.apps.includes(app.AppName) ? '✓' : ''}</span>
-                          {app.AppName}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-theme-primary text-center">
-                        No apps available or you don't have access to any apps
-                      </div>
-                    )}
-                  </div>
-                )}
-                {filters.apps.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {filters.apps.map(appName => (
-                      <div 
-                        key={appName}
-                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
-                      >
-                        <span>{appName}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleOptionClick('apps', appName)}
-                          className="header-settings-btn statistics-header-settings-btn ml-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>
-
-              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2">Channels</label>
-              <div className="relative dropdown-container">
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDropdownClick('channels')}
-                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
-                  >
-                    <span>{filters.channels.length > 0 ? `${filters.channels.length} selected` : 'Select channels'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className={`text-theme-primary transition-transform ${openDropdown === 'channels' ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-                  {filters.channels.length > 0 && (
-                    <button
-                      onClick={() => handleClearFilter('channels')}
-                      className="header-settings-btn p-2"
-                      title="Clear selection"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {openDropdown === 'channels' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
-                    {channels && channels.length > 0 ? (
-                      (channels as Channel[]).map((channel) => (
-                        <button
-                          key={channel.ID}
-                          type="button"
-                          onClick={() => handleOptionClick('channels', channel.ChannelName)}
-                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                            filters.channels.includes(channel.ChannelName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                          }`}
-                        >
-                          <span className="mr-2">{filters.channels.includes(channel.ChannelName) ? '✓' : ''}</span>
-                          {channel.ChannelName}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-theme-primary text-center">
-                        No channels available or you don't have access to any channels
-                      </div>
-                    )}
-                  </div>
-                )}
-                {filters.channels.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {filters.channels.map(channelName => (
-                      <div 
-                        key={channelName}
-                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
-                      >
-                        <span>{channelName}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleOptionClick('channels', channelName)}
-                          className="header-settings-btn statistics-header-settings-btn ml-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>
-
-              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2">Platforms</label>
-              <div className="relative dropdown-container">
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDropdownClick('platforms')}
-                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
-                  >
-                    <span>{filters.platforms.length > 0 ? `${filters.platforms.length} selected` : 'Select platforms'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className={`text-theme-primary transition-transform ${openDropdown === 'platforms' ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-                  {filters.platforms.length > 0 && (
-                    <button
-                      onClick={() => handleClearFilter('platforms')}
-                      className="header-settings-btn p-2"
-                      title="Clear selection"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {openDropdown === 'platforms' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
-                    {platforms && platforms.length > 0 ? (
-                      (platforms as Platform[]).map((platform) => (
-                        <button
-                          key={platform.ID}
-                          type="button"
-                          onClick={() => handleOptionClick('platforms', platform.PlatformName)}
-                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                            filters.platforms.includes(platform.PlatformName) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                          }`}
-                        >
-                          <span className="mr-2">{filters.platforms.includes(platform.PlatformName) ? '✓' : ''}</span>
-                          {platform.PlatformName}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-theme-primary text-center">
-                        No platforms available or you don't have access to any platforms
-                      </div>
-                    )}
-                  </div>
-                )}
-                {filters.platforms.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {filters.platforms.map(platformName => (
-                      <div 
-                        key={platformName}
-                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
-                      >
-                        <span>{platformName}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleOptionClick('platforms', platformName)}
-                          className="header-settings-btn statistics-header-settings-btn ml-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>
-
-              <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2">Architectures</label>
-              <div className="relative dropdown-container">
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDropdownClick('architectures')}
-                    className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
-                  >
-                    <span>{filters.architectures.length > 0 ? `${filters.architectures.length} selected` : 'Select architectures'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="16" 
-                      height="16" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className={`text-theme-primary transition-transform ${openDropdown === 'architectures' ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-                  {filters.architectures.length > 0 && (
-                    <button
-                      onClick={() => handleClearFilter('architectures')}
-                      className="header-settings-btn p-2"
-                      title="Clear selection"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {openDropdown === 'architectures' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
-                    {architectures && architectures.length > 0 ? (
-                      (architectures as Architecture[]).map((arch) => (
-                        <button
-                          key={arch.ID}
-                          type="button"
-                          onClick={() => handleOptionClick('architectures', arch.ArchID)}
-                          className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                            filters.architectures.includes(arch.ArchID) ? 'bg-theme-button-primary bg-opacity-50' : ''
-                          }`}
-                        >
-                          <span className="mr-2">{filters.architectures.includes(arch.ArchID) ? '✓' : ''}</span>
-                          {arch.ArchID}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="px-4 py-3 text-theme-primary text-center">
-                        No architectures available or you don't have access to any architectures
-                      </div>
-                    )}
-                  </div>
-                )}
-                {filters.architectures.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {filters.architectures.map(archId => (
-                      <div 
-                        key={archId}
-                        className="bg-theme-button-primary text-theme-primary px-2 py-1 rounded-lg flex items-center"
-                      >
-                        <span>{archId}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleOptionClick('architectures', archId)}
-                          className="header-settings-btn statistics-header-settings-btn ml-2"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>
+              <MultiFilter
+                label="Apps"
+                placeholder="All apps"
+                panelClassName={`${PANEL_CLASS} p-3 sm:p-4`}
+                values={filters.apps}
+                onToggle={(value) => handleOptionClick('apps', value)}
+                options={(Array.isArray(apps) ? (apps as AppListItem[]) : []).map((app) => ({
+                  value: app.AppName,
+                  label: app.AppName,
+                }))}
+              />
+              <MultiFilter
+                label="Channels"
+                placeholder="All channels"
+                panelClassName={`${PANEL_CLASS} p-3 sm:p-4`}
+                values={filters.channels}
+                onToggle={(value) => handleOptionClick('channels', value)}
+                options={(Array.isArray(channels) ? (channels as Channel[]) : []).map((channel) => ({
+                  value: channel.ChannelName,
+                  label: channel.ChannelName,
+                }))}
+              />
+              <MultiFilter
+                label="Platforms"
+                placeholder="All platforms"
+                panelClassName={`${PANEL_CLASS} p-3 sm:p-4`}
+                values={filters.platforms}
+                onToggle={(value) => handleOptionClick('platforms', value)}
+                options={(Array.isArray(platforms) ? (platforms as Platform[]) : []).map((platform) => ({
+                  value: platform.PlatformName,
+                  label: platform.PlatformName,
+                  icon: getPlatformIcon(platform.PlatformName),
+                }))}
+              />
+              <MultiFilter
+                label="Architectures"
+                placeholder="All architectures"
+                panelClassName={`${PANEL_CLASS} p-3 sm:p-4`}
+                values={filters.architectures}
+                onToggle={(value) => handleOptionClick('architectures', value)}
+                options={(Array.isArray(architectures) ? (architectures as Architecture[]) : []).map((arch) => ({
+                  value: arch.ArchID,
+                  label: arch.ArchID,
+                }))}
+              />
             </div>
           </div>
 
