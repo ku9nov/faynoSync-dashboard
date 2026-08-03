@@ -10,6 +10,7 @@ import { BaseModal } from '@/components/common/BaseModal';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { AppListItem } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
+import { getPlatformIcon } from '@/utils/platformIcon';
 
 interface EditVersionModalProps {
   appName: string;
@@ -50,6 +51,187 @@ const DROPDOWN_MENU_STYLE = {
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
   boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+};
+
+// Same vocabulary as the version cards (see Dashboard.tsx): a dark scrim rather than
+// a tinted fill, so every status stays legible on both themes without dark: variants.
+const STATUS_BADGE = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[13px] font-semibold bg-black/55 border';
+const STATUS_DOT = 'w-[7px] h-[7px] rounded-full shrink-0';
+// Checkbox, not a toggle chip: the box has to look clickable before it is clicked.
+const FLAG_TONE = {
+  green: { box: 'peer-checked:border-green-500 peer-checked:bg-green-500', text: 'peer-checked:text-green-300' },
+  red: { box: 'peer-checked:border-red-500 peer-checked:bg-red-500', text: 'peer-checked:text-red-300' },
+  amber: { box: 'peer-checked:border-amber-500 peer-checked:bg-amber-500', text: 'peer-checked:text-amber-300' },
+} as const;
+
+interface FlagCheckboxProps {
+  label: string;
+  tone: keyof typeof FLAG_TONE;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+const FlagCheckbox: React.FC<FlagCheckboxProps> = ({ label, tone, checked, onChange }) => (
+  <label className="flex cursor-pointer select-none items-center gap-2.5 rounded-lg border border-white/15 bg-black/40 px-3 py-2 transition-colors hover:bg-black/60">
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onChange(e.target.checked)}
+      className="peer sr-only"
+    />
+    <span
+      className={`flex h-[18px] w-[18px] items-center justify-center rounded-[5px] border border-white/40 bg-black/40 text-transparent transition-colors peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 ${FLAG_TONE[tone].box}`}
+    >
+      <i className="fas fa-check text-[10px]"></i>
+    </span>
+    <span className={`text-[13px] font-semibold text-white/70 transition-colors ${FLAG_TONE[tone].text}`}>
+      {label}
+    </span>
+  </label>
+);
+
+const SECTION_LABEL =
+  "mt-6 mb-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-white/70 after:h-px after:flex-1 after:bg-white/15 after:content-['']";
+
+const ROW = 'flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-black/30 px-3 py-2.5';
+const PLATFORM_TILE = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10';
+const ROW_META = 'flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-white/60';
+
+const ACTION_GROUP = 'inline-flex shrink-0 items-center gap-px rounded-lg border border-white/15 bg-black/55 p-0.5';
+const ACTION_BUTTON = 'rounded-md px-2 py-1.5 transition-colors duration-200';
+
+const FIELD_INPUT =
+  'w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-theme-primary transition-all duration-150 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-theme-focus';
+
+const TUF_BADGE_STYLE = {
+  'all-signed': { label: 'TUF signed', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500', hint: 'Every artifact is signed' },
+  partial: { label: 'TUF partial', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500', hint: 'Some artifacts are not signed yet' },
+  none: { label: 'TUF unsigned', badge: 'text-red-300 border-red-500/45', dot: 'bg-red-500', hint: 'No artifact is signed' },
+} as const;
+
+type TufStatus = keyof typeof TUF_BADGE_STYLE;
+
+// 0 and 100 are states, not just numbers — each zone owns its badge and its sentence.
+const ROLLOUT_ZONES = [
+  { max: 0, label: 'Paused', badge: 'text-slate-200 border-slate-400/40', dot: 'bg-slate-400' },
+  { max: 9, label: 'Canary', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500' },
+  { max: 99, label: 'Ramping', badge: 'text-blue-300 border-blue-500/45', dot: 'bg-blue-500' },
+  { max: 100, label: 'Full rollout', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500' },
+];
+
+const ROLLOUT_TICKS = Array.from({ length: 21 }, (_, i) => i * 5);
+
+const clampRollout = (value: number) => Math.max(0, Math.min(100, Math.round(value || 0)));
+
+interface RolloutSliderProps {
+  value: number;
+  channel: string;
+  onChange: (value: number) => void;
+}
+
+const RolloutSlider: React.FC<RolloutSliderProps> = ({ value, channel, onChange }) => {
+  const zone = ROLLOUT_ZONES.find(z => value <= z.max) ?? ROLLOUT_ZONES[ROLLOUT_ZONES.length - 1];
+
+  const hint =
+    value === 0
+      ? 'Paused — no new device is offered this version.'
+      : value === 100
+      ? `Every device on ${channel} is offered this version.`
+      : `Offered to ${value} of every 100 devices on ${channel}.`;
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-baseline gap-1 tabular-nums">
+          <span className="text-[32px] font-extrabold leading-none tracking-tight text-theme-primary">{value}</span>
+          <span className="text-sm font-semibold text-white/60">% of devices on {channel}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`${STATUS_BADGE} ${zone.badge}`}>
+            <span className={`${STATUS_DOT} ${zone.dot}`}></span>
+            {zone.label}
+          </span>
+          <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/15 bg-black/40">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={value}
+              onChange={(e) => onChange(clampRollout(Number(e.target.value)))}
+              className="w-14 bg-transparent py-2 text-center font-mono text-sm font-bold tabular-nums text-theme-primary focus:outline-none focus:ring-2 focus:ring-inset focus:ring-theme-focus [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              aria-label="Rollout percent"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(clampRollout(value - 5))}
+              className="w-7 border-l border-white/15 bg-white/5 font-mono text-sm font-bold text-theme-primary transition-colors hover:bg-white/15"
+              aria-label="Decrease by 5"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(clampRollout(value + 5))}
+              className="w-7 border-l border-white/15 bg-white/5 font-mono text-sm font-bold text-theme-primary transition-colors hover:bg-white/15"
+              aria-label="Increase by 5"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* The thumb travels between 9px insets, so the rail, ticks and bubble share that inset. */}
+      <div className="relative h-[18px]">
+        <span
+          className="pointer-events-none absolute bottom-[22px] z-10 -translate-x-1/2 rounded-md bg-violet-400 px-2 py-[3px] font-mono text-xs font-bold tabular-nums text-violet-950"
+          style={{ left: `calc(9px + (100% - 18px) * ${value} / 100)` }}
+        >
+          {value}%
+        </span>
+        <span className="absolute left-[9px] right-[9px] top-[6px] h-1.5 overflow-hidden rounded-full border border-white/15 bg-black/45">
+          <span
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-600 to-violet-400"
+            style={{ width: `${value}%` }}
+          ></span>
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={value}
+          onChange={(e) => onChange(clampRollout(Number(e.target.value)))}
+          className="rollout-range relative z-20 h-[18px] w-full cursor-pointer"
+          aria-label="Staged rollout percent"
+        />
+      </div>
+
+      <div className="relative mx-[9px] h-5" aria-hidden="true">
+        {ROLLOUT_TICKS.map((tick) => (
+          <React.Fragment key={tick}>
+            <span
+              className={`absolute top-0 w-px -translate-x-1/2 ${
+                tick % 25 === 0 ? 'h-2 bg-white/55' : 'h-1 bg-white/25'
+              }`}
+              style={{ left: `${tick}%` }}
+            ></span>
+            {tick % 25 === 0 && (
+              <span
+                className="absolute top-[10px] -translate-x-1/2 font-mono text-[10px] font-semibold tabular-nums text-white/55"
+                style={{ left: `${tick}%` }}
+              >
+                {tick}
+              </span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <p className="mt-3 text-sm text-white/60">{hint}</p>
+    </div>
+  );
 };
 
 export const EditVersionModal: React.FC<EditVersionModalProps> = ({
@@ -333,6 +515,29 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
     }
   };
 
+  // Mirrors getTufSignStatus in Dashboard.tsx so the modal reports the same state as the card.
+  const tufStatus = React.useMemo<TufStatus | null>(() => {
+    if (!appData?.Tuf) {
+      return null;
+    }
+    const tufArtifacts = formData.Artifacts.filter(
+      artifact => artifact.TufTaskID || (artifact.TufTaskID === null && artifact.TufSigned === false)
+    );
+    if (tufArtifacts.length === 0) {
+      return formData.Artifacts.length > 0 ? 'none' : null;
+    }
+    const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned === true).length;
+    if (signedCount === tufArtifacts.length) {
+      return 'all-signed';
+    }
+    return signedCount > 0 ? 'partial' : 'none';
+  }, [appData?.Tuf, formData.Artifacts]);
+
+  const unsignedCount = React.useMemo(
+    () => formData.Artifacts.filter(artifact => artifact.TufSigned !== true).length,
+    [formData.Artifacts]
+  );
+
   const hasValidArtifacts = React.useMemo(() => {
     return formData.Artifacts && 
            formData.Artifacts.length > 0 && 
@@ -610,7 +815,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   return (
     <>
       <BaseModal
-        title={`Edit Version ${version}`}
+        title={`Edit version ${version}`}
         onClose={onClose}
         isLoading={isLoading}
         isSuccess={isSuccess}
@@ -619,476 +824,399 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         setError={setError}
         className="w-[800px] max-h-[90vh] overflow-y-auto relative"
       >
-        <div className="mb-4">
-          <p className="text-theme-primary">App Name: {appName}</p>
-          <p className="text-theme-primary">Version: {version}</p>
-          <p className="text-theme-primary">Channel: {channel}</p>
+        <div className="-mt-2 flex flex-wrap items-center gap-2 text-sm text-white/70">
+          <span className="inline-flex items-center rounded-full border border-purple-300/45 bg-purple-500/30 px-2 py-0.5 text-xs font-semibold text-purple-100">
+            {channel}
+          </span>
+          <span>{appName}</span>
         </div>
 
-        {hasValidArtifacts ? (
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xl font-bold text-theme-primary">Existing Artifacts</h3>
-              {appData?.Tuf && (
-                <button
-                  onClick={handleTufPublish}
-                  disabled={isPublishingTuf}
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                    isPublishingTuf
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:opacity-80 active:scale-95 cursor-pointer'
-                  } bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30`}
-                  title={isPublishingTuf ? 'Publishing...' : 'Publish TUF artifacts'}
-                  type="button"
-                >
-                  {isPublishingTuf ? (
-                    <svg 
-                      className="w-3 h-3 animate-spin" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  ) : (
-                    <svg 
-                      className="w-3 h-3" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                  )}
-                  {isPublishingTuf ? 'Publishing...' : 'Sign All'}
-                </button>
-              )}
-            </div>
-            <div className="space-y-4">
-              {formData.Artifacts.map((artifact, index) => (
-                <div
-                  key={index}
-                  className="bg-theme-card p-4 rounded-lg text-theme-primary hover:bg-theme-card-hover transition-colors"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold">{artifact.platform}</p>
-                      <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
-                      <p className="text-sm text-gray-300">Package: {artifact.package}</p>
-                      {artifact.TufTaskID && (
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
-                            artifact.TufSigned 
-                              ? 'bg-green-500/20 text-green-300 border-green-400/30' 
-                              : 'bg-red-500/20 text-red-300 border-red-400/30'
-                          }`}>
-                            <svg 
-                              className="w-3 h-3" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                              />
-                            </svg>
-                            TUF
-                          </span>
-                          {artifact.TufSigned && (
-                            <button
-                              onClick={() => handleUnsignArtifact(index)}
-                              disabled={isUnsigning}
-                              className="text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              type="button"
-                              title="Unsign artifact from TUF"
-                            >
-                              {isUnsigning ? (
-                                <i className="fas fa-spinner fa-spin"></i>
-                              ) : (
-                                <i className="fas fa-unlock"></i>
-                              )}
-                            </button>
-                          )}
+        <form onSubmit={handleSubmit} noValidate>
+          <p className={SECTION_LABEL}>Release flags</p>
+          <div className="flex flex-wrap gap-2">
+            <FlagCheckbox
+              label="Published"
+              tone="green"
+              checked={formData.Published}
+              onChange={(checked) => setFormData({ ...formData, Published: checked })}
+            />
+            <FlagCheckbox
+              label="Critical"
+              tone="red"
+              checked={formData.Critical}
+              onChange={(checked) => setFormData({ ...formData, Critical: checked })}
+            />
+            <FlagCheckbox
+              label="Intermediate"
+              tone="amber"
+              checked={formData.Intermediate}
+              onChange={(checked) => setFormData({ ...formData, Intermediate: checked })}
+            />
+          </div>
+
+          <p className={SECTION_LABEL}>
+            Artifacts
+            {tufStatus && (
+              <span
+                className={`${STATUS_BADGE} ${TUF_BADGE_STYLE[tufStatus].badge} normal-case tracking-normal`}
+                title={TUF_BADGE_STYLE[tufStatus].hint}
+              >
+                <span className={`${STATUS_DOT} ${TUF_BADGE_STYLE[tufStatus].dot}`}></span>
+                {TUF_BADGE_STYLE[tufStatus].label}
+              </span>
+            )}
+          </p>
+
+          {hasValidArtifacts ? (
+            <>
+              <div className="space-y-2">
+                {formData.Artifacts.map((artifact, index) => (
+                  <div key={index} className={ROW}>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className={PLATFORM_TILE}>
+                        <i className={`${getPlatformIcon(artifact.platform)} text-white/90`}></i>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[14.5px] font-bold text-theme-primary">{artifact.platform}</p>
+                        <div className={ROW_META}>
+                          <span>{artifact.arch}</span>
+                          <span aria-hidden="true">·</span>
+                          <span className="truncate">{artifact.package}</span>
                         </div>
+                      </div>
+                      {artifact.TufTaskID && (
+                        <span
+                          className={`${STATUS_BADGE} shrink-0 ${
+                            artifact.TufSigned
+                              ? 'text-green-300 border-green-500/40'
+                              : 'text-red-300 border-red-500/45'
+                          }`}
+                        >
+                          <i className="fas fa-shield-alt text-[11px]"></i>
+                          {artifact.TufSigned ? 'signed' : 'unsigned'}
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center">
-                      <button 
-                        onClick={() => handleDownload(artifact)} 
-                        className="text-green-500 hover:text-green-400"
+                    <div className={ACTION_GROUP}>
+                      <button
                         type="button"
+                        onClick={() => handleDownload(artifact)}
+                        className={`${ACTION_BUTTON} text-green-400 hover:bg-green-500/20`}
+                        title="Download"
+                        aria-label="Download"
                       >
                         <i className="fas fa-download"></i>
                       </button>
+                      {artifact.TufSigned && (
+                        <button
+                          type="button"
+                          onClick={() => handleUnsignArtifact(index)}
+                          disabled={isUnsigning}
+                          className={`${ACTION_BUTTON} text-amber-300 hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50`}
+                          title="Unsign artifact from TUF"
+                          aria-label="Unsign artifact from TUF"
+                        >
+                          <i className={`fas ${isUnsigning ? 'fa-spinner fa-spin' : 'fa-unlock'}`}></i>
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
-                        className="text-theme-danger hover:text-red-400 ml-4"
                         type="button"
+                        onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
+                        className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
+                        title="Delete"
+                        aria-label="Delete"
                       >
-                        <i className="fas fa-times"></i>
+                        <i className="fas fa-trash"></i>
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>
+              {appData?.Tuf && tufStatus !== null && tufStatus !== 'all-signed' && (
+                <button
+                  type="button"
+                  onClick={handleTufPublish}
+                  disabled={isPublishingTuf}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-black/55 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Publish TUF artifacts"
+                >
+                  <i className={`fas ${isPublishingTuf ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>
+                  {isPublishingTuf
+                    ? 'Signing…'
+                    : `Sign ${unsignedCount} remaining ${unsignedCount === 1 ? 'artifact' : 'artifacts'} with TUF`}
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center gap-3 rounded-lg border border-amber-500/45 bg-black/40 px-3 py-3 text-sm text-amber-300">
+              <i className="fas fa-exclamation-triangle"></i>
+              This version has no artifacts yet — upload them below.
+            </div>
+          )}
+
+          <p className={SECTION_LABEL}>Add files</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-upload"
+          />
+          <label
+            htmlFor="file-upload"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-white/30 bg-white/5 px-4 py-4 text-sm text-white/85 transition-colors hover:bg-white/10"
+          >
+            <i className="fas fa-plus"></i>
+            Choose files to upload
+          </label>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className={ROW}>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className={PLATFORM_TILE}>
+                      <i className="fas fa-file text-white/90"></i>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[14.5px] font-bold text-theme-primary">{file.name}</p>
+                      <div className={ROW_META}>
+                        <span>{formatFileSize(file.size)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={ACTION_GROUP}>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
+                      title="Remove file"
+                      aria-label="Remove file"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="mb-6 bg-yellow-500/20 p-4 rounded-lg">
-            <p className="text-yellow-200">
-              This version doesn't have artifacts yet, please upload them
-            </p>
-          </div>
-        )}
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          <div>
-            <label className="block text-theme-primary mb-2 font-semibold">
-              Add New Files
-            </label>
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Choose Files
-              </label>
-            </div>
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between bg-theme-input bg-opacity-50 p-3 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <div>
-                        <div className="text-theme-primary">{file.name}</div>
-                        <div className="text-purple-200 text-sm">{formatFileSize(file.size)}</div>
-                      </div>
-                    </div>
+          {selectedFiles.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              {platforms.length > 0 && (
+                <div>
+                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                    Platform
+                  </label>
+                  <div className="relative dropdown-container">
                     <button
                       type="button"
-                      onClick={() => removeFile(index)}
-                      className="text-theme-primary hover:text-red-300 transition-colors duration-200"
-                      aria-label="Remove file"
+                      onClick={() => handleDropdownClick('platform')}
+                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
                       </svg>
                     </button>
+                    {openDropdown === 'platform' && (
+                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                        {platforms.map((p) => (
+                          <button
+                            key={p.ID}
+                            type="button"
+                            onClick={() => handleOptionClick('platform', p.PlatformName)}
+                            className="flex w-full items-center gap-2 truncate px-4 py-2 text-left text-theme-primary transition-colors hover:bg-theme-card-hover first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            <i className={`${getPlatformIcon(p.PlatformName)} w-4 text-center opacity-90`}></i>
+                            {p.PlatformName}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-            {selectedFiles.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {platforms.length > 0 && (
-                  <div>
-                    <label className="block text-theme-primary mb-2 font-semibold">
-                      Platform
-                    </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('platform')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                </div>
+              )}
+              {architectures.length > 0 && (
+                <div>
+                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                    Architecture
+                  </label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => handleDropdownClick('arch')}
+                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
+                    >
+                      <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
                       >
-                        <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                      {openDropdown === 'platform' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                          {platforms.map((p) => (
-                            <button
-                              key={p.ID}
-                              type="button"
-                              onClick={() => handleOptionClick('platform', p.PlatformName)}
-                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                            >
-                              {p.PlatformName}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    {openDropdown === 'arch' && (
+                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                        {architectures.map((a) => (
+                          <button
+                            key={a.ID}
+                            type="button"
+                            onClick={() => handleOptionClick('arch', a.ArchID)}
+                            className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            {a.ArchID}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-                {architectures.length > 0 && (
-                  <div>
-                    <label className="block text-theme-primary mb-2 font-semibold">
-                      Architecture
-                    </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('arch')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
+                </div>
+              )}
+              {showUpdaterDropdown && (
+                <div className="col-span-2">
+                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                    Updater
+                    <span className="ml-2 font-normal text-white/50">
+                      This platform has several enabled updaters — pick one if needed.
+                    </span>
+                  </label>
+                  <div className="relative dropdown-container">
+                    <button
+                      type="button"
+                      onClick={() => handleDropdownClick('updater')}
+                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
+                    >
+                      <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
                       >
-                        <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                      {openDropdown === 'arch' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                          {architectures.map((a) => (
-                            <button
-                              key={a.ID}
-                              type="button"
-                              onClick={() => handleOptionClick('arch', a.ArchID)}
-                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                            >
-                              {a.ArchID}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    {openDropdown === 'updater' && (
+                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                        {availableUpdaters.map((u) => (
+                          <button
+                            key={u.type}
+                            type="button"
+                            onClick={() => handleOptionClick('updater', u.type)}
+                            className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                          >
+                            {u.type}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-                                 {showUpdaterDropdown && (
-                   <div>
-                     <label className="block text-theme-primary mb-2 font-semibold">
-                       Updater
-                       <span className="text-sm text-theme-secondary ml-2">
-                         (This platform has multiple enabled updaters, select desired updater if necessary)
-                       </span>
-                     </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('updater')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                      >
-                                                 <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                                             {openDropdown === 'updater' && (
-                         <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                           {availableUpdaters.map((u) => (
-                             <button
-                               key={u.type}
-                               type="button"
-                               onClick={() => handleOptionClick('updater', u.type)}
-                               className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                             >
-                               {u.type}
-                             </button>
-                           ))}
-                         </div>
-                       )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+              {updater === 'tauri' && (
+                <div className="col-span-2">
+                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                    Signature
+                  </label>
+                  <input
+                    type="text"
+                    name="signature"
+                    value={signature}
+                    onChange={(e) => setSignature(e.target.value)}
+                    className={FIELD_INPUT}
+                    placeholder="Enter signature for Tauri updater"
+                    required
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
-            {updater === 'tauri' && (
-              <div>
-                <label className="block text-theme-primary mb-2 font-semibold">
-                  Signature
-                </label>
-                <input
-                  type="text"
-                  name="signature"
-                  value={signature}
-                  onChange={(e) => setSignature(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
-                  placeholder="Enter signature for Tauri updater"
-                  required
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-theme-primary mb-2 font-semibold">
-              Changelog
-            </label>
-            <div className="flex gap-2 mb-2">
+          <p className={SECTION_LABEL}>
+            Changelog
+            <span className="inline-flex overflow-hidden rounded-md border border-white/20 normal-case tracking-normal">
               <button
                 type="button"
-                onClick={() => setIsPreview(!isPreview)}
-                className="text-theme-primary text-sm hover:text-gray-300"
+                onClick={() => setIsPreview(false)}
+                aria-pressed={!isPreview}
+                className={`px-3 py-1 text-xs font-semibold transition-colors ${
+                  isPreview ? 'bg-black/30 text-white/70 hover:bg-white/10' : 'bg-white/15 text-theme-primary'
+                }`}
               >
-                {isPreview ? 'Edit' : 'Preview'}
+                Edit
               </button>
+              <button
+                type="button"
+                onClick={() => setIsPreview(true)}
+                aria-pressed={isPreview}
+                className={`border-l border-white/20 px-3 py-1 text-xs font-semibold transition-colors ${
+                  isPreview ? 'bg-white/15 text-theme-primary' : 'bg-black/30 text-white/70 hover:bg-white/10'
+                }`}
+              >
+                Preview
+              </button>
+            </span>
+          </p>
+          {isPreview ? (
+            <div className="prose prose-sm prose-invert max-w-none rounded-lg border border-white/15 bg-black/30 p-4">
+              <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
             </div>
-            {isPreview ? (
-              <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
-                <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
-              </div>
-            ) : (
-              <textarea
-                value={formData.Changelog}
-                onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
-                placeholder="Enter changelog in Markdown format..."
-              />
-            )}
-          </div>
+          ) : (
+            <textarea
+              value={formData.Changelog}
+              onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
+              className={`${FIELD_INPUT} min-h-[110px] font-mono text-sm`}
+              placeholder="Enter changelog in Markdown format..."
+            />
+          )}
 
-          <div className="flex gap-4">
-            <label className="flex items-center text-theme-primary">
-              <input
-                type="checkbox"
-                checked={formData.Published}
-                onChange={(e) => setFormData({ ...formData, Published: e.target.checked })}
-                className="mr-2"
-              />
-              Published
-            </label>
-            <label className="flex items-center text-theme-primary">
-              <input
-                type="checkbox"
-                checked={formData.Critical}
-                onChange={(e) => setFormData({ ...formData, Critical: e.target.checked })}
-                className="mr-2"
-              />
-              Critical
-            </label>
-            <label className="flex items-center text-theme-primary">
-              <input
-                type="checkbox"
-                checked={formData.Intermediate}
-                onChange={(e) => setFormData({ ...formData, Intermediate: e.target.checked })}
-                className="mr-2"
-              />
-              Intermediate
-            </label>
-          </div>
+          <p className={SECTION_LABEL}>Staged rollout</p>
+          <RolloutSlider value={rollout} channel={channel} onChange={setRollout} />
 
-          <div>
-            <label className="block text-theme-primary mb-2 font-semibold">
-              Staged rollout (%)
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={rollout}
-                  onChange={(e) => setRollout(Number(e.target.value))}
-                  className="w-full accent-purple-400"
-                />
-                <div className="flex justify-between mt-1 px-[7px]">
-                  {Array.from({ length: 11 }, (_, i) => i * 10).map((tick) => (
-                    <button
-                      key={tick}
-                      type="button"
-                      onClick={() => setRollout(tick)}
-                      className="flex flex-col items-center text-theme-secondary hover:text-theme-primary transition-colors"
-                    >
-                      <span className="w-px h-1.5 bg-current" />
-                      <span className="mt-1 text-[10px] leading-none">{tick}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                value={rollout}
-                onChange={(e) => {
-                  const value = Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0)));
-                  setRollout(value);
-                }}
-                className="w-20 px-3 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
-              />
-            </div>
-            <p className="mt-2 text-sm text-theme-secondary">
-              {rollout === 100
-                ? 'Full rollout'
-                : '100 = full rollout · 0 = paused (no new devices) · lower = canary'}
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="mt-8 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
+              className="rounded-lg border border-white/25 px-4 py-2 font-semibold text-theme-primary transition-colors hover:bg-white/10"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-input transition-colors duration-200"
-              disabled={Boolean(selectedFiles.length > 0 && 
-                ((platforms.length > 0 && !platform) || 
-                 (architectures.length > 0 && !arch) || 
+              className="rounded-lg bg-theme-button-submit px-4 py-2 font-semibold text-theme-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={Boolean(selectedFiles.length > 0 &&
+                ((platforms.length > 0 && !platform) ||
+                 (architectures.length > 0 && !arch) ||
                  (showUpdaterDropdown && updater === '')))}
             >
-              Save
+              Save changes
             </button>
           </div>
         </form>
