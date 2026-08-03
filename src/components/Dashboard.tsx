@@ -16,6 +16,7 @@ import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import { getPlatformIcon } from '@/utils/platformIcon';
+import { AppLogo } from '@/components/common/AppLogo';
 import { Dropdown } from '@/components/common/Dropdown';
 import '@/styles/cards.css';
 
@@ -517,65 +518,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </button>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4 min-w-0">
-            {appData?.Logo ? (
-              <div className="relative w-12 h-12">
-                <img 
-                  src={appData.Logo} 
-                  alt={`${selectedApp} logo`}
-                  className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.opacity = '0';
-                    setTimeout(() => {
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
-                      target.style.opacity = '1';
-                    }, 300);
-                  }}
-                  onLoad={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.opacity = '1';
-                  }}
-                />
-                <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
-                {appData?.Private && (
-                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
-                          <svg 
-                            className="w-3 h-3 text-theme-primary" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth="2" 
-                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                            />
-                          </svg>
-                        </div>
-                      )}
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className="text-theme-primary-hover"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <path d="M12 8v8"></path>
-                  <path d="M8 12h8"></path>
-                </svg>
-              </div>
-            )}
+            <div className="relative w-12 h-12 flex-shrink-0">
+              <AppLogo name={selectedApp ?? ''} logo={appData?.Logo} />
+              {appData?.Private && (
+                <div className="absolute -bottom-1 -right-1 rounded-full bg-red-500 p-1">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
             <h2 
               className="text-2xl font-bold text-theme-primary truncate" 
               title={selectedApp}
@@ -1124,43 +1081,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center mb-4 min-w-0 w-full">
               <div className="relative w-12 h-12 flex-shrink-0">
                 <div className="sharedCardIcon w-12 h-12">
-                  {app.Logo ? (
-                    <img 
-                      src={app.Logo} 
-                      alt={`${app.AppName} logo`}
-                      className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.opacity = '0';
-                        setTimeout(() => {
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
-                          target.style.opacity = '1';
-                        }, 300);
-                      }}
-                      onLoad={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.opacity = '1';
-                      }}
-                    />
-                  ) : (
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className="text-theme-primary-hover w-full h-full"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                      <path d="M12 8v8"></path>
-                      <path d="M8 12h8"></path>
-                    </svg>
-                  )}
+                  <AppLogo name={app.AppName} logo={app.Logo} />
                 </div>
                 {app.Private && (
                   <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 z-10">
