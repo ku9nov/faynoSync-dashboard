@@ -278,7 +278,7 @@ export const TokenSettings: React.FC = () => {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={() => setIsAllowedAppsModalOpen(true)}
-            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200"
           >
             <i className="fas fa-search mr-2"></i>
             Select allowed apps ({selectedAppIds.length})
@@ -287,7 +287,7 @@ export const TokenSettings: React.FC = () => {
           <button
             onClick={handleCreateToken}
             disabled={isCreatingToken}
-            className={`bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto transition-colors duration-200 ${
+            className={`bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg transition-colors duration-200 ${
               isCreatingToken ? 'opacity-60 cursor-not-allowed' : 'hover:bg-theme-button-primary-hover'
             }`}
           >
@@ -322,7 +322,7 @@ export const TokenSettings: React.FC = () => {
             <div className="flex">
               <button
                 onClick={handleCopyLastToken}
-                className="bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                className="bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200"
               >
                 <i className="fas fa-copy mr-2"></i>
                 Copy token

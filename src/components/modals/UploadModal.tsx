@@ -162,18 +162,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       files={files}
     >
       {!Array.isArray(apps) || apps.length === 0 ? (
-        <div className="text-theme-primary text-center py-8 font-roboto">
+        <div className="text-theme-primary text-center py-8">
           You don't have created applications, please create application and try again
         </div>
       ) : (
         <>
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">App Name</label>
+            <label className="block text-theme-primary mb-2 font-semibold">App Name</label>
             <div className="relative dropdown-container">
               <button
                 type="button"
                 onClick={() => handleDropdownClick('app_name')}
-                className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
               >
                 <span className="block min-w-0 flex-1 truncate text-left">{formData.app_name || 'Select an app'}</span>
                 <svg 
@@ -209,13 +209,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">Version</label>
+            <label className="block text-theme-primary mb-2 font-semibold">Version</label>
             <input
               type="text"
               name="version"
               value={formData.version}
               onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-              className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+              className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
               placeholder="e.g., 0.0.1.0"
               required
             />
@@ -223,12 +223,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {channels.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto font-semibold">Channel</label>
+              <label className="block text-theme-primary mb-2 font-semibold">Channel</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('channel')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.channel || 'Select a channel'}</span>
                   <svg 
@@ -266,12 +266,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {platforms.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto font-semibold">Platform</label>
+              <label className="block text-theme-primary mb-2 font-semibold">Platform</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('platform')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.platform || 'Select a platform'}</span>
                   <svg 
@@ -309,7 +309,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {showUpdaterDropdown && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+              <label className="block text-theme-primary mb-2 font-semibold">
                 Updater
                 <span className="text-sm text-theme-secondary ml-2">
                   (This platform has multiple enabled updaters, select desired updater if necessary)
@@ -319,7 +319,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('updater')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.updater || 'manual (default)'}</span>
                   <svg 
@@ -357,13 +357,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {formData.updater === 'tauri' && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto font-semibold">Signature</label>
+              <label className="block text-theme-primary mb-2 font-semibold">Signature</label>
               <input
                 type="text"
                 name="signature"
                 value={formData.signature}
                 onChange={(e) => setFormData(prev => ({ ...prev, signature: e.target.value }))}
-                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
                 placeholder="Enter signature for Tauri updater"
                 required
               />
@@ -372,12 +372,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {architectures.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto font-semibold">Architecture</label>
+              <label className="block text-theme-primary mb-2 font-semibold">Architecture</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('arch')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.arch || 'Select an architecture'}</span>
                   <svg 
@@ -414,36 +414,36 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           )}
 
           <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-roboto font-semibold">
+            <label className="flex items-center text-theme-primary font-semibold">
               <input
                 type="checkbox"
                 checked={formData.publish}
                 onChange={(e) => setFormData(prev => ({ ...prev, publish: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
               />
               Publish
             </label>
           </div>
 
           <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-roboto font-semibold">
+            <label className="flex items-center text-theme-primary font-semibold">
               <input
                 type="checkbox"
                 checked={formData.critical}
                 onChange={(e) => setFormData(prev => ({ ...prev, critical: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
               />
               Is critical
             </label>
           </div>
 
           <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-roboto font-semibold">
+            <label className="flex items-center text-theme-primary font-semibold">
               <input
                 type="checkbox"
                 checked={formData.intermediate}
                 onChange={(e) => setFormData(prev => ({ ...prev, intermediate: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
               />
               Is intermediate
             </label>

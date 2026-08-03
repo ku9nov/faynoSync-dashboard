@@ -37,7 +37,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
         {isLoading && (
           <div className="fixed top-4 right-4 bg-theme-button-primary text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-theme-primary"></div>
-            <span className="font-roboto">Processing...</span>
+            <span>Processing...</span>
           </div>
         )}
         {isSuccess && (
@@ -45,7 +45,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
             </svg>
-            <span className="font-roboto">{successMessage}</span>
+            <span>{successMessage}</span>
           </div>
         )}
         {error && (
@@ -54,7 +54,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-roboto">Error: {error.error}</span>
+              <span>Error: {error.error}</span>
               {error.details && (
                 <button
                   onClick={() => setShowDetails(!showDetails)}
@@ -74,6 +74,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
                 <button
                   onClick={() => setError(null)}
                   className="ml-2 text-theme-primary hover:text-theme-primary-hover"
+                  aria-label="Remove file"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -89,12 +90,13 @@ export const BaseModal: React.FC<BaseModalProps> = ({
           </div>
         )}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-theme-primary font-roboto">
+          <h2 className="text-2xl font-bold text-theme-primary">
             {title}
           </h2>
           <button
             onClick={onClose}
             className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
+            aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

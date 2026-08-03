@@ -21,7 +21,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/cards.css';
 
-const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
+const PANEL_CLASS = 'bg-theme-card rounded-lg border border-theme-card-hover shadow-md backdrop-blur-lg';
 const REPORTS_PAGE_LIMIT = 20;
 const EVENT_TYPES = ['crash', 'startup_failure', 'update_failure', 'install_failure', 'rollback_failure'];
 const STATUS_TABS: { value: ReportStatusFilter; label: string }[] = [
@@ -42,7 +42,7 @@ const statusBadgeClass = (status: ReportStatus) => {
   }
 };
 const INPUT_CLASS =
-  'w-full px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm';
+  'w-full px-3 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm';
 const DROPDOWN_MENU_STYLE = {
   background: 'var(--dropdown-bg)',
   backdropFilter: 'blur(20px)',
@@ -126,7 +126,7 @@ const FilterSelect = ({
   onSelect: (value: string) => void;
 }) => (
   <div>
-    <label className="block text-theme-primary mb-2 text-sm font-roboto">{label}</label>
+    <label className="block text-theme-primary mb-2 text-sm">{label}</label>
     <div className="relative dropdown-container">
       <div className="flex items-center space-x-2">
         <button
@@ -394,7 +394,7 @@ export const ReportsPage = () => {
               />
 
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Version</label>
+                <label className="block text-theme-primary mb-2 text-sm">Version</label>
                 <input
                   type="text"
                   value={filters.version ?? ''}
@@ -414,7 +414,7 @@ export const ReportsPage = () => {
                 onSelect={handleSelect('type', 'type')}
               />
               <div>
-                <label className="flex items-center gap-1.5 text-theme-primary mb-2 text-sm font-roboto">
+                <label className="flex items-center gap-1.5 text-theme-primary mb-2 text-sm">
                   Reason
                   <span className="relative group inline-flex">
                     <i className="fas fa-info-circle text-theme-secondary cursor-help"></i>
@@ -433,7 +433,7 @@ export const ReportsPage = () => {
               </div>
 
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen From</label>
+                <label className="block text-theme-primary mb-2 text-sm">Last Seen From</label>
                 <DatePicker
                   selected={fromDate}
                   onChange={handleFromChange}
@@ -448,7 +448,7 @@ export const ReportsPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen To</label>
+                <label className="block text-theme-primary mb-2 text-sm">Last Seen To</label>
                 <DatePicker
                   selected={toDate}
                   onChange={handleToChange}

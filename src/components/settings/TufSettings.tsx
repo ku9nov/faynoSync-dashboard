@@ -645,8 +645,8 @@ export const TufSettings: React.FC = () => {
 
       {/* Key Rotation Section */}
       {selectedApp && isBootstrapSuccess && (
-        <div className="rounded-lg border border-gray-200 p-4">
-          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+        <div className="rounded-lg border border-theme p-4">
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-400/30 dark:bg-blue-500/10 dark:text-blue-100">
             <p className="font-semibold">About key rotation workflow</p>
             <p className="mt-2">
               This dashboard helps you manage TUF metadata and key rotation with Python scripts and helper metadata files.

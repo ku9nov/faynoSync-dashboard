@@ -538,7 +538,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
         onClick={() => setShowRotateRoleKeys(!showRotateRoleKeys)}
         className="flex items-center justify-between w-full text-left text-theme-primary hover:text-theme-button-primary transition-colors"
       >
-        <h2 className="text-lg font-bold font-roboto">Rotate Top-Level Role Keys</h2>
+        <h2 className="text-lg font-bold">Rotate Top-Level Role Keys</h2>
         <i className={`fas fa-chevron-${showRotateRoleKeys ? 'up' : 'down'}`}></i>
       </button>
 
@@ -553,11 +553,11 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             </p>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 1: Generate role keys</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 1: Generate role keys</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Role</label>
+                <label className="block text-theme-primary mb-2">Role</label>
                 <select
                   value={selectedRole}
                   onChange={(e) => setSelectedRole(e.target.value as BuiltInRole)}
@@ -572,7 +572,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Number of keys</label>
+                <label className="block text-theme-primary mb-2">Number of keys</label>
                 <input
                   type="number"
                   min={1}
@@ -582,7 +582,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Role threshold</label>
+                <label className="block text-theme-primary mb-2">Role threshold</label>
                 <input
                   type="number"
                   min={1}
@@ -593,7 +593,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Key algorithm</label>
+                <label className="block text-theme-primary mb-2">Key algorithm</label>
                 <select
                   value={selectedKeyType}
                   onChange={(e) => setSelectedKeyType(e.target.value as KeyAlgorithm)}
@@ -614,7 +614,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={generateExampleScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -622,7 +622,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {exampleScript && (
                 <button
                   onClick={() => handleCopyToClipboard(exampleScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -648,7 +648,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 2: Get current root</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 2: Get current root</h2>
           <div className="space-y-4">
             <div className="mt-2 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
               <div className="flex items-start">
@@ -666,7 +666,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleGetCurrentRoot}
                 disabled={!selectedApp || loadingRootMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingRootMetadata ? (
                   <>
@@ -683,7 +683,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {rootMetadata && (
                 <button
                   onClick={handleCopyRootMetadata}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Root Metadata
@@ -710,7 +710,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">
+          <h2 className="text-lg font-bold text-theme-primary">
             Step 3: Create new root metadata (only {selectedRoleName || 'role'} key change)
           </h2>
           <div className="space-y-4">
@@ -727,7 +727,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={generateNewRootMetadataScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -735,7 +735,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {newRootMetadataScript && (
                 <button
                   onClick={() => handleCopyToClipboard(newRootMetadataScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -760,7 +760,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 4: Submit metadata</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 4: Submit metadata</h2>
           <div className="space-y-4">
             <textarea
               value={metadataPayload}
@@ -778,7 +778,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             <button
               onClick={handleSubmitMetadata}
               disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submittingMetadata ? (
                 <>
@@ -794,7 +794,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             </button>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 5: Generate signatures</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 5: Generate signatures</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {generateSignaturesScriptFileName} {'\\'}
@@ -807,7 +807,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={generateGenerateSignaturesScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -815,7 +815,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {generateSignaturesScript && (
                 <button
                   onClick={() => handleCopyToClipboard(generateSignaturesScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -840,7 +840,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 6: Submit signatures</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 6: Submit signatures</h2>
           <div className="space-y-4">
             <textarea
               value={signaturePayload}
@@ -885,7 +885,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleSubmitSignature}
                 disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingSignature ? (
                   <>
@@ -903,7 +903,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleCheckMetadataStatus}
                 disabled={!selectedApp || checkingMetadataStatus}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {checkingMetadataStatus ? (
                   <>
@@ -921,7 +921,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleGetCurrentRoot}
                 disabled={!selectedApp || loadingRootMetadata}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingRootMetadata ? (
                   <>
@@ -939,7 +939,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleDeleteSigningMetadata}
                 disabled={!selectedApp || deletingSigningMetadata}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingSigningMetadata ? (
                   <>
@@ -996,14 +996,14 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 7: Recommended update metadata files</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 7: Recommended update metadata files</h2>
           <MetadataUpdatePanel
             onUpdateMetadata={onUpdateMetadata}
             title="Update Metadata Files"
             description="After key rotation is completed, it is strongly recommended to update metadata files to apply the change. Select which roles to update, or leave all unchecked to update all roles (timestamp, targets, snapshot)."
           />
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 8: Recommended update key info state</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 8: Recommended update key info state</h2>
           <div className="space-y-4">
             <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
               <p className="text-theme-primary text-sm leading-relaxed">
@@ -1021,7 +1021,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={generateUpdateKeyInfoScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -1029,7 +1029,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {updateKeyInfoScript && (
                 <button
                   onClick={() => handleCopyToClipboard(updateKeyInfoScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script

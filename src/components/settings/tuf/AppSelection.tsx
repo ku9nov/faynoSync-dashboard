@@ -45,7 +45,7 @@ export const AppSelection: React.FC<AppSelectionProps> = ({
 
   return (
     <div className="bg-theme-card p-4 rounded-lg border border-theme-card-hover">
-      <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+      <label className="block text-theme-primary mb-2 font-semibold">
         Select App
       </label>
       <div className="relative dropdown-container">

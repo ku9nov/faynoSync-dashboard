@@ -147,13 +147,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-theme-primary hover:text-theme-primary-hover"
+          aria-label="Close"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 className="text-2xl font-bold text-theme-primary mb-6 font-roboto">User Profile</h2>
+        <h2 className="text-2xl font-bold text-theme-primary mb-6">User Profile</h2>
 
         {userData && (
           <div className="mb-6">
@@ -179,19 +180,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <h3 className="text-lg font-semibold text-theme-primary mb-3">Change Password</h3>
                 <form onSubmit={handlePasswordChange}>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">New Password</label>
+                    <label className="block text-theme-primary mb-1 font-semibold">New Password</label>
                     <div className="flex">
                       <input
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                        className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
                         required
                       />
                       <button
                         type="button"
                         onClick={generatePassword}
-                        className="ml-2 header-action-btn px-3 py-2 font-roboto"
+                        className="ml-2 header-action-btn px-3 py-2"
                       >
                         Generate
                       </button>
@@ -199,7 +200,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(newPassword)}
-                          className="ml-2 header-action-btn px-3 py-2 font-roboto"
+                          className="ml-2 header-action-btn px-3 py-2"
                         >
                           <i className="fas fa-copy"></i>
                         </button>
@@ -207,12 +208,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="block text-theme-primary mb-1 font-roboto font-semibold">Confirm New Password</label>
+                    <label className="block text-theme-primary mb-1 font-semibold">Confirm New Password</label>
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary font-roboto border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                      className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
                       required
                     />
                   </div>
@@ -227,7 +228,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                   )}
                   <button
                     type="submit"
-                    className="header-action-btn px-4 py-2 font-roboto mt-2"
+                    className="header-action-btn px-4 py-2 mt-2"
                     disabled={isUpdatingAdmin}
                   >
                     {isUpdatingAdmin ? (

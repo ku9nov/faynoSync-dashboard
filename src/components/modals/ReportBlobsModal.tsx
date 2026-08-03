@@ -61,7 +61,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
       {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto flex flex-col">
-        <h2 className="text-2xl font-bold mb-1 text-theme-primary font-roboto">
+        <h2 className="text-2xl font-bold mb-1 text-theme-primary">
           Report Details
         </h2>
         <p className="text-sm text-theme-secondary mb-4">
@@ -129,7 +129,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
+            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
           >
             Close
           </button>

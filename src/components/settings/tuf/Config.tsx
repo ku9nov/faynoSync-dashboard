@@ -58,7 +58,7 @@ export const Config: React.FC<ConfigProps> = ({
           onClick={() => setShowConfig(!showConfig)}
           className="flex items-center gap-3 text-theme-primary hover:text-theme-button-primary transition-colors"
         >
-          <h2 className="text-lg font-bold font-roboto">
+          <h2 className="text-lg font-bold">
             Update tuf config
           </h2>
           <i className={`fas fa-chevron-${showConfig ? 'up' : 'down'}`}></i>
@@ -88,7 +88,7 @@ export const Config: React.FC<ConfigProps> = ({
             <div className="space-y-6">
               {/* Read-only fields */}
               <div>
-                <h3 className="text-md font-semibold text-theme-primary mb-3 font-roboto">Configuration Details</h3>
+                <h3 className="text-md font-semibold text-theme-primary mb-3">Configuration Details</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="bg-theme-input p-3 rounded-lg border border-theme">
                     <div className="text-sm text-theme-primary opacity-70 mb-1">Bootstrap ID</div>
@@ -143,10 +143,10 @@ export const Config: React.FC<ConfigProps> = ({
 
               {/* Editable expiration fields */}
               <div>
-                <h3 className="text-md font-semibold text-theme-primary mb-3 font-roboto">Expiration Settings (Editable)</h3>
+                <h3 className="text-md font-semibold text-theme-primary mb-3">Expiration Settings (Editable)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-theme-input p-4 rounded-lg border border-theme">
-                    <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    <label className="block text-sm text-theme-primary mb-2">
                       Targets Expiration (days)
                     </label>
                     <input
@@ -161,7 +161,7 @@ export const Config: React.FC<ConfigProps> = ({
                     </p>
                   </div>
                   <div className="bg-theme-input p-4 rounded-lg border border-theme">
-                    <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    <label className="block text-sm text-theme-primary mb-2">
                       Snapshot Expiration (days)
                     </label>
                     <input
@@ -176,7 +176,7 @@ export const Config: React.FC<ConfigProps> = ({
                     </p>
                   </div>
                   <div className="bg-theme-input p-4 rounded-lg border border-theme">
-                    <label className="block text-sm text-theme-primary mb-2 font-roboto">
+                    <label className="block text-sm text-theme-primary mb-2">
                       Timestamp Expiration (days)
                     </label>
                     <input
@@ -197,7 +197,7 @@ export const Config: React.FC<ConfigProps> = ({
                 <button
                   onClick={handleUpdateConfig}
                   disabled={configUpdating}
-                  className="bg-theme-button-primary text-theme-primary px-6 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-theme-button-primary text-theme-primary px-6 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {configUpdating ? (
                     <>

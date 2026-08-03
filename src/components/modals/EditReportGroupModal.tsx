@@ -16,7 +16,7 @@ const formatLabel = (value: string) =>
     .join(' ');
 
 const INPUT_CLASS =
-  'w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm';
+  'w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm';
 
 export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ group, onClose, onConfirm }) => {
   const [tags, setTags] = useState<string[]>(group.tags ?? []);
@@ -65,10 +65,11 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-md">
         <div className="flex justify-between items-center mb-1">
-          <h2 className="text-2xl font-bold text-theme-primary font-roboto">Edit Report Group</h2>
+          <h2 className="text-2xl font-bold text-theme-primary">Edit Report Group</h2>
           <button
             onClick={onClose}
             className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
+            aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -81,7 +82,7 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 text-sm font-roboto">Tags</label>
+            <label className="block text-theme-primary mb-2 text-sm">Tags</label>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {tags.map((tag) => (
@@ -114,7 +115,7 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
           </div>
 
           <div className="mb-6">
-            <label className="block text-theme-primary mb-2 text-sm font-roboto">Note</label>
+            <label className="block text-theme-primary mb-2 text-sm">Note</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -128,14 +129,14 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ml-2 shadow-sm"
+              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ml-2 shadow-sm"
             >
               {isSaving ? 'Saving...' : 'Save'}
             </button>

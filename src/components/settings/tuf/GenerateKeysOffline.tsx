@@ -131,7 +131,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
         className="flex items-center justify-between w-full text-theme-primary hover:text-theme-button-primary mb-4"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold font-roboto">
+          <h2 className="text-lg font-bold">
             Step 1: Generate TUF Root Keys (Offline Mode)
           </h2>
           <div className={`flex items-center ${getStatusColor(step1Status)}`}>
@@ -149,7 +149,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
             <div className="flex items-start">
               <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
               <div className="flex-1">
-                <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Offline Key Generation</h3>
+                <h3 className="text-blue-500 font-semibold mb-2">Offline Key Generation</h3>
                 <p className="text-theme-primary text-sm leading-relaxed mb-2">
                   This is the recommended approach for generating TUF root keys. Configure the parameters below, 
                   then generate a Python script that you can run offline on a secure machine.
@@ -183,7 +183,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+              <label className="block text-theme-primary mb-2">App Name</label>
               <input
                 type="text"
                 value={selectedApp}
@@ -193,7 +193,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+              <label className="block text-theme-primary mb-2">Key Type</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
@@ -243,7 +243,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Role Name</label>
+              <label className="block text-theme-primary mb-2">Role Name</label>
               <input
                 type="text"
                 value={roleName}
@@ -254,7 +254,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Keys Threshold</label>
+              <label className="block text-theme-primary mb-2">Keys Threshold</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-theme-primary mb-1">Root</label>
@@ -310,7 +310,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Expiration Settings</label>
+              <label className="block text-theme-primary mb-2">Expiration Settings</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-theme-primary mb-1">Root (days)</label>
@@ -355,7 +355,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
               <button
                 onClick={handleGenerateScript}
                 disabled={!selectedApp || !roleName}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -363,7 +363,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
               {generatedScript && (
                 <button
                   onClick={handleCopyScript}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script

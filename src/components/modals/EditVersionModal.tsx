@@ -628,7 +628,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         {hasValidArtifacts ? (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xl font-bold text-theme-primary font-roboto">Existing Artifacts</h3>
+              <h3 className="text-xl font-bold text-theme-primary">Existing Artifacts</h3>
               {appData?.Tuf && (
                 <button
                   onClick={handleTufPublish}
@@ -748,7 +748,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
         ) : (
           <div className="mb-6 bg-yellow-500/20 p-4 rounded-lg">
-            <p className="text-yellow-200 font-roboto">
+            <p className="text-yellow-200">
               This version doesn't have artifacts yet, please upload them
             </p>
           </div>
@@ -756,7 +756,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+            <label className="block text-theme-primary mb-2 font-semibold">
               Add New Files
             </label>
             <div className="relative">
@@ -770,7 +770,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               />
               <label
                 htmlFor="file-upload"
-                className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
+                className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -790,14 +790,15 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <div>
-                        <div className="text-theme-primary font-roboto">{file.name}</div>
-                        <div className="text-purple-200 text-sm font-roboto">{formatFileSize(file.size)}</div>
+                        <div className="text-theme-primary">{file.name}</div>
+                        <div className="text-purple-200 text-sm">{formatFileSize(file.size)}</div>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
                       className="text-theme-primary hover:text-red-300 transition-colors duration-200"
+                      aria-label="Remove file"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -811,7 +812,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {platforms.length > 0 && (
                   <div>
-                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                    <label className="block text-theme-primary mb-2 font-semibold">
                       Platform
                     </label>
                     <div className="relative dropdown-container">
@@ -855,7 +856,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 )}
                 {architectures.length > 0 && (
                   <div>
-                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                    <label className="block text-theme-primary mb-2 font-semibold">
                       Architecture
                     </label>
                     <div className="relative dropdown-container">
@@ -899,7 +900,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 )}
                                  {showUpdaterDropdown && (
                    <div>
-                     <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                     <label className="block text-theme-primary mb-2 font-semibold">
                        Updater
                        <span className="text-sm text-theme-secondary ml-2">
                          (This platform has multiple enabled updaters, select desired updater if necessary)
@@ -949,7 +950,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
 
             {updater === 'tauri' && (
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+                <label className="block text-theme-primary mb-2 font-semibold">
                   Signature
                 </label>
                 <input
@@ -957,7 +958,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                   name="signature"
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                  className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
                   placeholder="Enter signature for Tauri updater"
                   required
                 />
@@ -966,7 +967,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+            <label className="block text-theme-primary mb-2 font-semibold">
               Changelog
             </label>
             <div className="flex gap-2 mb-2">
@@ -986,14 +987,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               <textarea
                 value={formData.Changelog}
                 onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
                 placeholder="Enter changelog in Markdown format..."
               />
             )}
           </div>
 
           <div className="flex gap-4">
-            <label className="flex items-center text-theme-primary font-roboto">
+            <label className="flex items-center text-theme-primary">
               <input
                 type="checkbox"
                 checked={formData.Published}
@@ -1002,7 +1003,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               />
               Published
             </label>
-            <label className="flex items-center text-theme-primary font-roboto">
+            <label className="flex items-center text-theme-primary">
               <input
                 type="checkbox"
                 checked={formData.Critical}
@@ -1011,7 +1012,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               />
               Critical
             </label>
-            <label className="flex items-center text-theme-primary font-roboto">
+            <label className="flex items-center text-theme-primary">
               <input
                 type="checkbox"
                 checked={formData.Intermediate}
@@ -1023,7 +1024,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
+            <label className="block text-theme-primary mb-2 font-semibold">
               Staged rollout (%)
             </label>
             <div className="flex items-center gap-4">
@@ -1046,7 +1047,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       className="flex flex-col items-center text-theme-secondary hover:text-theme-primary transition-colors"
                     >
                       <span className="w-px h-1.5 bg-current" />
-                      <span className="mt-1 text-[10px] font-roboto leading-none">{tick}</span>
+                      <span className="mt-1 text-[10px] leading-none">{tick}</span>
                     </button>
                   ))}
                 </div>
@@ -1061,10 +1062,10 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                   const value = Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0)));
                   setRollout(value);
                 }}
-                className="w-20 px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
+                className="w-20 px-3 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
               />
             </div>
-            <p className="mt-2 text-sm text-theme-secondary font-roboto">
+            <p className="mt-2 text-sm text-theme-secondary">
               {rollout === 100
                 ? 'Full rollout'
                 : '100 = full rollout · 0 = paused (no new devices) · lower = canary'}
@@ -1075,13 +1076,13 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
+              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-input transition-colors duration-200"
               disabled={Boolean(selectedFiles.length > 0 && 
                 ((platforms.length > 0 && !platform) || 
                  (architectures.length > 0 && !arch) || 
@@ -1111,7 +1112,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-roboto">Artifact deleted successfully!</span>
+          <span>Artifact deleted successfully!</span>
         </div>
       )}
 
@@ -1121,7 +1122,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-roboto">Error: {deleteError.error}</span>
+            <span>Error: {deleteError.error}</span>
             {deleteError.details && (
               <button
                 onClick={() => setShowDetails(!showDetails)}
@@ -1151,7 +1152,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
-          <span className="font-roboto">Artifact unsigned successfully!</span>
+          <span>Artifact unsigned successfully!</span>
         </div>
       )}
 
@@ -1161,7 +1162,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-roboto">Error: {unsignError.error}</span>
+            <span>Error: {unsignError.error}</span>
             {unsignError.details && (
               <button
                 onClick={() => setShowDetails(!showDetails)}

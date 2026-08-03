@@ -73,14 +73,14 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
       <div className="flex items-start mb-4">
         <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
         <div className="flex-1">
-          <h3 className="text-blue-500 font-semibold mb-2 font-roboto">{title}</h3>
+          <h3 className="text-blue-500 font-semibold mb-2">{title}</h3>
           <p className="text-theme-primary text-sm leading-relaxed mb-3">{description}</p>
         </div>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-theme-primary mb-3 font-roboto">
+          <label className="block text-sm font-semibold text-theme-primary mb-3">
             Select Roles to Update
           </label>
           <div className="flex flex-wrap gap-4 mb-3">
@@ -91,7 +91,7 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
                 onChange={() => handleRoleToggle('timestamp')}
                 className="mr-2 w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
               />
-              <span className="text-theme-primary font-roboto">Timestamp</span>
+              <span className="text-theme-primary">Timestamp</span>
             </label>
             <label className="flex items-center cursor-pointer">
               <input
@@ -100,7 +100,7 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
                 onChange={() => handleRoleToggle('targets')}
                 className="mr-2 w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
               />
-              <span className="text-theme-primary font-roboto">Targets</span>
+              <span className="text-theme-primary">Targets</span>
             </label>
             <label className="flex items-center cursor-pointer">
               <input
@@ -109,20 +109,20 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
                 onChange={() => handleRoleToggle('snapshot')}
                 className="mr-2 w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
               />
-              <span className="text-theme-primary font-roboto">Snapshot</span>
+              <span className="text-theme-primary">Snapshot</span>
             </label>
           </div>
           <div className="flex gap-2 mb-3">
             <button
               onClick={handleUpdateAllRoles}
-              className="text-xs text-blue-500 hover:text-blue-600 font-roboto"
+              className="text-xs text-blue-500 hover:text-blue-600"
             >
               Select All
             </button>
             <span className="text-theme-primary opacity-50">|</span>
             <button
               onClick={handleClearAllRoles}
-              className="text-xs text-blue-500 hover:text-blue-600 font-roboto"
+              className="text-xs text-blue-500 hover:text-blue-600"
             >
               Clear All
             </button>
@@ -130,7 +130,7 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm text-theme-primary mb-2 font-roboto">
+          <label className="block text-sm text-theme-primary mb-2">
             Custom Role (optional)
           </label>
           <input
@@ -149,7 +149,7 @@ export const MetadataUpdatePanel: React.FC<MetadataUpdatePanelProps> = ({
           <button
             onClick={handleUpdateMetadata}
             disabled={updatingMetadata}
-            className="bg-green-500 text-white px-6 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updatingMetadata ? (
               <>

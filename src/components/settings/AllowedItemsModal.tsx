@@ -75,7 +75,7 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
                   id={`item-${item.id}`}
                   checked={selected.includes(item.id)}
                   onChange={() => handleToggleItem(item.id)}
-                  className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+                  className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
                 />
                 <label htmlFor={`item-${item.id}`} className="text-theme-primary font-semibold">
                   {item.name}
@@ -88,13 +88,13 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
         <div className="p-4 border-t border-theme-modal flex justify-end">
           <button
             onClick={handleSelectAll}
-            className="header-action-btn px-4 py-2 font-roboto mr-2"
+            className="header-action-btn px-4 py-2 mr-2"
           >
             Select all
           </button>
           <button
             onClick={handleSave}
-            className="header-action-btn px-4 py-2 font-roboto"
+            className="header-action-btn px-4 py-2"
           >
             Update List
           </button>

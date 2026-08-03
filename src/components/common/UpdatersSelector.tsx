@@ -143,7 +143,7 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-3">
-        <h3 className="text-lg font-semibold text-theme-primary font-roboto">Updaters</h3>
+        <h3 className="text-lg font-semibold text-theme-primary">Updaters</h3>
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-theme-secondary to-transparent opacity-30"></div>
         <button
           onClick={handleExpandClick}
@@ -188,7 +188,7 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
                       : 'hover:shadow-md hover:scale-[1.01]'
                     }
                     ${type === 'manual' ? 'cursor-default' : 'cursor-pointer'}
-                    bg-theme-input border border-theme rounded-xl p-4
+                    bg-theme-input border border-theme rounded-lg p-4
                   `}
                   onClick={() => handleUpdaterToggle(type, !isSelected)}
                 >
@@ -228,10 +228,10 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
 
                   {/* Content */}
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-theme-primary font-roboto">
+                    <h4 className="font-semibold text-theme-primary">
                       {label}
                     </h4>
-                    <p className="text-sm text-theme-secondary font-roboto leading-relaxed">
+                    <p className="text-sm text-theme-secondary leading-relaxed">
                       {description}
                     </p>
                     
@@ -296,7 +296,7 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </div>
-              <p className="text-theme-secondary font-roboto">
+              <p className="text-theme-secondary">
                 No updaters selected. Please select at least one updater.
               </p>
             </div>
@@ -306,12 +306,12 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
 
       {/* Selected updaters summary - always visible */}
       {updaters.length > 0 && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-xl border border-purple-500/20">
+        <div className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20">
           <div className="flex items-center space-x-2 mb-2">
             <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-semibold text-theme-primary font-roboto">
+            <span className="font-semibold text-theme-primary">
               Selected Updaters ({updaters.length})
             </span>
           </div>

@@ -92,7 +92,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
         {isLoading && (
           <div className="fixed top-4 right-4 bg-theme-button-primary text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-theme-primary"></div>
-            <span className="font-roboto">Processing...</span>
+            <span>Processing...</span>
           </div>
         )}
         {isSuccess && (
@@ -100,7 +100,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
             </svg>
-            <span className="font-roboto">{successMessage}</span>
+            <span>{successMessage}</span>
           </div>
         )}
         {error && (
@@ -109,7 +109,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-roboto">Error: {error.error}</span>
+              <span>Error: {error.error}</span>
               {error.details && (
                 <button
                   onClick={() => setShowDetails(!showDetails)}
@@ -134,11 +134,12 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
           </div>
         )}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-theme-primary font-roboto">{title}</h2>
+          <h2 className="text-2xl font-bold text-theme-primary">{title}</h2>
           <button
             onClick={onClose}
             className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
             disabled={isLoading}
+            aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -157,7 +158,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
           
           {fileUploadConfig && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto">{fileUploadConfig.label || 'Files'}</label>
+              <label className="block text-theme-primary mb-2">{fileUploadConfig.label || 'Files'}</label>
               <div className="relative">
                 <input
                   ref={fileInputRef}
@@ -171,7 +172,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                 />
                 <label
                   htmlFor="file-upload"
-                  className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
+                  className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -191,14 +192,15 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <div>
-                          <div className="text-theme-primary font-roboto">{fileInfo.file.name}</div>
-                          <div className="text-purple-200 text-sm font-roboto">{formatFileSize(fileInfo.file.size)}</div>
+                          <div className="text-theme-primary">{fileInfo.file.name}</div>
+                          <div className="text-purple-200 text-sm">{formatFileSize(fileInfo.file.size)}</div>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeFile(fileInfo.id)}
                         className="text-theme-primary hover:text-red-300 transition-colors duration-200"
+                        aria-label="Remove file"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -213,7 +215,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
 
           {showChangelogPreview !== undefined && onChangelogChange && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-roboto">Changelog</label>
+              <label className="block text-theme-primary mb-2">Changelog</label>
               <div className="mb-2">
                 <button
                   type="button"
@@ -231,7 +233,7 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
                 <textarea
                   value={changelogValue}
                   onChange={(e) => onChangelogChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded font-roboto bg-theme-card text-theme-primary"
+                  className="w-full px-3 py-2 rounded bg-theme-card text-theme-primary"
                   rows={4}
                   placeholder="# Changes in this version&#10;- Added new feature&#10;- Fixed bug"
                 />
@@ -244,14 +246,14 @@ export const AdvancedModal: React.FC<AdvancedModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 font-roboto hover:bg-gray-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2 hover:bg-gray-400 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-submit-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
               {isLoading ? (
                 <>

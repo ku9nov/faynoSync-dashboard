@@ -10,7 +10,13 @@
 
 body {
   margin: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Urbanist', sans-serif;
+}
+
+/* Toasts render into document.body, outside any font-sans wrapper, and
+   react-toastify resolves its own variable instead of inheriting. */
+:root {
+  --toastify-font-family: 'Urbanist', sans-serif;
 }
 
 /* Custom utility classes using CSS variables */
@@ -122,6 +128,14 @@ body {
 
 .focus\:ring-theme-auth-input:focus {
   --tw-ring-color: var(--auth-input-focus);
+}
+
+.focus\:ring-theme-focus:focus {
+  --tw-ring-color: var(--focus-ring);
+}
+
+.focus\:border-theme-focus:focus {
+  border-color: var(--focus-ring);
 }
 
 /* Fix for hover-time blur seam artifacts in content area */

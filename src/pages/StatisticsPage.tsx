@@ -16,7 +16,7 @@ import { Architecture } from '@/hooks/use-query/useArchitectureQuery';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
-const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
+const PANEL_CLASS = 'bg-theme-card rounded-lg border border-theme-card-hover shadow-md backdrop-blur-lg';
 const CHART_GRID_STROKE = 'rgba(148, 163, 184, 0.25)';
 const CHART_AXIS_STROKE = 'rgba(148, 163, 184, 0.7)';
 const TOOLTIP_STYLE = {
@@ -519,7 +519,7 @@ export const StatisticsPage = () => {
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-4">
               <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2 font-roboto">Apps</label>
+              <label className="block text-theme-primary mb-2">Apps</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
                   <button
@@ -605,7 +605,7 @@ export const StatisticsPage = () => {
               </div>
 
               <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2 font-roboto">Channels</label>
+              <label className="block text-theme-primary mb-2">Channels</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
                   <button
@@ -691,7 +691,7 @@ export const StatisticsPage = () => {
               </div>
 
               <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2 font-roboto">Platforms</label>
+              <label className="block text-theme-primary mb-2">Platforms</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
                   <button
@@ -777,7 +777,7 @@ export const StatisticsPage = () => {
               </div>
 
               <div className={`${PANEL_CLASS} p-3 sm:p-4`}>
-              <label className="block text-theme-primary mb-2 font-roboto">Architectures</label>
+              <label className="block text-theme-primary mb-2">Architectures</label>
               <div className="relative dropdown-container">
                 <div className="flex items-center space-x-2">
                   <button

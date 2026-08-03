@@ -79,7 +79,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
   return (
     <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-theme-primary font-roboto">
+        <h2 className="text-lg font-bold text-theme-primary">
           Step 2: Start TUF Bootstrapping
         </h2>
         <div className={`flex items-center ${getStatusColor(step2Status)}`}>
@@ -93,7 +93,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
         <div className="flex items-start">
           <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
           <div className="flex-1">
-            <h3 className="text-blue-500 font-semibold mb-2 font-roboto">About Root Keys Location</h3>
+            <h3 className="text-blue-500 font-semibold mb-2">About Root Keys Location</h3>
             <p className="text-theme-primary text-sm leading-relaxed mb-2">
               <strong>Important:</strong> Root keys are <strong>not required</strong> to be in <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> for bootstrapping.
             </p>
@@ -113,7 +113,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-theme-primary mb-2 font-roboto">Payload Source</label>
+          <label className="block text-theme-primary mb-2">Payload Source</label>
           <div className="space-y-2">
             {/* <label className="flex items-center">
               <input
@@ -146,7 +146,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
 
         {payloadSource === 'custom' && (
           <div>
-            <label className="block text-theme-primary mb-2 font-roboto">Custom Payload</label>
+            <label className="block text-theme-primary mb-2">Custom Payload</label>
             <textarea
               value={customPayload}
               onChange={(e) => handleCustomPayloadChange(e.target.value)}
@@ -168,7 +168,7 @@ export const Bootstrap: React.FC<BootstrapProps> = ({
             handleStartBootstrap();
           }}
           disabled={step2Status === 'waiting' || step2Status === 'in-progress' || step2Status === 'disabled'}
-          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {step2Status === 'in-progress' ? (
             <>

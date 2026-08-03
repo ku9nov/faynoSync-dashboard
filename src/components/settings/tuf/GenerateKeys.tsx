@@ -134,7 +134,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
         className="flex items-center justify-between w-full text-theme-primary hover:text-theme-button-primary mb-4"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold font-roboto">
+          <h2 className="text-lg font-bold">
             Easy Start (Not Recommended): Generate TUF Root Keys
           </h2>
           <div className={`flex items-center ${getStatusColor(step1Status)}`}>
@@ -152,7 +152,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
             <div className="flex items-start">
               <i className="fas fa-exclamation-triangle text-red-500 mr-3 mt-0.5 text-xl"></i>
               <div className="flex-1">
-                <h3 className="text-red-500 font-semibold mb-2 font-roboto">Danger Zone</h3>
+                <h3 className="text-red-500 font-semibold mb-2">Danger Zone</h3>
                 <p className="text-theme-primary text-sm leading-relaxed">
                   <strong>Warning:</strong> This step generates private keys and stores them in the database. 
                   This operation should be performed <strong>only once</strong> for each application. 
@@ -164,7 +164,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+              <label className="block text-theme-primary mb-2">App Name</label>
               <input
                 type="text"
                 value={selectedApp}
@@ -174,7 +174,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+              <label className="block text-theme-primary mb-2">Key Type</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
@@ -224,7 +224,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Role Name</label>
+              <label className="block text-theme-primary mb-2">Role Name</label>
               <input
                 type="text"
                 value={roleName}
@@ -235,7 +235,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Expiration Settings</label>
+              <label className="block text-theme-primary mb-2">Expiration Settings</label>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-theme-primary mb-1">Root (days)</label>
@@ -279,7 +279,7 @@ export const GenerateKeys: React.FC<GenerateKeysProps> = ({
             <button
               onClick={handleGenerateKeys}
               disabled={!selectedApp || step1Status === 'in-progress'}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {step1Status === 'in-progress' ? (
                 <>

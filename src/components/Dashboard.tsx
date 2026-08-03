@@ -1083,7 +1083,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </span>
                     )}
                     {app.Intermediate && (
-                      <span className="px-2 py-1 rounded text-sm bg-yellow-500">
+                      <span className="px-2 py-1 rounded text-sm bg-yellow-500 text-black">
                         Intermediate
                       </span>
                     )}

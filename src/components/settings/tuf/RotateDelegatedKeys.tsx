@@ -547,7 +547,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
         onClick={() => setShowRotateDelegatedKeys(!showRotateDelegatedKeys)}
         className="flex items-center justify-between w-full text-left text-theme-primary hover:text-theme-button-primary transition-colors"
       >
-        <h2 className="text-lg font-bold font-roboto">Rotate Delegated Role Keys</h2>
+        <h2 className="text-lg font-bold">Rotate Delegated Role Keys</h2>
         <i className={`fas fa-chevron-${showRotateDelegatedKeys ? 'up' : 'down'}`}></i>
       </button>
 
@@ -560,10 +560,10 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </p>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Flow parameters</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Flow parameters</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Delegated role name</label>
+              <label className="block text-theme-primary mb-2">Delegated role name</label>
               <input
                 type="text"
                 value={roleName}
@@ -573,7 +573,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               />
             </div>
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Number of keys</label>
+              <label className="block text-theme-primary mb-2">Number of keys</label>
               <input
                 type="number"
                 min={1}
@@ -583,7 +583,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               />
             </div>
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Role threshold</label>
+              <label className="block text-theme-primary mb-2">Role threshold</label>
               <input
                 type="number"
                 min={1}
@@ -594,7 +594,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               />
             </div>
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key algorithm</label>
+              <label className="block text-theme-primary mb-2">Key algorithm</label>
               <select
                 value={selectedKeyType}
                 onChange={(e) => setSelectedKeyType(e.target.value as KeyAlgorithm)}
@@ -607,7 +607,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </div>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 0: Get trusted metadata snapshot</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 0: Get trusted metadata snapshot</h2>
           <div className="space-y-4">
             <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
               <p className="text-theme-primary text-sm leading-relaxed">
@@ -620,7 +620,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleFetchCurrentTargets}
                 disabled={!selectedApp || loadingTargetsMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingTargetsMetadata ? (
                   <>
@@ -637,7 +637,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {targetsMetadata && (
                 <button
                   onClick={() => handleCopyToClipboard(JSON.stringify(targetsMetadata, null, 2), 'Targets metadata copied successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Targets Metadata
@@ -646,7 +646,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleFetchCurrentDelegated}
                 disabled={!selectedApp || loadingDelegatedMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingDelegatedMetadata ? (
                   <>
@@ -663,7 +663,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {delegatedMetadata && (
                 <button
                   onClick={() => handleCopyToClipboard(JSON.stringify(delegatedMetadata, null, 2), 'Delegated metadata copied successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Delegated Metadata
@@ -710,7 +710,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 1: Generate delegated role keys</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 1: Generate delegated role keys</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {rotateScriptFileName} {'\\'}
@@ -731,7 +731,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateRotateScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -739,7 +739,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {rotateScript && (
                 <button
                   onClick={() => handleCopyToClipboard(rotateScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -764,7 +764,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 2: Build new targets metadata with updated delegation</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 2: Build new targets metadata with updated delegation</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {createTargetsScriptFileName} {'\\'}
@@ -781,7 +781,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateTargetsScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -789,7 +789,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {targetsScript && (
                 <button
                   onClick={() => handleCopyToClipboard(targetsScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -814,7 +814,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 3: Build new delegated role metadata</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 3: Build new delegated role metadata</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {createDelegatedScriptFileName} {'\\'}
@@ -829,7 +829,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateDelegatedScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -837,7 +837,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {delegatedScript && (
                 <button
                   onClick={() => handleCopyToClipboard(delegatedScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -862,7 +862,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 4: Build rotation request payload</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 4: Build rotation request payload</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {buildRequestScriptFileName} {'\\'}
@@ -881,7 +881,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateRequestScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -889,7 +889,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {requestScript && (
                 <button
                   onClick={() => handleCopyToClipboard(requestScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -914,7 +914,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 5: Stage metadata on backend</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 5: Stage metadata on backend</h2>
           <div className="space-y-4">
             <textarea
               value={rotationRequestPayload}
@@ -932,7 +932,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             <button
               onClick={handleSubmitRotationRequest}
               disabled={!selectedApp || !rotationRequestPayload.trim() || submittingRotationRequest}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submittingRotationRequest ? (
                 <>
@@ -948,12 +948,12 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </button>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 6: Check signing queue status</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 6: Check signing queue status</h2>
           <div className="space-y-4">
             <button
               onClick={handleCheckSigningQueue}
               disabled={!selectedApp || checkingSigningQueue}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {checkingSigningQueue ? (
                 <>
@@ -974,7 +974,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 7: Generate sign payloads with one script (targets + delegated)</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 7: Generate sign payloads with one script (targets + delegated)</h2>
           <div className="space-y-4">
             <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
               <p className="text-theme-primary text-sm leading-relaxed">
@@ -985,7 +985,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Targets signatures required</label>
+                <label className="block text-theme-primary mb-2">Targets signatures required</label>
                 <input
                   type="number"
                   min={1}
@@ -995,7 +995,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Delegated signatures required</label>
+                <label className="block text-theme-primary mb-2">Delegated signatures required</label>
                 <input
                   type="number"
                   min={1}
@@ -1015,7 +1015,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               </p>
             </div>
 
-            <h3 className="text-base font-bold font-roboto text-theme-primary">7A. Targets payloads (old targets keys)</h3>
+            <h3 className="text-base font-bold text-theme-primary">7A. Targets payloads (old targets keys)</h3>
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               {targetsSignCommands.map((command, index) => (
                 <React.Fragment key={`targets-sign-command-${command.keyIndex}`}>
@@ -1040,7 +1040,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               ))}
             </div>
 
-            <h3 className="text-base font-bold font-roboto text-theme-primary">7B. Delegated payloads (new delegated keys)</h3>
+            <h3 className="text-base font-bold text-theme-primary">7B. Delegated payloads (new delegated keys)</h3>
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               {delegatedSignCommands.map((command, index) => (
                 <React.Fragment key={`delegated-sign-command-${command.keyIndex}`}>
@@ -1069,7 +1069,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateSignScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -1077,7 +1077,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {signScript && (
                 <button
                   onClick={() => handleCopyToClipboard(signScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -1102,7 +1102,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 8: Submit each sign payload to API</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 8: Submit each sign payload to API</h2>
           <div className="space-y-4">
             <textarea
               value={signaturePayload}
@@ -1147,7 +1147,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleSubmitSignaturePayload}
                 disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingSignature ? (
                   <>
@@ -1165,7 +1165,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleCheckSigningQueue}
                 disabled={!selectedApp || checkingSigningQueue}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {checkingSigningQueue ? (
                   <>
@@ -1183,7 +1183,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleDeleteSigningMetadata}
                 disabled={!selectedApp || deletingSigningMetadata}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingSigningMetadata ? (
                   <>
@@ -1200,7 +1200,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </div>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 9: Update local key info</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 9: Update local key info</h2>
           <div className="space-y-4">
             <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
               python3 {updateKeyInfoScriptFileName} {'\\'}
@@ -1215,7 +1215,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleGenerateUpdateKeyInfoScript}
                 disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -1223,7 +1223,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {updateKeyInfoScript && (
                 <button
                   onClick={() => handleCopyToClipboard(updateKeyInfoScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script

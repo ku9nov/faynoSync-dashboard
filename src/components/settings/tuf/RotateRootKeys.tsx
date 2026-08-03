@@ -840,7 +840,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
-                    <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Online Flow</h3>
+                    <h3 className="text-blue-500 font-semibold mb-2">Root Keys Rotation - Online Flow</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       This script generates new TUF root keys for rotation. Configure the number of new keys 
                       to generate, then generate and run the Python script on a secure offline machine.
@@ -872,7 +872,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+                <label className="block text-theme-primary mb-2">App Name</label>
                 <input
                   type="text"
                   value={selectedApp}
@@ -881,7 +881,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
+                <label className="block text-theme-primary mb-2">Count of Keys</label>
                 <input
                   type="number"
                   value={keyCount}
@@ -897,7 +897,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateExampleScript}
                   disabled={!selectedApp || keyCount < 1}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -905,7 +905,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {exampleScript && (
                   <button
                     onClick={handleCopyExample}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -935,7 +935,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleGetCurrentRoot}
                   disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingRootMetadata ? (
                     <>
@@ -952,7 +952,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {rootMetadata && (
                   <button
                     onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Root Metadata
@@ -992,7 +992,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateNewRootMetadataScript}
                   disabled={!selectedApp}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -1000,7 +1000,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {newRootMetadataScript && (
                   <button
                     onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -1030,7 +1030,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateSignMetadataOfflineScript}
                   disabled={!selectedApp}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -1038,7 +1038,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {signMetadataOfflineScript && (
                   <button
                     onClick={handleCopySignMetadataOfflineScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -1065,7 +1065,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
+                <label className="block text-theme-primary mb-2">Metadata Payload</label>
                 <textarea
                   value={metadataPayload}
                   onChange={(e) => handleMetadataPayloadChange(e.target.value)}
@@ -1082,7 +1082,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               <button
                 onClick={handleSubmitMetadata}
                 disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingMetadata ? (
                   <>
@@ -1112,7 +1112,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
-                    <h3 className="text-yellow-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Offline Flow</h3>
+                    <h3 className="text-yellow-500 font-semibold mb-2">Root Keys Rotation - Offline Flow</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       This script generates new TUF root keys for rotation. Configure the number of new keys 
                       to generate, then generate and run the Python script on a secure offline machine.
@@ -1146,7 +1146,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+                <label className="block text-theme-primary mb-2">App Name</label>
                 <input
                   type="text"
                   value={selectedApp}
@@ -1155,7 +1155,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
+                <label className="block text-theme-primary mb-2">Count of Keys</label>
                 <input
                   type="number"
                   value={keyCount}
@@ -1171,7 +1171,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateOfflineExampleScript}
                   disabled={!selectedApp || keyCount < 1}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -1179,7 +1179,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {offlineExampleScript && (
                   <button
                     onClick={handleCopyOfflineExample}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -1209,7 +1209,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleGetCurrentRoot}
                   disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingRootMetadata ? (
                     <>
@@ -1226,7 +1226,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {rootMetadata && (
                   <button
                     onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Root Metadata
@@ -1266,7 +1266,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateNewRootMetadataScript}
                   disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -1274,7 +1274,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {newRootMetadataScript && (
                   <button
                     onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -1301,7 +1301,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
+                <label className="block text-theme-primary mb-2">Metadata Payload</label>
                 <textarea
                   value={metadataPayload}
                   onChange={(e) => handleMetadataPayloadChange(e.target.value)}
@@ -1318,7 +1318,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               <button
                 onClick={handleSubmitMetadata}
                 disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingMetadata ? (
                   <>
@@ -1365,7 +1365,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateGenerateSignaturesScript}
                   disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -1373,7 +1373,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {generateSignaturesScript && (
                   <button
                     onClick={handleCopyGenerateSignaturesScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -1417,7 +1417,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Signature Payload</label>
+                <label className="block text-theme-primary mb-2">Signature Payload</label>
                 <textarea
                   value={signaturePayload}
                   onChange={(e) => handleSignaturePayloadChange(e.target.value)}
@@ -1738,7 +1738,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleSubmitSignature}
                   disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submittingSignature ? (
                     <>
@@ -1756,7 +1756,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleCheckMetadataStatus}
                   disabled={!selectedApp || checkingMetadataStatus}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {checkingMetadataStatus ? (
                     <>
@@ -1846,7 +1846,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
             onClick={() => setShowRotateKeys(!showRotateKeys)}
             className="flex items-center justify-between flex-1 text-theme-primary hover:text-theme-button-primary transition-colors"
           >
-            <h2 className="text-lg font-bold font-roboto">
+            <h2 className="text-lg font-bold">
               Rotate Root Keys
             </h2>
             <i className={`fas fa-chevron-${showRotateKeys ? 'up' : 'down'}`}></i>
@@ -1854,7 +1854,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
           {showRotateKeys && (
             <button
               onClick={() => setShowGuidedTour(true)}
-              className="ml-4 bg-purple-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-600 transition-colors flex items-center"
+              className="ml-4 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center"
               title="Start Guided Tour"
             >
               <i className="fas fa-route mr-2"></i>
@@ -1867,7 +1867,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
         <>
           {/* Flow Selection */}
           <div className="mb-6">
-            <label className="block text-theme-primary mb-3 font-roboto font-semibold">
+            <label className="block text-theme-primary mb-3 font-semibold">
               Select Rotation Flow:
             </label>
             <div className="flex gap-4">
@@ -1880,7 +1880,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
                   className="mr-2"
                 />
-                <span className="text-theme-primary font-roboto">Online Flow</span>
+                <span className="text-theme-primary">Online Flow</span>
               </label>
               <label className="flex items-center cursor-pointer">
                 <input
@@ -1891,7 +1891,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
                   className="mr-2"
                 />
-                <span className="text-theme-primary font-roboto">Offline Flow</span>
+                <span className="text-theme-primary">Offline Flow</span>
               </label>
             </div>
           </div>
@@ -1903,7 +1903,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
-                    <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Online Flow</h3>
+                    <h3 className="text-blue-500 font-semibold mb-2">Root Keys Rotation - Online Flow</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       This flow allows you to rotate root keys using the online API. Configure the number of new keys 
                       to generate, then generate and run the Python script on a secure offline machine.
@@ -1934,12 +1934,12 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   </div>
                 </div>
               </div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
+              <h2 className="text-lg font-bold text-theme-primary">
                 Step 1: Generate initial root metadata script
               </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+              <label className="block text-theme-primary mb-2">App Name</label>
               <input
                 type="text"
                 value={selectedApp}
@@ -1949,7 +1949,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
+              <label className="block text-theme-primary mb-2">Count of Keys</label>
               <input
                 type="number"
                 value={keyCount}
@@ -1963,7 +1963,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
             </div>
 
             <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+              <label className="block text-theme-primary mb-2">Key Type</label>
               <select
                 value={selectedKeyType}
                 onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
@@ -1984,7 +1984,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={generateExampleScript}
                     disabled={!selectedApp || keyCount < 1}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <i className="fas fa-code mr-2"></i>
                     Generate Script
@@ -1992,7 +1992,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   {exampleScript && (
                     <button
                       onClick={handleCopyExample}
-                      className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                      className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                     >
                       <i className="fas fa-copy mr-2"></i>
                       Copy Script
@@ -2030,7 +2030,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               </div>
               
               <div className="h-px w-full bg-theme-card-hover"></div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
+              <h2 className="text-lg font-bold text-theme-primary">
                 Step 2: Get current root metadata
               </h2>
               {/* Info about getting current root */}
@@ -2050,7 +2050,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleGetCurrentRoot}
                   disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingRootMetadata ? (
                     <>
@@ -2067,7 +2067,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {rootMetadata && (
                   <button
                     onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Root Metadata
@@ -2103,7 +2103,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 )}
               </div>
             )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
+            <h2 className="text-lg font-bold text-theme-primary">
                 Step 3: Create new root metadata script
             </h2>
             {/* Info about creating new root metadata */}
@@ -2124,7 +2124,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               <button
                 onClick={generateNewRootMetadataScript}
                 disabled={!selectedApp}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -2132,7 +2132,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               {newRootMetadataScript && (
                 <button
                   onClick={handleCopyNewRootMetadataScript}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -2167,7 +2167,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 )}
               </div>
             )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
+            <h2 className="text-lg font-bold text-theme-primary">
                 Step 4: Sign metadata online
             </h2>
             {/* Info about signing metadata online */}
@@ -2187,7 +2187,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               <button
                 onClick={generateSignMetadataOfflineScript}
                 disabled={!selectedApp}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i className="fas fa-code mr-2"></i>
                 Generate Script
@@ -2195,7 +2195,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               {signMetadataOfflineScript && (
                 <button
                   onClick={handleCopySignMetadataOfflineScript}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Script
@@ -2230,7 +2230,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 )}
               </div>
             )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
+            <h2 className="text-lg font-bold text-theme-primary">
                 Step 5: Submit metadata
             </h2>
             {/* Info about submitting metadata */}
@@ -2248,7 +2248,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
+                <label className="block text-theme-primary mb-2">Metadata Payload</label>
                 <textarea
                   value={metadataPayload}
                   onChange={(e) => handleMetadataPayloadChange(e.target.value)}
@@ -2266,7 +2266,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               <button
                 onClick={handleSubmitMetadata}
                 disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingMetadata ? (
                   <>
@@ -2290,7 +2290,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
-                    <h3 className="text-yellow-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Offline Flow</h3>
+                    <h3 className="text-yellow-500 font-semibold mb-2">Root Keys Rotation - Offline Flow</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       This flow allows you to rotate root keys completely offline without using the online API. 
                       All operations are performed on a secure offline machine. Keys are stored in <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}</code> folder.
@@ -2307,12 +2307,12 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   </div>
                 </div>
               </div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
+              <h2 className="text-lg font-bold text-theme-primary">
                 Step 1: Generate initial root metadata script
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+                  <label className="block text-theme-primary mb-2">App Name</label>
                   <input
                     type="text"
                     value={selectedApp}
@@ -2322,7 +2322,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
+                  <label className="block text-theme-primary mb-2">Count of Keys</label>
                   <input
                     type="number"
                     value={keyCount}
@@ -2336,7 +2336,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
+                  <label className="block text-theme-primary mb-2">Key Type</label>
                   <select
                     value={selectedKeyType}
                     onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
@@ -2357,7 +2357,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <button
                         onClick={generateOfflineExampleScript}
                         disabled={!selectedApp || keyCount < 1}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <i className="fas fa-code mr-2"></i>
                         Generate Script
@@ -2365,7 +2365,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       {offlineExampleScript && (
                         <button
                           onClick={handleCopyOfflineExample}
-                          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                         >
                           <i className="fas fa-copy mr-2"></i>
                           Copy Script
@@ -2429,7 +2429,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
               </div>
               
               <div className="h-px w-full bg-theme-card-hover mt-6"></div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
+              <h2 className="text-lg font-bold text-theme-primary">
                 Step 2: Get current root metadata
               </h2>
               {/* Info about getting current root */}
@@ -2449,7 +2449,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleGetCurrentRoot}
                   disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingRootMetadata ? (
                     <>
@@ -2466,7 +2466,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {rootMetadata && (
                   <button
                     onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Root Metadata
@@ -2502,7 +2502,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               )}
               
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
                 Step 3: Create new root metadata script
               </h2>
               {/* Info about creating new root metadata */}
@@ -2523,7 +2523,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateNewRootMetadataScript}
                   disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -2531,7 +2531,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {newRootMetadataScript && (
                   <button
                     onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -2567,7 +2567,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               )}
               
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
                 Step 4: Submit metadata
               </h2>
               {/* Info about submitting metadata */}
@@ -2585,7 +2585,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
+                  <label className="block text-theme-primary mb-2">Metadata Payload</label>
                   <textarea
                     value={metadataPayload}
                     onChange={(e) => handleMetadataPayloadChange(e.target.value)}
@@ -2603,7 +2603,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleSubmitMetadata}
                   disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submittingMetadata ? (
                     <>
@@ -2619,7 +2619,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </button>
               </div>
               
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
                 Step 5: Generate signatures
               </h2>
               {/* Info about generating signatures */}
@@ -2649,7 +2649,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={generateGenerateSignaturesScript}
                   disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <i className="fas fa-code mr-2"></i>
                   Generate Script
@@ -2657,7 +2657,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {generateSignaturesScript && (
                   <button
                     onClick={handleCopyGenerateSignaturesScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                   >
                     <i className="fas fa-copy mr-2"></i>
                     Copy Script
@@ -2693,7 +2693,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
               )}
               
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
                 Step 6: Submit signatures
               </h2>
               {/* Info about submitting signatures */}
@@ -2728,7 +2728,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Signature Payload</label>
+                  <label className="block text-theme-primary mb-2">Signature Payload</label>
                   <textarea
                     value={signaturePayload}
                     onChange={(e) => handleSignaturePayloadChange(e.target.value)}
@@ -3049,7 +3049,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleSubmitSignature}
                     disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submittingSignature ? (
                       <>
@@ -3067,7 +3067,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleCheckMetadataStatus}
                     disabled={!selectedApp || checkingMetadataStatus}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {checkingMetadataStatus ? (
                       <>
@@ -3085,7 +3085,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleGetCurrentRoot}
                     disabled={!selectedApp || loadingRootMetadata}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loadingRootMetadata ? (
                       <>
@@ -3103,7 +3103,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleDeleteSigningMetadata}
                     disabled={!selectedApp || deletingSigningMetadata}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deletingSigningMetadata ? (
                       <>

@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
           {createButtonText && (
             <button
               onClick={onCreateClick}
-              className="header-action-btn hidden md:flex px-4 py-2 font-roboto items-center"
+              className="header-action-btn hidden md:flex px-4 py-2 items-center"
             >
               {renderIcon()}
               <span className="ml-2">{createButtonText}</span>
@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-col md:hidden gap-2 mt-0">
         <div className="flex justify-between items-center">
           <button
-            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none hover:bg-theme-card-hover transition-colors duration-200"
+            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none focus:ring-2 focus:ring-theme-focus hover:bg-theme-card-hover transition-colors duration-200"
             aria-label="Open menu"
             onClick={onMenuClick}
           >

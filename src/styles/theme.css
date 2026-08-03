@@ -32,6 +32,9 @@
   --auth-title: theme('colors.purple.800');
   --auth-input-border: theme('colors.purple.300');
   --auth-input-focus: theme('colors.purple.500');
+
+  /* Focus ring — follows the theme accent, not a hardcoded hue */
+  --focus-ring: theme('colors.purple.400');
 }
 
 .dark {
@@ -71,4 +74,6 @@
   --auth-title: theme('colors.indigo.300');
   --auth-input-border: theme('colors.indigo.700');
   --auth-input-focus: theme('colors.indigo.500');
+
+  --focus-ring: theme('colors.indigo.400');
 } 
