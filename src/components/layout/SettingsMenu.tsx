@@ -4,6 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/authProvider';
 import { useTheme } from '@/providers/themeProvider';
 import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
+import { STATUS_BADGE, STATUS_DOT } from '@/components/common/ui';
+
+const THEME_OPTIONS = [
+  { mode: 'light' as const, label: 'Light', icon: 'fa-sun' },
+  { mode: 'dark' as const, label: 'Dark', icon: 'fa-moon' },
+  { mode: 'auto' as const, label: 'Auto', icon: 'fa-clock' },
+];
 
 interface SettingsMenuProps {
   onClose: () => void;
@@ -17,9 +24,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
   const { themeMode, setThemeMode } = useTheme();
   const { data: userData } = useUsersQuery();
   const [showSettingsModal] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
-  const themeMenuTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     // Calculate position for the menu
@@ -45,12 +50,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
         return;
       }
       
-      // Check if click was on theme submenu
-      const themeSubmenu = document.querySelector('.theme-submenu');
-      if (themeSubmenu?.contains(event.target as Node)) {
-        return;
-      }
-      
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         onClose();
       }
@@ -59,9 +58,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      if (themeMenuTimeoutRef.current) {
-        clearTimeout(themeMenuTimeoutRef.current);
-      }
     };
   }, [onClose, showSettingsModal]);
 
@@ -95,19 +91,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
     navigate('/settings');
   };
 
-  const getThemeIcon = () => {
-    switch (themeMode) {
-      case 'dark':
-        return 'fa-moon';
-      case 'light':
-        return 'fa-sun';
-      case 'auto':
-        return 'fa-clock';
-      default:
-        return 'fa-sun';
-    }
-  };
-
   const menuContent = (
     <div
       ref={menuRef}
@@ -117,106 +100,62 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ onClose, onOpenProfi
         zIndex: 9999,
         top: menuPosition.top,
         right: menuPosition.right,
-        minWidth: '12rem'
+        width: '15rem',
       }}
     >
-        {userData && (
-          <>
-            <div className="settings-popup-user">
-              <span>{userData.username}</span>
-              <i className={`fas ${userData.is_admin ? 'fa-crown text-yellow-500' : 'fa-user text-blue-500'}`}></i>
-            </div>
-            <div className="settings-popup-divider"></div>
-          </>
-        )}
-        <button 
-          onClick={handleProfileClick}
-          className="settings-popup-button"
-        >
-          <i className="fas fa-user"></i>
-          <span>Profile</span>
-        </button>
-        {userData?.is_admin && (
-          <button 
-            onClick={handleSettingsClick}
-            className="settings-popup-button"
-          >
-            <i className="fas fa-cog"></i>
-            <span>Settings</span>
-          </button>
-        )}
-        <div className="relative">
-          <button 
-            onMouseEnter={() => {
-              if (themeMenuTimeoutRef.current) {
-                clearTimeout(themeMenuTimeoutRef.current);
-              }
-              setShowThemeMenu(true);
-            }}
-            onMouseLeave={() => {
-              themeMenuTimeoutRef.current = setTimeout(() => {
-                setShowThemeMenu(false);
-              }, 150);
-            }}
-            className="settings-popup-button"
-          >
-            <i className={`fas ${getThemeIcon()}`}></i>
-            <span>Theme</span>
-            <i className="fas fa-chevron-right ml-auto"></i>
-          </button>
-          {showThemeMenu && (
-            <div 
-              className="theme-submenu"
-              onMouseEnter={() => {
-                if (themeMenuTimeoutRef.current) {
-                  clearTimeout(themeMenuTimeoutRef.current);
-                }
-                setShowThemeMenu(true);
-              }}
-              onMouseLeave={() => {
-                themeMenuTimeoutRef.current = setTimeout(() => {
-                  setShowThemeMenu(false);
-                }, 150);
-              }}
+      {userData && (
+        <>
+          <div className="px-2.5 pb-1 pt-2">
+            <p className="text-sm font-extrabold tracking-tight text-theme-primary">{userData.username}</p>
+            <span
+              className={`${STATUS_BADGE} mt-1.5 px-2 py-0.5 text-[11px] ${
+                userData.is_admin
+                  ? 'text-amber-300 border-amber-500/45'
+                  : 'text-violet-300 border-violet-400/50'
+              }`}
             >
-              <button 
-                onClick={() => setThemeMode('light')}
-                className="settings-popup-button"
-              >
-                <i className="fas fa-sun"></i>
-                <span>Light</span>
-              </button>
-              <button 
-                onClick={() => setThemeMode('dark')}
-                className="settings-popup-button"
-              >
-                <i className="fas fa-moon"></i>
-                <span>Dark</span>
-              </button>
-              <button 
-                onClick={() => setThemeMode('auto')}
-                className="settings-popup-button"
-              >
-                <i className="fas fa-clock"></i>
-                <span>Auto</span>
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="settings-popup-divider"></div>
-        <button 
-          onClick={handleLogout}
-          className="settings-popup-button danger"
-        >
-          <i className="fas fa-sign-out-alt"></i>
-          <span>Logout</span>
-        </button>
-      </div>
-    );
+              <span className={`${STATUS_DOT} ${userData.is_admin ? 'bg-amber-500' : 'bg-violet-400'}`}></span>
+              {userData.is_admin ? 'Administrator' : 'Team user'}
+            </span>
+          </div>
+          <div className="settings-popup-divider"></div>
+        </>
+      )}
 
-  return (
-    <>
-      {createPortal(menuContent, document.body)}
-    </>
+      <button onClick={handleProfileClick} className="settings-popup-button">
+        <i className="fas fa-user"></i>
+        <span>Profile</span>
+      </button>
+      {userData?.is_admin && (
+        <button onClick={handleSettingsClick} className="settings-popup-button">
+          <i className="fas fa-cog"></i>
+          <span>Settings</span>
+        </button>
+      )}
+
+      <p className="settings-popup-label">Theme</p>
+      <div className="settings-popup-theme" role="group" aria-label="Theme">
+        {THEME_OPTIONS.map(({ mode, label, icon }) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setThemeMode(mode)}
+            aria-pressed={themeMode === mode}
+            className={themeMode === mode ? 'is-active' : undefined}
+          >
+            <i className={`fas ${icon}`}></i>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="settings-popup-divider"></div>
+      <button onClick={handleLogout} className="settings-popup-button danger">
+        <i className="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </button>
+    </div>
   );
-}; 
+
+  return <>{createPortal(menuContent, document.body)}</>;
+};

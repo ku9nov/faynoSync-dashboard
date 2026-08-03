@@ -15,6 +15,8 @@ import {
   MODAL_CLOSE,
   MODAL_SURFACE,
   SECTION_LABEL,
+  STATUS_BADGE,
+  STATUS_DOT,
 } from '@/components/common/ui';
 
 interface ProfileModalProps {
@@ -169,13 +171,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
           <div className="mb-6">
             <div className="flex items-center mb-4">
               <div className="mr-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-black/40">
-                <i className={`fas text-2xl ${userData.is_admin ? 'fa-crown text-amber-300' : 'fa-user text-violet-300'}`}></i>
+                <span className="text-xl font-extrabold tracking-tight text-theme-primary">
+                  {userData.username.slice(0, 2).toUpperCase()}
+                </span>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-theme-primary">{userData.username}</h3>
-                <p className="text-sm text-white/70">
+                <span
+                  className={`${STATUS_BADGE} mt-1 px-2 py-0.5 text-[11px] ${
+                    userData.is_admin
+                      ? 'text-amber-300 border-amber-500/45'
+                      : 'text-violet-300 border-violet-400/50'
+                  }`}
+                >
+                  <span className={`${STATUS_DOT} ${userData.is_admin ? 'bg-amber-500' : 'bg-violet-400'}`}></span>
                   {userData.is_admin ? 'Administrator' : 'Team user'}
-                </p>
+                </span>
                 {!userData.is_admin && userData.owner && (
                   <p className="text-sm text-white/55">Owner: {userData.owner}</p>
                 )}
