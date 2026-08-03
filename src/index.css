@@ -90,8 +90,12 @@ body {
   color: var(--modal-text);
 }
 
+/* The dialog is now darker than the field it floats on, so luminance alone only
+   separates it by ~1.6:1. The border carries the boundary, not the gradient. */
 .bg-theme-modal-gradient {
   background-image: linear-gradient(to bottom, var(--modal-gradient-start), var(--modal-gradient-end));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
 .dark .bg-theme-modal-gradient {
@@ -107,7 +111,7 @@ body {
 }
 
 .text-theme-danger {
-  color: var(--warning-text);
+  color: var(--danger-text);
 }
 
 .bg-theme-auth-gradient {

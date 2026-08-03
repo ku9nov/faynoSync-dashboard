@@ -63,7 +63,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 grid place-items-center modal-overlay-high"
+      className="fixed inset-0 bg-black/60 grid place-items-center modal-overlay-high"
       style={{ zIndex: 11000 }}
     >
       <div 

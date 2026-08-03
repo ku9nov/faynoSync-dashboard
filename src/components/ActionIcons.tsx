@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '@/config/axios';
 import { copyToClipboard } from '@/utils/clipboard';
 
+// The icons sit on the purple->orange field, where a red glyph drops to 1.09:1
+// against the orange end — invisible. Grouping them on a dark scrim lifts red-300
+// to 4.80:1, so delete can finally read as destructive instead of white.
+const ACTION_GROUP =
+  'inline-flex items-center gap-px flex-shrink-0 relative rounded-lg p-0.5 bg-black/55 border border-white/15';
+const ACTION_BUTTON = 'px-2 py-1.5 rounded-md transition-colors duration-200 flex-shrink-0';
+
 interface ActionIconsProps {
   onDownload: () => void;
   onEdit: () => void;
@@ -71,7 +78,7 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
   };
 
   return (
-    <div className="flex gap-2 flex-shrink-0 relative">
+    <div className={ACTION_GROUP}>
       {copyError && (
         <div className="absolute bottom-full mb-2 p-2 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500 text-sm whitespace-nowrap">
           {copyError}
@@ -84,16 +91,18 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
               e.stopPropagation();
               onDownload();
             }}
-            className="p-2 text-green-500 hover:text-green-600 transition-colors duration-200 flex-shrink-0"
+            className={`${ACTION_BUTTON} text-green-400 hover:bg-green-500/20`}
             title="Download"
+            aria-label="Download"
           >
             <i className="fas fa-download"></i>
           </button>
           {artifactLink && (
             <button
               onClick={handleCopyLink}
-              className="p-2 text-theme-secondary hover:text-theme-primary transition-colors duration-200 flex-shrink-0"
+              className={`${ACTION_BUTTON} text-purple-300 hover:bg-purple-400/20`}
               title={copied ? "Copied!" : "Copy link"}
+              aria-label={copied ? "Copied" : "Copy link"}
             >
               <i className={`fas ${copied ? 'fa-check' : 'fa-copy'}`}></i>
             </button>
@@ -105,8 +114,9 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onEdit();
         }}
-        className="p-2 text-theme-primary hover:text-theme-primary-hover transition-colors duration-200 flex-shrink-0"
+        className={`${ACTION_BUTTON} text-gray-200 hover:bg-white/15`}
         title="Edit"
+        aria-label="Edit"
       >
         <i className="fas fa-edit"></i>
       </button>
@@ -115,8 +125,9 @@ export const ActionIcons: React.FC<ActionIconsProps> = ({
           e.stopPropagation();
           onDelete();
         }}
-        className="p-2 text-theme-danger hover:text-theme-primary-hover transition-colors duration-200 flex-shrink-0"
+        className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
         title="Delete"
+        aria-label="Delete"
       >
         <i className="fas fa-trash"></i>
       </button>

@@ -2,7 +2,7 @@
    FaynoSync Design System — Foundations
    Colors + Type tokens distilled from ku9nov/faynoSync-dashboard
    (Vite + React + Tailwind). Light theme is the signature look:
-   a purple → orange gradient field with glassmorphic cards.
+   a deep purple → burnt-orange gradient field with glassmorphic cards.
    Dark theme swaps the field to slate/indigo.
    ============================================================ */
 
@@ -37,6 +37,7 @@
   /* Orange — the second half of the signature gradient */
   --orange-500: #f97316;
   --orange-600: #ea580c;
+  --orange-900: #7c2d12;
 
   /* Indigo ramp — dark-theme accent */
   --indigo-300: #a5b4fc;
@@ -71,8 +72,9 @@
   --chart-5: #7c3aed; --chart-6: #0d9488; --chart-7: #e11d48; --chart-8: #0891b2;
 
   /* ====== Semantic tokens — LIGHT THEME (default) ====== */
-  --bg-gradient-start: var(--purple-800);
-  --bg-gradient-end:   var(--orange-500);
+  /* orange-500 caps white-on-glass at 2.55:1; orange-900 clears AA everywhere */
+  --bg-gradient-start: var(--purple-900);
+  --bg-gradient-end:   var(--orange-900);
   --bg-field: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
 
   --bg-card:        rgba(255, 255, 255, 0.10);
@@ -106,8 +108,8 @@
   --dropdown-bg: linear-gradient(135deg, rgba(107, 33, 168, 0.97), rgba(126, 34, 206, 0.95));
 
   /* Auth pages — own gradient + input treatment */
-  --auth-gradient-start: var(--purple-800);
-  --auth-gradient-end:   var(--orange-500);
+  --auth-gradient-start: var(--purple-900);
+  --auth-gradient-end:   var(--orange-900);
   --auth-title:          var(--purple-800);
   --auth-input-border:   var(--purple-300);
   --auth-input-focus:    var(--purple-500);

@@ -37,7 +37,7 @@ export const EditPlatformModal: React.FC<EditPlatformModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high"
       {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-[500px] max-h-[80vh] overflow-y-auto">

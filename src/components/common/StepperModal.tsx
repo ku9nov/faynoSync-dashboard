@@ -51,7 +51,7 @@ export const StepperModal: React.FC<StepperModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto p-4"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto p-4"
       {...backdropProps}
     >
       <div

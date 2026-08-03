@@ -15,6 +15,7 @@ import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
+import { getPlatformIcon } from '@/utils/platformIcon';
 import '@/styles/cards.css';
 
 const DROPDOWN_MENU_STYLE = {
@@ -23,6 +24,33 @@ const DROPDOWN_MENU_STYLE = {
   WebkitBackdropFilter: 'blur(20px)',
   boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
 };
+
+// Dark scrim rather than a tinted fill: the light theme's field runs down to
+// orange-500, where a pale tint drops below 2:1. Black at 55% keeps every
+// status above 4.8:1 on purple, orange and slate alike — so no dark: variants.
+const STATUS_BADGE = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[13px] font-semibold bg-black/55 border';
+const STATUS_DOT = 'w-[7px] h-[7px] rounded-full shrink-0';
+
+// TUF carries a state and an action. The state lives here, in the same language as
+// every other status; the action is a separate labelled button below the artifacts,
+// rendered only while something is actually left to sign.
+const TUF_BADGE_STYLE = {
+  'all-signed': { label: 'TUF signed', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500', hint: 'Every artifact is signed' },
+  partial: { label: 'TUF partial', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500', hint: 'Some artifacts are not signed yet' },
+  none: { label: 'TUF unsigned', badge: 'text-red-300 border-red-500/45', dot: 'bg-red-500', hint: 'No artifact is signed' },
+} as const;
+
+const PLATFORM_CHIP = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] bg-black/55 border border-white/15 text-theme-primary hover:bg-black/70 transition-colors';
+
+// Fixed-height slots for the optional bits of the bottom block. Reserving the space
+// costs a little emptiness on simple versions and buys every tile in a row the same
+// baseline for its changelog and actions.
+const TUF_SLOT = 'min-h-[41px]';
+const CHANGELOG_SLOT = 'mt-3 min-h-[42px]';
+const FOOTER_SLOT = 'mt-4 min-h-[40px]';
+
+const SECTION_LABEL =
+  "mt-5 mb-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-theme-primary/70 after:h-px after:flex-1 after:bg-white/15 after:content-['']";
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -469,13 +497,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const getArtifactSummary = (artifacts: AppVersion['Artifacts']) => {
-    const groupedByPlatform = artifacts.reduce<Record<string, { count: number; label: string }>>((acc, artifact) => {
+    const groupedByPlatform = artifacts.reduce<Record<string, { count: number; label: string; unsigned: number }>>((acc, artifact) => {
       const rawPlatform = artifact.platform?.trim() || 'N/A';
       const key = rawPlatform.toLowerCase();
       if (!acc[key]) {
-        acc[key] = { count: 0, label: rawPlatform };
+        acc[key] = { count: 0, label: rawPlatform, unsigned: 0 };
       }
       acc[key].count += 1;
+      if (artifact.TufSigned === false) {
+        acc[key].unsigned += 1;
+      }
       return acc;
     }, {});
 
@@ -484,6 +515,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .map(([, value]) => ({
         count: value.count,
         label: value.label,
+        unsigned: value.unsigned,
       }));
 
     const visibleGroups = sortedGroups.slice(0, 3);
@@ -491,6 +523,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     return {
       visibleSummary: visibleGroups.map(item => `${item.label}(${item.count})`).join(' '),
+      visibleGroups,
       hiddenGroupsCount,
       details: artifacts.map(artifact => {
         const platform = artifact.platform?.trim() || 'N/A';
@@ -988,57 +1021,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <div className="flex items-center justify-end mb-4 min-w-0 w-full">
                   <div className="flex gap-2 flex-shrink-0 items-center">
-                    {tufStatus && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => handleTufPublish(e, app)}
-                          disabled={publishingTuf[app.ID]}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-                            publishingTuf[app.ID]
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'hover:opacity-80 active:scale-95'
-                          } ${
-                            tufStatus === 'all-signed'
-                              ? 'bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30'
-                              : tufStatus === 'partial'
-                              ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30 hover:bg-yellow-500/30'
-                              : 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30'
-                          }`}
-                          title={publishingTuf[app.ID] ? 'Publishing...' : 'Publish TUF artifacts'}
-                        >
-                          {publishingTuf[app.ID] ? (
-                            <svg 
-                              className="w-3 h-3 animate-spin" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </svg>
-                          ) : (
-                            <svg 
-                              className="w-3 h-3" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                              />
-                            </svg>
-                          )}
-                          TUF
-                        </button>
-                      </div>
-                    )}
                     <ActionIcons
                       onDownload={() => handleDownload(app)}
                       onEdit={() => handleEdit(app)}
@@ -1048,57 +1030,64 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     />
                   </div>
                 </div>
-                <div className="sharedCardContent relative w-full min-w-0">
-                  <h3 
-                    className="sharedCardTitle text-2xl font-bold mb-3 text-white" 
-                    style={{
-                      background: 'linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                      letterSpacing: '0.025em'
-                    }}
+                <div className="sharedCardContent relative flex w-full min-w-0 flex-col">
+                  <h3
+                    className="text-2xl font-extrabold tracking-tight text-theme-primary"
                     title={`Version ${app.Version}`}
                   >
-                    Version {app.Version}
+                    {app.Version}
                   </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="text-sm text-theme-primary/70 flex-1 sharedCardDescription">
-                      Channel: {app.Channel}
-                    </p>
-                  </div>
-                  <p className="mb-2 text-theme-primary/70 text-sm">
-                    Last updated: {formatDate(app.Updated_at)}
+                  <p className="mt-1 mb-6 text-sm text-theme-primary/70">
+                    <span className="mr-2 inline-flex items-center rounded-full border border-purple-300/45 bg-purple-500/30 px-2 py-0.5 text-xs font-semibold text-purple-100">
+                      {app.Channel}
+                    </span>
+                    {formatDate(app.Updated_at)}
                   </p>
-                  <div className="flex gap-2 mb-2">
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      app.Published ? 'bg-green-500' : 'bg-red-500'
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`${STATUS_BADGE} ${
+                      app.Published
+                        ? 'text-green-300 border-green-500/40'
+                        : 'text-slate-200 border-slate-400/40'
                     }`}>
+                      <span className={`${STATUS_DOT} ${app.Published ? 'bg-green-500' : 'bg-slate-400'}`}></span>
                       {app.Published ? 'Published' : 'Not published'}
                     </span>
                     {app.Critical && (
-                      <span className="px-2 py-1 rounded text-sm bg-red-500">
+                      <span className={`${STATUS_BADGE} text-red-300 border-red-500/45`}>
+                        <span className={`${STATUS_DOT} bg-red-500`}></span>
                         Critical
                       </span>
                     )}
                     {app.Intermediate && (
-                      <span className="px-2 py-1 rounded text-sm bg-yellow-500 text-black">
+                      <span className={`${STATUS_BADGE} text-amber-300 border-amber-500/45`}>
+                        <span className={`${STATUS_DOT} bg-amber-500`}></span>
                         Intermediate
+                      </span>
+                    )}
+                    {tufStatus && (
+                      <span
+                        className={`${STATUS_BADGE} ${TUF_BADGE_STYLE[tufStatus].badge}`}
+                        title={TUF_BADGE_STYLE[tufStatus].hint}
+                      >
+                        <span className={`${STATUS_DOT} ${TUF_BADGE_STYLE[tufStatus].dot}`}></span>
+                        {TUF_BADGE_STYLE[tufStatus].label}
                       </span>
                     )}
                     {isIncompleteRollout && (
                       <span
-                        className="px-2 py-1 rounded text-sm bg-amber-500 text-black"
+                        className={`${STATUS_BADGE} text-blue-300 border-blue-500/45`}
                         title="Staged rollout is not fully deployed"
                       >
+                        <span className={`${STATUS_DOT} bg-blue-500`}></span>
                         Rollout {app.RolloutPercent}%
                       </span>
                     )}
                   </div>
                   {app.Artifacts.length > 0 && (
+                    <>
+                    <p className={SECTION_LABEL}>Artifacts</p>
                     <div
-                      className="relative group mb-2 w-full min-w-0"
+                      className="relative group w-full min-w-0"
                       onMouseEnter={() => {
                         setHoveredArtifactsPopoverId(app.ID);
                       }}
@@ -1109,7 +1098,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     >
                       <button
                         type="button"
-                        className="block w-full min-w-0 max-w-full truncate px-2 py-1 rounded text-xs bg-theme-card/70 border border-theme-card-hover text-theme-primary/90 hover:text-theme-primary transition-colors text-left"
+                        className="flex w-full min-w-0 max-w-full flex-wrap gap-2 text-left"
                         title={`Artifacts: ${artifactSummary.visibleSummary}${artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1124,8 +1113,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           });
                         }}
                       >
-                        Artifacts: {artifactSummary.visibleSummary}
-                        {artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}
+                        {artifactSummary.visibleGroups.map(group => (
+                          <span key={group.label} className={PLATFORM_CHIP}>
+                            <i className={`${getPlatformIcon(group.label)} opacity-90`}></i>
+                            {group.label}
+                            <b className="font-bold tabular-nums">{group.count}</b>
+                            {tufStatus && group.unsigned > 0 && (
+                              <i
+                                className="fas fa-shield-alt text-[11px] text-amber-300"
+                                title={`${group.unsigned} not signed`}
+                              ></i>
+                            )}
+                          </span>
+                        ))}
+                        {artifactSummary.hiddenGroupsCount > 0 && (
+                          <span className={PLATFORM_CHIP}>+{artifactSummary.hiddenGroupsCount}</span>
+                        )}
                       </button>
                       <div
                         className={`absolute left-0 right-0 bottom-full z-20 mb-2 rounded-lg border border-theme-card-hover bg-gray-900 p-3 shadow-xl transition-opacity duration-150 max-h-44 overflow-hidden flex flex-col ${
@@ -1152,10 +1155,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </div>
                       </div>
                     </div>
+                    </>
                   )}
-                  <div className="mt-2 p-3 rounded-lg h-20">
+                  {/* Anchored to the bottom of the tile: the grid stretches every card to the
+                      tallest in its row, so without this the changelog and actions land at a
+                      different height in each neighbour. Each slot keeps its height whether or
+                      not its content exists, so only the gap above this block varies. */}
+                  <div className="mt-auto pt-4">
+                  <div className={TUF_SLOT}>
+                    {tufStatus && tufStatus !== 'all-signed' && (
+                      <button
+                        onClick={(e) => handleTufPublish(e, app)}
+                        disabled={publishingTuf[app.ID]}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-black/55 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Publish TUF artifacts"
+                      >
+                        <i className={`fas ${publishingTuf[app.ID] ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>
+                        {publishingTuf[app.ID] ? 'Signing…' : 'Sign remaining artifacts with TUF'}
+                      </button>
+                    )}
+                  </div>
+                  <div className={`${CHANGELOG_SLOT} border-l-2 border-white/20 pl-3`}>
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                      <div className="text-sm text-theme-primary/80 line-clamp-3 prose prose-sm prose-invert max-w-none">
+                      <div className="text-sm text-theme-primary/80 line-clamp-2 prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown
                           components={{
                             p: ({ children }) => <p className="m-0">{children}</p>,
@@ -1179,14 +1201,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </p>
                     )}
                   </div>
-                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
-                    <button
-                      onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                      className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
-                    >
-                      View full changelog
-                    </button>
-                  )}
+                  <div className={FOOTER_SLOT}>
+                    {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
+                      <button
+                        onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                        className="px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+                      >
+                        View full changelog
+                      </button>
+                    )}
+                  </div>
+                  </div>
                 </div>
               </div>
               );

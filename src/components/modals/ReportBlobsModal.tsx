@@ -57,7 +57,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high"
       {...backdropProps}
     >
       <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto flex flex-col">

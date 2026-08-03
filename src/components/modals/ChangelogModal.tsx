@@ -18,7 +18,7 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
   const currentVersionChangelog = changelog.find(entry => entry.Version === version);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[11000] p-4 overflow-y-auto"
+    <div className="fixed inset-0 bg-black/60 flex items-start sm:items-center justify-center z-[11000] p-4 overflow-y-auto"
     onClick={onClose}
     >
       <div className="bg-theme-modal rounded-lg p-4 sm:p-8 w-full max-w-[800px] max-h-[calc(100vh-2rem)] flex flex-col my-auto"
