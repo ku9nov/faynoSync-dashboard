@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
 import { AdvancedModal } from '@/components/common/AdvancedModal';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import {
+  FIELD_INPUT,
+  FIELD_LABEL,
+} from '@/components/common/ui';
 
 interface ErrorResponse {
   error: string;
@@ -100,82 +105,53 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
       files={files}
     >
       <div className="mb-4">
-        <label className="block text-theme-primary mb-2 font-semibold">App Name</label>
+        <label className={FIELD_LABEL}>App Name</label>
         <input
           type="text"
           value={formData.app}
           onChange={(e) => setFormData(prev => ({ ...prev, app: e.target.value }))}
-          className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
+          className={FIELD_INPUT}
           required
           placeholder="Enter app name"
         />
       </div>
 
       <div className="mb-4">
-        <label className="block text-theme-primary mb-2 font-semibold">Description</label>
+        <label className={FIELD_LABEL}>Description</label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-          className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
+          className={FIELD_INPUT}
           rows={4}
           placeholder="Enter app description"
         />
       </div>
 
-      <div className="mb-6 flex items-start">
-        <input
-          type="checkbox"
-          id="private"
+      <div className="mb-2 flex flex-col gap-2">
+        <FlagCheckbox
+          label="Private app"
+          description="Store artifacts in a private bucket"
           checked={formData.private}
-          onChange={(e) => setFormData(prev => ({ ...prev, private: e.target.checked }))}
-          className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
+          onChange={(checked) => setFormData(prev => ({ ...prev, private: checked }))}
         />
-        <label htmlFor="private" className="text-theme-primary cursor-pointer select-none">
-          <div className="font-semibold">Private app</div>
-          <div className="text-sm text-purple-200">If selected, the app will be stored in a private bucket</div>
-        </label>
-      </div>
-
-      <div className="mb-6 flex items-start">
-        <input
-          type="checkbox"
-          id="tuf"
+        <FlagCheckbox
+          label="Enable TUF"
+          description="Sign this application's artifacts with The Update Framework"
           checked={formData.tuf}
-          onChange={(e) => setFormData(prev => ({ ...prev, tuf: e.target.checked }))}
-          className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
+          onChange={(checked) => setFormData(prev => ({ ...prev, tuf: checked }))}
         />
-        <label htmlFor="tuf" className="text-theme-primary cursor-pointer select-none">
-          <div className="font-semibold">Enable tuf</div>
-          <div className="text-sm text-purple-200">Enable TUF (The Update Framework) for this application</div>
-        </label>
-      </div>
-
-      <div className="mb-6 flex items-start">
-        <input
-          type="checkbox"
-          id="reports"
+        <FlagCheckbox
+          label="Enable reports"
+          description="Collect update reports for this application"
           checked={formData.reports}
-          onChange={(e) => setFormData(prev => ({ ...prev, reports: e.target.checked }))}
-          className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
+          onChange={(checked) => setFormData(prev => ({ ...prev, reports: checked }))}
         />
-        <label htmlFor="reports" className="text-theme-primary cursor-pointer select-none">
-          <div className="font-semibold">Enable reports</div>
-          <div className="text-sm text-purple-200">Enable Reports for this application</div>
-        </label>
-      </div>
-
-      <div className="mb-6 flex items-start">
-        <input
-          type="checkbox"
-          id="cdn"
+        <FlagCheckbox
+          label="Enable CDN"
+          description="Serve artifacts through a CDN edge"
           checked={formData.cdn}
-          onChange={(e) => setFormData(prev => ({ ...prev, cdn: e.target.checked }))}
-          className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
+          onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
         />
-        <label htmlFor="cdn" className="text-theme-primary cursor-pointer select-none">
-          <div className="font-semibold">Enable CDN</div>
-          <div className="text-sm text-purple-200">Serve artifacts through CDN for this application</div>
-        </label>
       </div>
     </AdvancedModal>
   );

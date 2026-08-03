@@ -11,6 +11,37 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { AppListItem } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
 import { getPlatformIcon } from '@/utils/platformIcon';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import { ModalFeedback } from '@/components/common/ModalFeedback';
+import {
+  ACTION_BUTTON,
+  ACTION_GROUP,
+  BTN_GHOST,
+  BTN_PRIMARY,
+  BTN_WARNING,
+  DROPDOWN_MENU,
+  DROPDOWN_MENU_STYLE,
+  DROPDOWN_OPTION,
+  DROPDOWN_TRIGGER,
+  DROPZONE,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  MARKDOWN_PREVIEW,
+  NOTE_WARNING,
+  ROW,
+  ROW_META,
+  ROW_TILE,
+  ROW_TITLE,
+  SECTION_LABEL,
+  SEGMENTED_GROUP,
+  STATUS_BADGE,
+  STATUS_DOT,
+  TUF_BADGE_STYLE,
+  segmentedButton,
+} from '@/components/common/ui';
+import type { TufStatus } from '@/components/common/ui';
+
+const SECTION = `${SECTION_LABEL} mt-6 mb-2`;
 
 interface EditVersionModalProps {
   appName: string;
@@ -45,71 +76,6 @@ interface ErrorResponse {
   error: string;
   details?: string;
 }
-
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-};
-
-// Same vocabulary as the version cards (see Dashboard.tsx): a dark scrim rather than
-// a tinted fill, so every status stays legible on both themes without dark: variants.
-const STATUS_BADGE = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[13px] font-semibold bg-black/55 border';
-const STATUS_DOT = 'w-[7px] h-[7px] rounded-full shrink-0';
-// Checkbox, not a toggle chip: the box has to look clickable before it is clicked.
-const FLAG_TONE = {
-  green: { box: 'peer-checked:border-green-500 peer-checked:bg-green-500', text: 'peer-checked:text-green-300' },
-  red: { box: 'peer-checked:border-red-500 peer-checked:bg-red-500', text: 'peer-checked:text-red-300' },
-  amber: { box: 'peer-checked:border-amber-500 peer-checked:bg-amber-500', text: 'peer-checked:text-amber-300' },
-} as const;
-
-interface FlagCheckboxProps {
-  label: string;
-  tone: keyof typeof FLAG_TONE;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}
-
-const FlagCheckbox: React.FC<FlagCheckboxProps> = ({ label, tone, checked, onChange }) => (
-  <label className="flex cursor-pointer select-none items-center gap-2.5 rounded-lg border border-white/15 bg-black/40 px-3 py-2 transition-colors hover:bg-black/60">
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
-      className="peer sr-only"
-    />
-    <span
-      className={`flex h-[18px] w-[18px] items-center justify-center rounded-[5px] border border-white/40 bg-black/40 text-transparent transition-colors peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 ${FLAG_TONE[tone].box}`}
-    >
-      <i className="fas fa-check text-[10px]"></i>
-    </span>
-    <span className={`text-[13px] font-semibold text-white/70 transition-colors ${FLAG_TONE[tone].text}`}>
-      {label}
-    </span>
-  </label>
-);
-
-const SECTION_LABEL =
-  "mt-6 mb-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-white/70 after:h-px after:flex-1 after:bg-white/15 after:content-['']";
-
-const ROW = 'flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-black/30 px-3 py-2.5';
-const PLATFORM_TILE = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10';
-const ROW_META = 'flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-white/60';
-
-const ACTION_GROUP = 'inline-flex shrink-0 items-center gap-px rounded-lg border border-white/15 bg-black/55 p-0.5';
-const ACTION_BUTTON = 'rounded-md px-2 py-1.5 transition-colors duration-200';
-
-const FIELD_INPUT =
-  'w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-theme-primary transition-all duration-150 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-theme-focus';
-
-const TUF_BADGE_STYLE = {
-  'all-signed': { label: 'TUF signed', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500', hint: 'Every artifact is signed' },
-  partial: { label: 'TUF partial', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500', hint: 'Some artifacts are not signed yet' },
-  none: { label: 'TUF unsigned', badge: 'text-red-300 border-red-500/45', dot: 'bg-red-500', hint: 'No artifact is signed' },
-} as const;
-
-type TufStatus = keyof typeof TUF_BADGE_STYLE;
 
 // 0 and 100 are states, not just numbers — each zone owns its badge and its sentence.
 const ROLLOUT_ZONES = [
@@ -269,7 +235,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const queryClient = useQueryClient();
   const { toastSuccess, toastError } = useToast();
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [isPublishingTuf, setIsPublishingTuf] = useState(false);
 
   // Get app data to check if TUF is enabled
@@ -832,7 +797,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} noValidate>
-          <p className={SECTION_LABEL}>Release flags</p>
+          <p className={SECTION}>Release flags</p>
           <div className="flex flex-wrap gap-2">
             <FlagCheckbox
               label="Published"
@@ -854,7 +819,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             />
           </div>
 
-          <p className={SECTION_LABEL}>
+          <p className={SECTION}>
             Artifacts
             {tufStatus && (
               <span
@@ -873,11 +838,11 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 {formData.Artifacts.map((artifact, index) => (
                   <div key={index} className={ROW}>
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className={PLATFORM_TILE}>
+                      <span className={ROW_TILE}>
                         <i className={`${getPlatformIcon(artifact.platform)} text-white/90`}></i>
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-[14.5px] font-bold text-theme-primary">{artifact.platform}</p>
+                        <p className={ROW_TITLE}>{artifact.platform}</p>
                         <div className={ROW_META}>
                           <span>{artifact.arch}</span>
                           <span aria-hidden="true">·</span>
@@ -937,7 +902,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                   type="button"
                   onClick={handleTufPublish}
                   disabled={isPublishingTuf}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-black/55 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`${BTN_WARNING} mt-2`}
                   title="Publish TUF artifacts"
                 >
                   <i className={`fas ${isPublishingTuf ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>
@@ -948,13 +913,13 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               )}
             </>
           ) : (
-            <div className="flex items-center gap-3 rounded-lg border border-amber-500/45 bg-black/40 px-3 py-3 text-sm text-amber-300">
+            <div className={NOTE_WARNING}>
               <i className="fas fa-exclamation-triangle"></i>
               This version has no artifacts yet — upload them below.
             </div>
           )}
 
-          <p className={SECTION_LABEL}>Add files</p>
+          <p className={SECTION}>Add files</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -965,7 +930,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
           />
           <label
             htmlFor="file-upload"
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-white/30 bg-white/5 px-4 py-4 text-sm text-white/85 transition-colors hover:bg-white/10"
+            className={DROPZONE}
           >
             <i className="fas fa-plus"></i>
             Choose files to upload
@@ -976,11 +941,11 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               {selectedFiles.map((file, index) => (
                 <div key={index} className={ROW}>
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className={PLATFORM_TILE}>
+                    <span className={ROW_TILE}>
                       <i className="fas fa-file text-white/90"></i>
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate text-[14.5px] font-bold text-theme-primary">{file.name}</p>
+                      <p className={ROW_TITLE}>{file.name}</p>
                       <div className={ROW_META}>
                         <span>{formatFileSize(file.size)}</span>
                       </div>
@@ -1006,14 +971,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             <div className="mt-3 grid grid-cols-2 gap-3">
               {platforms.length > 0 && (
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                  <label className={FIELD_LABEL}>
                     Platform
                   </label>
                   <div className="relative dropdown-container">
                     <button
                       type="button"
                       onClick={() => handleDropdownClick('platform')}
-                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
+                      className={DROPDOWN_TRIGGER}
                     >
                       <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
                       <svg
@@ -1032,13 +997,13 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       </svg>
                     </button>
                     {openDropdown === 'platform' && (
-                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
                         {platforms.map((p) => (
                           <button
                             key={p.ID}
                             type="button"
                             onClick={() => handleOptionClick('platform', p.PlatformName)}
-                            className="flex w-full items-center gap-2 truncate px-4 py-2 text-left text-theme-primary transition-colors hover:bg-theme-card-hover first:rounded-t-lg last:rounded-b-lg"
+                            className={DROPDOWN_OPTION}
                           >
                             <i className={`${getPlatformIcon(p.PlatformName)} w-4 text-center opacity-90`}></i>
                             {p.PlatformName}
@@ -1051,14 +1016,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               )}
               {architectures.length > 0 && (
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                  <label className={FIELD_LABEL}>
                     Architecture
                   </label>
                   <div className="relative dropdown-container">
                     <button
                       type="button"
                       onClick={() => handleDropdownClick('arch')}
-                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
+                      className={DROPDOWN_TRIGGER}
                     >
                       <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
                       <svg
@@ -1077,13 +1042,13 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       </svg>
                     </button>
                     {openDropdown === 'arch' && (
-                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
                         {architectures.map((a) => (
                           <button
                             key={a.ID}
                             type="button"
                             onClick={() => handleOptionClick('arch', a.ArchID)}
-                            className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            className={DROPDOWN_OPTION}
                           >
                             {a.ArchID}
                           </button>
@@ -1095,7 +1060,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               )}
               {showUpdaterDropdown && (
                 <div className="col-span-2">
-                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                  <label className={FIELD_LABEL}>
                     Updater
                     <span className="ml-2 font-normal text-white/50">
                       This platform has several enabled updaters — pick one if needed.
@@ -1105,7 +1070,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleDropdownClick('updater')}
-                      className="flex w-full min-w-0 items-center justify-between rounded-lg border border-white/15 bg-black/30 p-2 pr-3 text-theme-primary transition-colors hover:bg-black/50"
+                      className={DROPDOWN_TRIGGER}
                     >
                       <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
                       <svg
@@ -1124,13 +1089,13 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                       </svg>
                     </button>
                     {openDropdown === 'updater' && (
-                      <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
+                      <div className={DROPDOWN_MENU} style={DROPDOWN_MENU_STYLE}>
                         {availableUpdaters.map((u) => (
                           <button
                             key={u.type}
                             type="button"
                             onClick={() => handleOptionClick('updater', u.type)}
-                            className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                            className={DROPDOWN_OPTION}
                           >
                             {u.type}
                           </button>
@@ -1142,7 +1107,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
               )}
               {updater === 'tauri' && (
                 <div className="col-span-2">
-                  <label className="mb-2 block text-xs font-semibold text-white/70">
+                  <label className={FIELD_LABEL}>
                     Signature
                   </label>
                   <input
@@ -1159,16 +1124,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             </div>
           )}
 
-          <p className={SECTION_LABEL}>
+          <p className={SECTION}>
             Changelog
-            <span className="inline-flex overflow-hidden rounded-md border border-white/20 normal-case tracking-normal">
+            <span className={`${SEGMENTED_GROUP} normal-case tracking-normal`}>
               <button
                 type="button"
                 onClick={() => setIsPreview(false)}
                 aria-pressed={!isPreview}
-                className={`px-3 py-1 text-xs font-semibold transition-colors ${
-                  isPreview ? 'bg-black/30 text-white/70 hover:bg-white/10' : 'bg-white/15 text-theme-primary'
-                }`}
+                className={segmentedButton(!isPreview)}
               >
                 Edit
               </button>
@@ -1176,16 +1139,14 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
                 type="button"
                 onClick={() => setIsPreview(true)}
                 aria-pressed={isPreview}
-                className={`border-l border-white/20 px-3 py-1 text-xs font-semibold transition-colors ${
-                  isPreview ? 'bg-white/15 text-theme-primary' : 'bg-black/30 text-white/70 hover:bg-white/10'
-                }`}
+                className={segmentedButton(isPreview, true)}
               >
                 Preview
               </button>
             </span>
           </p>
           {isPreview ? (
-            <div className="prose prose-sm prose-invert max-w-none rounded-lg border border-white/15 bg-black/30 p-4">
+            <div className={MARKDOWN_PREVIEW}>
               <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
             </div>
           ) : (
@@ -1197,20 +1158,20 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
             />
           )}
 
-          <p className={SECTION_LABEL}>Staged rollout</p>
+          <p className={SECTION}>Staged rollout</p>
           <RolloutSlider value={rollout} channel={channel} onChange={setRollout} />
 
           <div className="mt-8 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-white/25 px-4 py-2 font-semibold text-theme-primary transition-colors hover:bg-white/10"
+              className={BTN_GHOST}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-theme-button-submit px-4 py-2 font-semibold text-theme-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className={BTN_PRIMARY}
               disabled={Boolean(selectedFiles.length > 0 &&
                 ((platforms.length > 0 && !platform) ||
                  (architectures.length > 0 && !arch) ||
@@ -1235,85 +1196,18 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         />
       )}
 
-      {deleteSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Artifact deleted successfully!</span>
-        </div>
-      )}
-
-      {deleteError && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Error: {deleteError.error}</span>
-            {deleteError.details && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </div>
-          {showDetails && deleteError.details && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {deleteError.details}
-            </div>
-          )}
-        </div>
-      )}
-
-      {unsignSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Artifact unsigned successfully!</span>
-        </div>
-      )}
-
-      {unsignError && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Error: {unsignError.error}</span>
-            {unsignError.details && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </div>
-          {showDetails && unsignError.details && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {unsignError.details}
-            </div>
-          )}
-        </div>
-      )}
+      <ModalFeedback
+        isSuccess={deleteSuccess}
+        successMessage="Artifact deleted"
+        error={deleteError}
+        setError={setDeleteError}
+      />
+      <ModalFeedback
+        isSuccess={unsignSuccess}
+        successMessage="Artifact unsigned"
+        error={unsignError}
+        setError={setUnsignError}
+      />
     </>
   );
 }; 

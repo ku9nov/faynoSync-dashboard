@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
+import { ModalFeedback } from '@/components/common/ModalFeedback';
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+} from '@/components/common/ui';
 
 interface EditUserModalProps {
   userId: string;
@@ -20,7 +32,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   // Reset form when modal opens
@@ -83,103 +94,67 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
 
   return (
     <>
-      {error && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Error: {error}</span>
-            {error && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
+      <ModalFeedback error={error ? { error } : null} setError={() => setError(null)} />
+      <div className={`${MODAL_OVERLAY} z-[10000] min-h-screen overflow-y-auto p-4`} {...backdropProps}>
+        <div className={`${MODAL_SURFACE} w-full max-w-md max-h-[90vh]`}>
+          <div className={MODAL_HEADER}>
+            <h2 className={MODAL_TITLE}>Edit user</h2>
+            <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          {showDetails && error && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {error}
-            </div>
-          )}
-        </div>
-      )}
-      <div 
-        className='fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto min-h-screen p-4'
-        {...backdropProps}
-      >
-        <div className='bg-theme-modal-gradient p-8 rounded-lg w-full max-w-md max-h-[90vh]'>
-          <h2 className='text-2xl font-bold mb-4 text-theme-primary'>
-            Edit User
-          </h2>
-          <div className='mb-4'>
-            <label className='block text-theme-primary mb-2 font-semibold'>Username</label>
+          <div className="mb-4">
+            <label className={FIELD_LABEL}>Username</label>
             <input
-              type='text'
+              type="text"
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              className='w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm'
-              placeholder='Enter username'
+              className={FIELD_INPUT}
+              placeholder="Enter username"
             />
           </div>
-          <div className='mb-4'>
-            <label className='block text-theme-primary mb-2 font-semibold'>New Password</label>
-            <div className='flex'>
+          <div className="mb-6">
+            <label className={FIELD_LABEL}>New password</label>
+            <div className="flex gap-2">
               <input
-                type='password'
+                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className='w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm'
-                placeholder='Enter new password'
+                className={FIELD_INPUT}
+                placeholder="Enter new password"
               />
-              <button
-                type='button'
-                onClick={generatePassword}
-                className='ml-2 header-action-btn px-3 py-2'
-              >
+              <button type="button" onClick={generatePassword} className={`${BTN_GHOST} shrink-0 whitespace-nowrap`}>
                 Generate
               </button>
               {newPassword && (
                 <button
-                  type='button'
+                  type="button"
                   onClick={() => copyToClipboard(newPassword)}
-                  className='ml-2 header-action-btn px-3 py-2'
+                  className={`${BTN_GHOST} shrink-0`}
+                  aria-label="Copy password"
                 >
-                  <i className='fas fa-copy'></i>
+                  <i className="fas fa-copy"></i>
                 </button>
               )}
             </div>
-            <p className='text-sm text-gray-400 mt-1'>
-              Leave empty to keep current password
-            </p>
-            {copySuccess && (
-              <p className='text-sm text-green-500 mt-1'>{copySuccess}</p>
-            )}
+            <p className="mt-2 text-xs text-white/55">Leave empty to keep the current password.</p>
+            {copySuccess && <p className="mt-1 text-xs text-green-300">{copySuccess}</p>}
           </div>
-          <div className='flex justify-end'>
-            <button
-              type='button'
-              onClick={onClose}
-              className='bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm'>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className={BTN_GHOST}>
               Cancel
             </button>
             <button
-              type='button'
+              type="button"
               onClick={handleSave}
               disabled={isSaving || !newUsername.trim()}
-              className='header-action-btn px-4 py-2 ml-2 disabled:opacity-50 disabled:cursor-not-allowed'>
+              className={`${BTN_PRIMARY} inline-flex items-center gap-2`}
+            >
               {isSaving ? (
                 <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  <i className="fas fa-spinner fa-spin"></i>
                   Saving...
                 </>
               ) : (
@@ -191,4 +166,4 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
       </div>
     </>
   );
-}; 
+};

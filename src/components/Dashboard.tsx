@@ -18,29 +18,14 @@ import ReactMarkdown from 'react-markdown';
 import { getPlatformIcon } from '@/utils/platformIcon';
 import '@/styles/cards.css';
 
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-};
-
-// Dark scrim rather than a tinted fill: the light theme's field runs down to
-// orange-500, where a pale tint drops below 2:1. Black at 55% keeps every
-// status above 4.8:1 on purple, orange and slate alike — so no dark: variants.
-const STATUS_BADGE = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[13px] font-semibold bg-black/55 border';
-const STATUS_DOT = 'w-[7px] h-[7px] rounded-full shrink-0';
-
-// TUF carries a state and an action. The state lives here, in the same language as
-// every other status; the action is a separate labelled button below the artifacts,
-// rendered only while something is actually left to sign.
-const TUF_BADGE_STYLE = {
-  'all-signed': { label: 'TUF signed', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500', hint: 'Every artifact is signed' },
-  partial: { label: 'TUF partial', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500', hint: 'Some artifacts are not signed yet' },
-  none: { label: 'TUF unsigned', badge: 'text-red-300 border-red-500/45', dot: 'bg-red-500', hint: 'No artifact is signed' },
-} as const;
-
-const PLATFORM_CHIP = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] bg-black/55 border border-white/15 text-theme-primary hover:bg-black/70 transition-colors';
+import {
+  DROPDOWN_MENU_STYLE,
+  PLATFORM_CHIP,
+  SECTION_LABEL,
+  STATUS_BADGE,
+  STATUS_DOT,
+  TUF_BADGE_STYLE,
+} from '@/components/common/ui';
 
 // Fixed-height slots for the optional bits of the bottom block. Reserving the space
 // costs a little emptiness on simple versions and buys every tile in a row the same
@@ -49,8 +34,7 @@ const TUF_SLOT = 'min-h-[41px]';
 const CHANGELOG_SLOT = 'mt-3 min-h-[42px]';
 const FOOTER_SLOT = 'mt-4 min-h-[40px]';
 
-const SECTION_LABEL =
-  "mt-5 mb-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-theme-primary/70 after:h-px after:flex-1 after:bg-white/15 after:content-['']";
+const SECTION = `${SECTION_LABEL} mt-5 mb-2`;
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -647,11 +631,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </span>
 
               {isReportKeysLoading ? (
-                <p className="text-xs text-theme-primary/70 truncate">Loading...</p>
+                <p className="text-xs text-white/70 truncate">Loading...</p>
               ) : reportKeyForApp?.key_value ? (
                 <>
                   <p
-                    className="font-mono text-xs text-theme-primary/95 overflow-x-auto whitespace-nowrap flex-1 min-w-0"
+                    className="font-mono text-xs text-white/95 overflow-x-auto whitespace-nowrap flex-1 min-w-0"
                   >
                     {reportKeyForApp.key_value}
                   </p>
@@ -702,7 +686,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-theme-primary/70 truncate">Not available yet</p>
+                <p className="text-xs text-white/70 truncate">Not available yet</p>
               )}
 
               {reportKeyForApp?.key_value && (
@@ -1037,7 +1021,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     {app.Version}
                   </h3>
-                  <p className="mt-1 mb-6 text-sm text-theme-primary/70">
+                  <p className="mt-1 mb-6 text-sm text-white/70">
                     <span className="mr-2 inline-flex items-center rounded-full border border-purple-300/45 bg-purple-500/30 px-2 py-0.5 text-xs font-semibold text-purple-100">
                       {app.Channel}
                     </span>
@@ -1085,7 +1069,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   {app.Artifacts.length > 0 && (
                     <>
-                    <p className={SECTION_LABEL}>Artifacts</p>
+                    <p className={SECTION}>Artifacts</p>
                     <div
                       className="relative group w-full min-w-0"
                       onMouseEnter={() => {
@@ -1148,7 +1132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </p>
                         <div className="overflow-y-auto pr-1 flex-1 min-h-0">
                           {artifactSummary.details.map((detail, index) => (
-                            <p key={`${app.ID}-artifact-${index}`} className="text-xs text-theme-primary/80 break-all mb-1 last:mb-0">
+                            <p key={`${app.ID}-artifact-${index}`} className="text-xs text-white/80 break-all mb-1 last:mb-0">
                               {detail}
                             </p>
                           ))}
@@ -1177,7 +1161,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   <div className={`${CHANGELOG_SLOT} border-l-2 border-white/20 pl-3`}>
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                      <div className="text-sm text-theme-primary/80 line-clamp-2 prose prose-sm prose-invert max-w-none">
+                      <div className="text-sm text-white/80 line-clamp-2 prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown
                           components={{
                             p: ({ children }) => <p className="m-0">{children}</p>,
@@ -1196,7 +1180,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-sm text-theme-primary/60 italic">
+                      <p className="text-sm text-white/60 italic">
                         Changelog not provided
                       </p>
                     )}
@@ -1467,7 +1451,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="relative sharedCardContent">
               <div className="flex items-center gap-2">
-                <p className={`text-sm text-theme-primary/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'} sharedCardDescription`}>
+                <p className={`text-sm text-white/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'} sharedCardDescription`}>
                   {app.Description || 'No description available'}
                 </p>
                 {app.Description && app.Description.length > 50 && (

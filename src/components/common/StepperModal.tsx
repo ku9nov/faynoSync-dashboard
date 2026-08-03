@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+} from './ui';
 
 export interface Step {
   title: string;
@@ -50,24 +59,14 @@ export const StepperModal: React.FC<StepperModalProps> = ({
   const currentStepData = steps[currentStep];
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto p-4"
-      {...backdropProps}
-    >
+    <div className={`${MODAL_OVERLAY} z-[10000] overflow-y-auto p-4`} {...backdropProps}>
       <div
-        className="bg-theme-modal-gradient rounded-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative my-auto"
+        className={`${MODAL_SURFACE} w-full max-w-4xl max-h-[90vh] overflow-y-auto relative my-auto`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-theme-primary">
-            {title}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
-            aria-label="Close"
-          >
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>{title}</h2>
+          <button onClick={handleClose} className={MODAL_CLOSE} aria-label="Close">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -75,37 +74,31 @@ export const StepperModal: React.FC<StepperModalProps> = ({
         </div>
 
         {/* Stepper */}
-        <div className="mb-8">
+        <div className="mb-8 mt-6">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => (
               <React.Fragment key={index}>
-                <div className="flex flex-col items-center flex-1">
+                <div className="flex flex-1 flex-col items-center">
                   <button
                     onClick={() => handleStepClick(index)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-200 ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border font-bold transition-all duration-200 ${
                       index === currentStep
-                        ? 'bg-blue-500 text-white scale-110'
+                        ? 'border-violet-400/70 bg-violet-500 text-white scale-110'
                         : index < currentStep
-                        ? 'bg-green-500 text-white'
-                        : 'bg-theme-input text-theme-primary border-2 border-theme'
+                        ? 'border-green-500/50 bg-black/55 text-green-300'
+                        : 'border-white/20 bg-black/40 text-white/60'
                     }`}
                   >
-                    {index < currentStep ? (
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      step.stepNumber
-                    )}
+                    {index < currentStep ? <i className="fas fa-check"></i> : step.stepNumber}
                   </button>
-                  <div className="mt-2 text-center max-w-[120px]">
+                  <div className="mt-2 max-w-[120px] text-center">
                     <p
                       className={`text-xs ${
                         index === currentStep
-                          ? 'text-blue-500 font-semibold'
+                          ? 'font-semibold text-theme-primary'
                           : index < currentStep
-                          ? 'text-green-500'
-                          : 'text-theme-primary opacity-70'
+                          ? 'text-green-300'
+                          : 'text-white/55'
                       }`}
                     >
                       {step.title}
@@ -114,8 +107,8 @@ export const StepperModal: React.FC<StepperModalProps> = ({
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`flex-1 h-1 mx-2 transition-all duration-300 ${
-                      index < currentStep ? 'bg-green-500' : 'bg-theme-input'
+                    className={`mx-2 h-px flex-1 transition-all duration-300 ${
+                      index < currentStep ? 'bg-green-500/70' : 'bg-white/15'
                     }`}
                   />
                 )}
@@ -126,42 +119,40 @@ export const StepperModal: React.FC<StepperModalProps> = ({
 
         {/* Step Content */}
         <div className="mb-6 min-h-[300px]">
-          <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
-            <h3 className="text-xl font-bold text-theme-primary mb-4">
-              Step {currentStepData.stepNumber}: {currentStepData.title}
-            </h3>
+          <div className="rounded-lg border border-white/15 bg-black/30 p-6">
+            <p className="mb-4 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-white/70">
+              Step {currentStepData.stepNumber} of {steps.length}
+            </p>
+            <h3 className="mb-4 text-xl font-bold text-theme-primary">{currentStepData.title}</h3>
             <div className="text-theme-primary">{currentStepData.content}</div>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center pt-4 border-t border-theme-card-hover">
+        <div className="flex items-center justify-between gap-3 border-t border-white/15 pt-4">
           <button
             onClick={handlePrevious}
             disabled={currentStep === 0}
-            className="bg-theme-button-primary text-theme-primary px-6 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className={`${BTN_GHOST} flex items-center gap-2`}
           >
-            <i className="fas fa-arrow-left mr-2"></i>
+            <i className="fas fa-arrow-left"></i>
             Previous
           </button>
-          <div className="text-theme-primary">
+          <div className="font-mono text-sm tabular-nums text-white/70">
             {currentStep + 1} / {steps.length}
           </div>
           {currentStep < steps.length - 1 ? (
-            <button
-              onClick={handleNext}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center"
-            >
+            <button onClick={handleNext} className={`${BTN_PRIMARY} flex items-center gap-2`}>
               Next
-              <i className="fas fa-arrow-right ml-2"></i>
+              <i className="fas fa-arrow-right"></i>
             </button>
           ) : (
             <button
               onClick={handleClose}
-              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors flex items-center"
+              className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-black/55 px-4 py-2 font-semibold text-green-300 transition-colors hover:bg-green-500/20"
             >
               Finish
-              <i className="fas fa-check ml-2"></i>
+              <i className="fas fa-check"></i>
             </button>
           )}
         </div>
@@ -169,4 +160,3 @@ export const StepperModal: React.FC<StepperModalProps> = ({
     </div>
   );
 };
-

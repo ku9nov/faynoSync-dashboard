@@ -5,6 +5,14 @@ import { usePlatformQuery } from '@/hooks/use-query/usePlatformQuery';
 import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 import { useUploadQuery } from '@/hooks/use-query/useUploadQuery';
 import { AdvancedModal } from '@/components/common/AdvancedModal';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import {
+  DROPDOWN_MENU,
+  DROPDOWN_OPTION,
+  DROPDOWN_TRIGGER,
+  FIELD_INPUT,
+  FIELD_LABEL,
+} from '@/components/common/ui';
 
 const DROPDOWN_MENU_STYLE = {
   background: 'var(--dropdown-bg)',
@@ -168,12 +176,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
       ) : (
         <>
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-semibold">App Name</label>
+            <label className={FIELD_LABEL}>App Name</label>
             <div className="relative dropdown-container">
               <button
                 type="button"
                 onClick={() => handleDropdownClick('app_name')}
-                className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
+                className={DROPDOWN_TRIGGER}
               >
                 <span className="block min-w-0 flex-1 truncate text-left">{formData.app_name || 'Select an app'}</span>
                 <svg 
@@ -192,13 +200,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 </svg>
               </button>
               {openDropdown === 'app_name' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
+                <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
                   {apps.map((app) => (
                     <button
                       key={app.ID}
                       type="button"
                       onClick={() => handleOptionClick('app_name', app.AppName)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                      className={DROPDOWN_OPTION}
                     >
                       {app.AppName}
                     </button>
@@ -209,13 +217,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 font-semibold">Version</label>
+            <label className={FIELD_LABEL}>Version</label>
             <input
               type="text"
               name="version"
               value={formData.version}
               onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-              className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
+              className={FIELD_INPUT}
               placeholder="e.g., 0.0.1.0"
               required
             />
@@ -223,12 +231,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {channels.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-semibold">Channel</label>
+              <label className={FIELD_LABEL}>Channel</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('channel')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
+                  className={DROPDOWN_TRIGGER}
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.channel || 'Select a channel'}</span>
                   <svg 
@@ -247,13 +255,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'channel' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
+                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
                     {channels.map((channel) => (
                       <button
                         key={channel.ID}
                         type="button"
                         onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className={DROPDOWN_OPTION}
                       >
                         {channel.ChannelName}
                       </button>
@@ -266,12 +274,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {platforms.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-semibold">Platform</label>
+              <label className={FIELD_LABEL}>Platform</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('platform')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
+                  className={DROPDOWN_TRIGGER}
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.platform || 'Select a platform'}</span>
                   <svg 
@@ -290,13 +298,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'platform' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
+                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
                     {platforms.map((platform) => (
                       <button
                         key={platform.ID}
                         type="button"
                         onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className={DROPDOWN_OPTION}
                       >
                         {platform.PlatformName}
                       </button>
@@ -309,9 +317,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {showUpdaterDropdown && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-semibold">
+              <label className={FIELD_LABEL}>
                 Updater
-                <span className="text-sm text-theme-secondary ml-2">
+                <span className="ml-2 font-normal text-white/50">
                   (This platform has multiple enabled updaters, select desired updater if necessary)
                 </span>
               </label>
@@ -319,7 +327,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('updater')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
+                  className={DROPDOWN_TRIGGER}
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.updater || 'manual (default)'}</span>
                   <svg 
@@ -338,13 +346,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'updater' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
+                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
                     {availableUpdaters.map((updater) => (
                       <button
                         key={updater.type}
                         type="button"
                         onClick={() => handleOptionClick('updater', updater.type)}
-                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className={DROPDOWN_OPTION}
                       >
                         {updater.type}
                       </button>
@@ -357,13 +365,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {formData.updater === 'tauri' && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-semibold">Signature</label>
+              <label className={FIELD_LABEL}>Signature</label>
               <input
                 type="text"
                 name="signature"
                 value={formData.signature}
                 onChange={(e) => setFormData(prev => ({ ...prev, signature: e.target.value }))}
-                className="w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm"
+                className={FIELD_INPUT}
                 placeholder="Enter signature for Tauri updater"
                 required
               />
@@ -372,12 +380,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
 
           {architectures.length > 0 && (
             <div className="mb-4">
-              <label className="block text-theme-primary mb-2 font-semibold">Architecture</label>
+              <label className={FIELD_LABEL}>Architecture</label>
               <div className="relative dropdown-container">
                 <button
                   type="button"
                   onClick={() => handleDropdownClick('arch')}
-                  className="w-full min-w-0 bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus shadow-sm"
+                  className={DROPDOWN_TRIGGER}
                 >
                   <span className="block min-w-0 flex-1 truncate text-left">{formData.arch || 'Select an architecture'}</span>
                   <svg 
@@ -396,13 +404,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
                   </svg>
                 </button>
                 {openDropdown === 'arch' && (
-                  <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl border border-theme-card-hover rounded-lg shadow-lg z-10" style={DROPDOWN_MENU_STYLE}>
+                  <div className={`${DROPDOWN_MENU} z-10`} style={DROPDOWN_MENU_STYLE}>
                     {architectures.map((arch) => (
                       <button
                         key={arch.ID}
                         type="button"
                         onClick={() => handleOptionClick('arch', arch.ArchID)}
-                        className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
+                        className={DROPDOWN_OPTION}
                       >
                         {arch.ArchID}
                       </button>
@@ -413,40 +421,25 @@ export const UploadModal: React.FC<UploadModalProps> = ({ onClose }) => {
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-semibold">
-              <input
-                type="checkbox"
-                checked={formData.publish}
-                onChange={(e) => setFormData(prev => ({ ...prev, publish: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
-              />
-              Publish
-            </label>
-          </div>
-
-          <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-semibold">
-              <input
-                type="checkbox"
-                checked={formData.critical}
-                onChange={(e) => setFormData(prev => ({ ...prev, critical: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
-              />
-              Is critical
-            </label>
-          </div>
-
-          <div className="mb-4">
-            <label className="flex items-center text-theme-primary font-semibold">
-              <input
-                type="checkbox"
-                checked={formData.intermediate}
-                onChange={(e) => setFormData(prev => ({ ...prev, intermediate: e.target.checked }))}
-                className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-theme-focus focus:border-theme-focus bg-theme-input shadow-sm"
-              />
-              Is intermediate
-            </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <FlagCheckbox
+              label="Publish"
+              tone="green"
+              checked={formData.publish}
+              onChange={(checked) => setFormData(prev => ({ ...prev, publish: checked }))}
+            />
+            <FlagCheckbox
+              label="Critical"
+              tone="red"
+              checked={formData.critical}
+              onChange={(checked) => setFormData(prev => ({ ...prev, critical: checked }))}
+            />
+            <FlagCheckbox
+              label="Intermediate"
+              tone="amber"
+              checked={formData.intermediate}
+              onChange={(checked) => setFormData(prev => ({ ...prev, intermediate: checked }))}
+            />
           </div>
         </>
       )}

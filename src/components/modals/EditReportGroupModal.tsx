@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { ReportGroup } from '@/hooks/use-query/useReportsQuery';
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+  STATUS_BADGE,
+} from '@/components/common/ui';
 
 interface EditReportGroupModalProps {
   group: ReportGroup;
@@ -14,9 +26,6 @@ const formatLabel = (value: string) =>
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-
-const INPUT_CLASS =
-  'w-full px-4 py-2 rounded-lg bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-theme-focus focus:border-theme-focus placeholder:text-theme-secondary shadow-sm';
 
 export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ group, onClose, onConfirm }) => {
   const [tags, setTags] = useState<string[]>(group.tags ?? []);
@@ -59,42 +68,32 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center animate-fade-in modal-overlay-high"
-      {...backdropProps}
-    >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-md">
-        <div className="flex justify-between items-center mb-1">
-          <h2 className="text-2xl font-bold text-theme-primary">Edit Report Group</h2>
-          <button
-            onClick={onClose}
-            className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
-            aria-label="Close"
-          >
+    <div className={MODAL_OVERLAY} {...backdropProps}>
+      <div className={`${MODAL_SURFACE} w-full max-w-md`}>
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>Edit report group</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <p className="text-sm text-theme-secondary mb-4">
+        <p className="mb-5 text-sm text-white/70">
           {group.application.name} v{group.application.version} · {formatLabel(group.event.type)} / {formatLabel(group.event.reason)}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-theme-primary mb-2 text-sm">Tags</label>
+            <label className={FIELD_LABEL}>Tags</label>
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2">
+              <div className="mb-2 flex flex-wrap gap-1.5">
                 {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border bg-purple-500/20 text-purple-300 border-purple-400/30"
-                  >
+                  <span key={tag} className={`${STATUS_BADGE} border-violet-400/50 text-violet-200`}>
                     {tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      className="hover:text-theme-primary"
+                      className="ml-1 rounded p-0.5 text-white/70 transition-colors hover:bg-white/15 hover:text-red-300"
                       title="Remove tag"
                     >
                       <i className="fas fa-times"></i>
@@ -110,34 +109,26 @@ export const EditReportGroupModal: React.FC<EditReportGroupModalProps> = ({ grou
               onKeyDown={handleTagKeyDown}
               onBlur={() => tagInput.trim() && addTag(tagInput)}
               placeholder="Type a tag and press Enter"
-              className={INPUT_CLASS}
+              className={FIELD_INPUT}
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-theme-primary mb-2 text-sm">Note</label>
+            <label className={FIELD_LABEL}>Note</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. tracked in JIRA-123"
               rows={3}
-              className={`${INPUT_CLASS} resize-none`}
+              className={`${FIELD_INPUT} resize-none`}
             />
           </div>
 
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
-            >
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} className={BTN_GHOST}>
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ml-2 shadow-sm"
-            >
+            <button type="submit" disabled={isSaving} className={BTN_PRIMARY}>
               {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
