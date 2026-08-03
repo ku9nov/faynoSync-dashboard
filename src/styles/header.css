@@ -211,7 +211,7 @@
   margin: 0 0.25rem 0.25rem;
   padding: 0.1875rem;
   border-radius: 0.5625rem;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(46, 16, 101, 0.4);  /* violet-950/40 — same scrim family as the badges */
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 

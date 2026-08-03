@@ -170,7 +170,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         {userData && (
           <div className="mb-6">
             <div className="flex items-center mb-4">
-              <div className="mr-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-black/40">
+              <div className="mr-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-violet-950/40">
                 <span className="text-xl font-extrabold tracking-tight text-theme-primary">
                   {userData.username.slice(0, 2).toUpperCase()}
                 </span>
@@ -266,7 +266,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 <div className="mb-6">
                   <h3 className={`${SECTION_LABEL} mb-3`}>Permissions</h3>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full overflow-hidden rounded-lg border border-white/15 bg-black/30">
+                    <table className="min-w-full overflow-hidden rounded-lg border border-white/15 bg-violet-950/30">
                       <thead>
                         <tr className="bg-white/10 text-left text-[10.5px] font-bold uppercase tracking-[0.09em] text-white/70">
                           <th className="px-4 py-2 text-left">Resource</th>
@@ -331,7 +331,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 {userData.permissions.Apps && (
                   <div className="mb-6">
                     <h3 className={`${SECTION_LABEL} mb-3`}>File actions</h3>
-                    <div className="rounded-lg border border-white/15 bg-black/30 p-4">
+                    <div className="rounded-lg border border-white/15 bg-violet-950/30 p-4">
                       <div className="flex items-center mb-2">
                         <span className="mr-2 text-sm font-semibold text-white/70">Upload:</span>
                         <span className="text-theme-modal-text">

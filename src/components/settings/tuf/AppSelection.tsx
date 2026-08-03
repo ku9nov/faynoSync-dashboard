@@ -29,7 +29,7 @@ export const AppSelection: React.FC<AppSelectionProps> = ({
   };
 
   return (
-    <div className="rounded-lg border border-white/15 bg-black/30 p-4">
+    <div className="rounded-lg border border-white/15 bg-violet-950/30 p-4">
       <label className={FIELD_LABEL}>Select app</label>
       <Dropdown
         ariaLabel="App"

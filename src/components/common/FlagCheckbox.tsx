@@ -26,9 +26,9 @@ export const FlagCheckbox: React.FC<FlagCheckboxProps> = ({
   onChange,
 }) => (
   <label
-    className={`flex select-none rounded-lg border border-white/15 bg-black/40 px-3 py-2 transition-colors ${
+    className={`flex select-none rounded-lg border border-white/15 bg-violet-950/40 px-3 py-2 transition-colors ${
       description ? 'items-start gap-3' : 'items-center gap-2.5'
-    } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-black/60'}`}
+    } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-violet-950/60'}`}
   >
     <input
       type="checkbox"
@@ -38,7 +38,7 @@ export const FlagCheckbox: React.FC<FlagCheckboxProps> = ({
       className="peer sr-only"
     />
     <span
-      className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border border-white/40 bg-black/40 text-transparent transition-colors peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 ${
+      className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border border-white/40 bg-violet-950/40 text-transparent transition-colors peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-white/70 ${
         description ? 'mt-0.5' : ''
       } ${FLAG_TONE[tone].box}`}
     >

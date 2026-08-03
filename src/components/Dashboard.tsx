@@ -760,7 +760,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.3)',
                     animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                   } : isIncompleteRollout ? {
-                    boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.25)'
+                    animation: 'glowAmber 2.4s ease-in-out infinite'
                   } : {})
                 }}
                 onMouseEnter={(e) => {
@@ -922,7 +922,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <button
                         onClick={(e) => handleTufPublish(e, app)}
                         disabled={publishingTuf[app.ID]}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-black/55 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-violet-950/50 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                         title="Publish TUF artifacts"
                       >
                         <i className={`fas ${publishingTuf[app.ID] ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>

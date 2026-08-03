@@ -114,7 +114,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
           </button>
         </div>
         {copyError && (
-          <div className="mb-4 rounded-lg border border-red-500/45 bg-black/40 px-3 py-2 text-sm text-red-200">
+          <div className="mb-4 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-2 text-sm text-red-200">
             {copyError}
           </div>
         )}
@@ -122,7 +122,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
           {artifacts.map((artifact, index) => (
             <div
               key={index}
-              className="cursor-pointer rounded-lg border border-white/15 bg-black/30 p-3 transition-colors hover:bg-black/50"
+              className="cursor-pointer rounded-lg border border-white/15 bg-violet-950/30 p-3 transition-colors hover:bg-violet-950/50"
               onClick={() => handleDownload(artifact)}
             >
               <div className="flex items-center justify-between gap-3">
@@ -151,7 +151,7 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
                 </div>
                 <i className="fas fa-download shrink-0 text-green-400"></i>
               </div>
-              <div className="mt-3 flex items-center gap-2 rounded-md border border-white/10 bg-black/40 px-2 py-1.5">
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-white/10 bg-violet-950/40 px-2 py-1.5">
                 <p className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-white/70">
                   {artifact.link}
                 </p>

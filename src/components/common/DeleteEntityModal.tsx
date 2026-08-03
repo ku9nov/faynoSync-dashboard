@@ -112,7 +112,7 @@ export const DeleteEntityModal: React.FC<DeleteEntityModalProps> = ({
               </svg>
             </button>
           </div>
-          <p className="mb-4 flex items-start gap-3 rounded-lg border border-red-500/45 bg-black/40 px-3 py-3 text-sm text-red-200">
+          <p className="mb-4 flex items-start gap-3 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-3 text-sm text-red-200">
             <i className="fas fa-exclamation-triangle mt-0.5"></i>
             <span>{getConfirmationMessage()}</span>
           </p>

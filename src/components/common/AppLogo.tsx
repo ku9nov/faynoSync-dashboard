@@ -27,7 +27,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         alt={`${name} logo`}
         loading="lazy"
         onError={() => setFailed(true)}
-        className={`${className} rounded-lg object-contain bg-black/30`}
+        className={`${className} rounded-lg object-contain bg-violet-950/30`}
       />
     );
   }

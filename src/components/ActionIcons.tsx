@@ -6,7 +6,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 // against the orange end — invisible. Grouping them on a dark scrim lifts red-300
 // to 4.80:1, so delete can finally read as destructive instead of white.
 const ACTION_GROUP =
-  'inline-flex items-center gap-px flex-shrink-0 relative rounded-lg p-0.5 bg-black/55 border border-white/15';
+  'inline-flex items-center gap-px flex-shrink-0 relative rounded-lg p-0.5 bg-violet-950/50 border border-white/20';
 const ACTION_BUTTON = 'px-2 py-1.5 rounded-md transition-colors duration-200 flex-shrink-0';
 
 interface ActionIconsProps {

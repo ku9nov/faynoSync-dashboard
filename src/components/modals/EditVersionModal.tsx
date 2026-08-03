@@ -114,7 +114,7 @@ const RolloutSlider: React.FC<RolloutSliderProps> = ({ value, channel, onChange 
             <span className={`${STATUS_DOT} ${zone.dot}`}></span>
             {zone.label}
           </span>
-          <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/15 bg-black/40">
+          <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/15 bg-violet-950/40">
             <input
               type="number"
               min={0}
@@ -153,7 +153,7 @@ const RolloutSlider: React.FC<RolloutSliderProps> = ({ value, channel, onChange 
         >
           {value}%
         </span>
-        <span className="absolute left-[9px] right-[9px] top-[6px] h-1.5 overflow-hidden rounded-full border border-white/15 bg-black/45">
+        <span className="absolute left-[9px] right-[9px] top-[6px] h-1.5 overflow-hidden rounded-full border border-white/15 bg-violet-950/45">
           <span
             className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-600 to-violet-400"
             style={{ width: `${value}%` }}

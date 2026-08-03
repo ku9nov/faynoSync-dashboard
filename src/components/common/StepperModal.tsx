@@ -85,8 +85,8 @@ export const StepperModal: React.FC<StepperModalProps> = ({
                       index === currentStep
                         ? 'border-violet-400/70 bg-violet-500 text-white scale-110'
                         : index < currentStep
-                        ? 'border-green-500/50 bg-black/55 text-green-300'
-                        : 'border-white/20 bg-black/40 text-white/60'
+                        ? 'border-green-500/50 bg-violet-950/50 text-green-300'
+                        : 'border-white/20 bg-violet-950/40 text-white/60'
                     }`}
                   >
                     {index < currentStep ? <i className="fas fa-check"></i> : step.stepNumber}
@@ -119,7 +119,7 @@ export const StepperModal: React.FC<StepperModalProps> = ({
 
         {/* Step Content */}
         <div className="mb-6 min-h-[300px]">
-          <div className="rounded-lg border border-white/15 bg-black/30 p-6">
+          <div className="rounded-lg border border-white/15 bg-violet-950/30 p-6">
             <p className="mb-4 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.09em] text-white/70">
               Step {currentStepData.stepNumber} of {steps.length}
             </p>
@@ -149,7 +149,7 @@ export const StepperModal: React.FC<StepperModalProps> = ({
           ) : (
             <button
               onClick={handleClose}
-              className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-black/55 px-4 py-2 font-semibold text-green-300 transition-colors hover:bg-green-500/20"
+              className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-violet-950/50 px-4 py-2 font-semibold text-green-300 transition-colors hover:bg-green-500/20"
             >
               Finish
               <i className="fas fa-check"></i>

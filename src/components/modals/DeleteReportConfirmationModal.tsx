@@ -55,7 +55,7 @@ export const DeleteReportConfirmationModal: React.FC<DeleteReportConfirmationMod
         <p className="mb-3 text-sm text-white/70">
           {group.application.name} v{group.application.version} · {formatLabel(group.event.type)} / {formatLabel(group.event.reason)}
         </p>
-        <p className="mb-6 flex items-start gap-3 rounded-lg border border-red-500/45 bg-black/40 px-3 py-3 text-sm text-red-200">
+        <p className="mb-6 flex items-start gap-3 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-3 text-sm text-red-200">
           <i className="fas fa-exclamation-triangle mt-0.5"></i>
           <span>This removes the group, its detail blobs and the stored S3 objects. It cannot be undone.</span>
         </p>

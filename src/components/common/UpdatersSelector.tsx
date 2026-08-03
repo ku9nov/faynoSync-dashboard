@@ -176,7 +176,7 @@ export const UpdatersSelector: React.FC<UpdatersSelectorProps> = ({ updaters, on
                   className={`relative rounded-lg border p-4 transition-colors ${
                     isSelected
                       ? 'border-violet-400/60 bg-violet-500/10'
-                      : 'border-white/15 bg-black/30 hover:bg-black/50'
+                      : 'border-white/15 bg-violet-950/30 hover:bg-violet-950/50'
                   } ${type === 'manual' ? 'cursor-default' : 'cursor-pointer'}`}
                   onClick={() => handleUpdaterToggle(type, !isSelected)}
                 >
