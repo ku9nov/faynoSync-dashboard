@@ -7,6 +7,7 @@ import { ProfileModal } from '@/components/modals/ProfileModal';
 
 interface HeaderProps {
   title: string;
+  titleContent?: React.ReactNode;
   onCreateClick: () => void;
   createButtonText: string;
   additionalButton?: React.ReactNode;
@@ -17,6 +18,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   title,
+  titleContent,
   onCreateClick,
   createButtonText,
   additionalButton,
@@ -81,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
       {!isMobile ? (
       <div className="hidden md:flex items-center justify-between w-full gap-4">
         <div className="flex items-center gap-6 flex-1 min-w-0 justify-between">
-          {title && (
+          {titleContent ? titleContent : title && (
             <h2 className="header-title whitespace-nowrap">{title}</h2>
           )}
           {!hideSearch && (
@@ -180,7 +182,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         </div>
-        {title && (
+        {titleContent ? (
+          <div className="mb-2 min-w-0">{titleContent}</div>
+        ) : title && (
           <h2 className="header-title mb-2">{title}</h2>
         )}
         {!hideSearch && (

@@ -16,6 +16,7 @@ import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
 import { getPlatformIcon } from '@/utils/platformIcon';
+import { useAppDataQuery } from '@/hooks/use-query/useAppDataQuery';
 import { AppLogo } from '@/components/common/AppLogo';
 import { Dropdown } from '@/components/common/Dropdown';
 import '@/styles/cards.css';
@@ -141,16 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const filteredAppList = useSearch(appList, searchTerm) as AppListItem[];
 
-  const { data: appData } = useQuery({
-    queryKey: ['appData', selectedApp],
-    queryFn: async () => {
-      if (!selectedApp) return null;
-      const response = await axiosInstance.get('/app/list');
-      const app = response.data.apps.find((a: AppListItem) => a.AppName === selectedApp);
-      return app || null;
-    },
-    enabled: !!selectedApp,
-  });
+  const { data: appData } = useAppDataQuery(selectedApp);
 
   const { data: reportKeysData, isLoading: isReportKeysLoading } = useQuery({
     queryKey: ['reportKeys', selectedApp],
@@ -497,9 +489,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   if (selectedApp) {
     return (
       <div className="mt-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
         <button
           onClick={onBackClick}
-          className="mb-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+          className="self-start px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -516,34 +509,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </svg>
           Back
         </button>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="relative w-12 h-12 flex-shrink-0">
-              <AppLogo name={selectedApp ?? ''} logo={appData?.Logo} />
-              {appData?.Private && (
-                <div className="absolute -bottom-1 -right-1 rounded-full bg-red-500 p-1">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <h2 
-              className="text-2xl font-bold text-theme-primary truncate" 
-              title={selectedApp}
-            >
-              {selectedApp}
-            </h2>
-          </div>
 
           {appData?.Reports && (
             <div
-              className="relative group w-full lg:w-auto lg:min-w-[420px] h-12 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 flex items-center gap-2"
+              className="relative group w-full lg:w-auto lg:ml-auto lg:min-w-[420px] h-12 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 flex items-center gap-2"
             >
               <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-blue-200 flex-shrink-0">
                 <svg
