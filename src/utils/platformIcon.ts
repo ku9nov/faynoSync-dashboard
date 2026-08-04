@@ -52,15 +52,36 @@ const PLATFORM_ICONS: Record<string, string> = {
   docker: 'fab fa-docker',
 };
 
+// Too short or too generic to be looked for inside a longer name: "win" is in
+// darwin, "arch" is in aarch64, "ios" is in studios. They stay exact-match only.
+const AMBIGUOUS_KEYS = new Set(['win', 'mac', 'osx', 'arch', 'ios']);
+
+// Longest first, so "linux-musl" picks linuxmusl over linux and
+// "aarch64-apple-darwin" picks darwin over apple.
+const SUBSTRING_KEYS = Object.keys(PLATFORM_ICONS)
+  .filter(key => !AMBIGUOUS_KEYS.has(key))
+  .sort((a, b) => b.length - a.length);
+
 // Collapses spelling variants so the map only needs one key per alias:
 // "Mac OS X" -> macosx, "win-32" -> win32, "GNU/Linux" -> gnulinux
 const normalize = (platform: string): string =>
   platform.toLowerCase().replace(/[^a-z0-9]/g, '');
 
+// Exact alias wins; otherwise fall back to a substring match so compound names
+// the map can't enumerate ("linux-musl", "x86_64-unknown-linux-gnu") still resolve.
+const resolveIcon = (platform: string): string | null => {
+  const normalized = normalize(platform);
+  const exact = PLATFORM_ICONS[normalized];
+  if (exact) return exact;
+
+  const matched = SUBSTRING_KEYS.find(key => normalized.includes(key));
+  return matched ? PLATFORM_ICONS[matched] : null;
+};
+
 export const getPlatformIcon = (platform?: string | null): string => {
   if (!platform) return FALLBACK_ICON;
-  return PLATFORM_ICONS[normalize(platform)] ?? FALLBACK_ICON;
+  return resolveIcon(platform) ?? FALLBACK_ICON;
 };
 
 export const isKnownPlatform = (platform?: string | null): boolean =>
-  !!platform && normalize(platform) in PLATFORM_ICONS;
+  !!platform && resolveIcon(platform) !== null;
