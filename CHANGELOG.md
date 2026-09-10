@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.0
+
+### Added
+
+- Bulk deletion of application versions. A `Select` toggle on the versions page turns the cards into a selection surface, and the action bar deletes the whole selection at once (`Select all on page`, or `Select all N matching filters` across pages). Selections wider than the server's batch limit are sent in chunks, and the confirmation modal reports what was deleted plus any artifacts left orphaned in the bucket.
+
 ## v1.3.0
 
 - Add `Sparkle` updater.

@@ -1,8 +1,9 @@
 import React from 'react';
-import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse } from '@/hooks/use-query/useAppsQuery';
+import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse, BulkDeleteOutcome } from '@/hooks/use-query/useAppsQuery';
 import { ActionIcons } from '@/components/ActionIcons';
 import { EditVersionModal } from '@/components/modals/EditVersionModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
+import { DeleteVersionsConfirmationModal, SelectedVersion } from '@/components/modals/DeleteVersionsConfirmationModal';
 import { DownloadArtifactsModal } from '@/components/modals/DownloadArtifactsModal';
 import { EditAppModal } from '@/components/modals/EditAppModal';
 import { DeleteAppConfirmationModal } from '@/components/modals/DeleteAppConfirmationModal';
@@ -22,6 +23,7 @@ import { Dropdown } from '@/components/common/Dropdown';
 import '@/styles/cards.css';
 
 import {
+  BTN_DANGER,
   PLATFORM_CHIP,
   SECTION_LABEL,
   STATUS_BADGE,
@@ -98,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const { architectures } = useArchitectureQuery();
   const { channels } = useChannelQuery();
 
-  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(
+  const { apps, updateApp, deleteApp, deleteVersions, fetchAllMatchingVersions, isLoading } = useAppsQuery(
     selectedApp || undefined, 
     currentPage, 
     refreshKey,
@@ -117,6 +119,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [hoveredArtifactsPopoverId, setHoveredArtifactsPopoverId] = React.useState<string | null>(null);
   const [suppressHoverArtifactsPopoverId, setSuppressHoverArtifactsPopoverId] = React.useState<string | null>(null);
   const [isRegeneratingReportKey, setIsRegeneratingReportKey] = React.useState(false);
+  const [selectionMode, setSelectionMode] = React.useState(false);
+  const [selection, setSelection] = React.useState<Map<string, SelectedVersion>>(new Map());
+  const [isSelectingAll, setIsSelectingAll] = React.useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = React.useState(false);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -296,6 +302,73 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setShowEditAppModal(false);
     setSelectedAppData(null);
     queryClient.invalidateQueries({ queryKey: ['apps'] });
+  };
+
+  // Selection is page-local on purpose: what is selected must stay on screen, so
+  // anything that changes the visible set drops it. "Select all matching" is the
+  // one deliberate exception and it announces its own count.
+  React.useEffect(() => {
+    setSelectionMode(false);
+    setSelection(new Map());
+  }, [selectedApp, currentPage, filters]);
+
+  const toggleSelection = (app: AppVersion) => {
+    setSelection(prev => {
+      const next = new Map(prev);
+      if (next.has(app.ID)) {
+        next.delete(app.ID);
+      } else {
+        next.set(app.ID, { id: app.ID, version: app.Version, channel: app.Channel });
+      }
+      return next;
+    });
+  };
+
+  const handleSelectPage = () => {
+    setSelection(new Map(
+      appVersions.map(app => [app.ID, { id: app.ID, version: app.Version, channel: app.Channel }])
+    ));
+  };
+
+  const handleSelectAllMatching = async () => {
+    setIsSelectingAll(true);
+    try {
+      const all = await fetchAllMatchingVersions(paginatedVersions.total);
+      setSelection(new Map(
+        all.map(app => [app.ID, { id: app.ID, version: app.Version, channel: app.Channel }])
+      ));
+    } catch {
+      toastError('Failed to load all matching versions');
+    } finally {
+      setIsSelectingAll(false);
+    }
+  };
+
+  const handleBulkDeleteConfirm = async (
+    ids: string[],
+    onProgress: (done: number, total: number) => void,
+  ): Promise<BulkDeleteOutcome> => {
+    const outcome = await deleteVersions(ids, onProgress);
+
+    setSelection(prev => {
+      const next = new Map(prev);
+      outcome.deletedIds.forEach(id => next.delete(id));
+      return next;
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ['apps'] });
+    await queryClient.refetchQueries({ queryKey: ['apps'] });
+
+    if (outcome.deletedIds.length > 0) {
+      toastSuccess(`Deleted ${outcome.deletedIds.length} version${outcome.deletedIds.length === 1 ? '' : 's'}`);
+    }
+    if (outcome.error) {
+      toastError(outcome.error);
+    } else {
+      setSelectionMode(false);
+    }
+
+    return outcome;
   };
 
   const handleDeleteAppConfirm = async () => {
@@ -664,6 +737,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
             />
           </div>
 
+          <div className="flex flex-wrap items-center gap-3">
+          {appVersions.length > 0 && (
+            <button
+              onClick={() => {
+                setSelectionMode(prev => !prev);
+                setSelection(new Map());
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-theme-primary ${
+                selectionMode ? 'bg-theme-card-hover' : 'bg-theme-card hover:bg-theme-card-hover'
+              }`}
+            >
+              <i className={`fas ${selectionMode ? 'fa-times' : 'fa-check-square'}`}></i>
+              {selectionMode ? 'Cancel selection' : 'Select'}
+            </button>
+          )}
+
           {/* Reset Filters Button */}
           {(filters.channel || filters.platform || filters.arch || filters.published !== null || filters.critical !== null) && (
             <button
@@ -693,6 +782,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Reset Filters
             </button>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -711,16 +801,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
               const isIncompleteRollout =
                 app.Published && app.RolloutPercent != null && app.RolloutPercent < 100;
               const artifactSummary = getArtifactSummary(app.Artifacts);
-              
+              const isSelected = selection.has(app.ID);
+
               return (
               <div
                 key={app.ID}
+                onClick={selectionMode ? () => toggleSelection(app) : undefined}
                 className={`sharedCard backdrop-blur-lg rounded-lg p-6 text-theme-primary transition-all relative ${
                   isDangerZone
                     ? 'border-2 border-red-500'
                     : isIncompleteRollout
                     ? 'border-2 border-amber-500 bg-theme-card hover:bg-theme-card-hover'
                     : 'bg-theme-card hover:bg-theme-card-hover'
+                } ${selectionMode ? 'cursor-pointer' : ''} ${
+                  isSelected ? 'ring-2 ring-purple-400' : ''
                 }`}
                 style={{
                   ['--card-color' as any]: isDangerZone ? '#EF4444' : isIncompleteRollout ? '#F59E0B' : '#8B5CF6',
@@ -743,15 +837,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   }
                 }}
               >
-                <div className="flex items-center justify-end mb-4 min-w-0 w-full">
+                <div className={`flex items-center mb-4 min-w-0 w-full ${selectionMode ? 'justify-start' : 'justify-end'}`}>
                   <div className="flex gap-2 flex-shrink-0 items-center">
-                    <ActionIcons
-                      onDownload={() => handleDownload(app)}
-                      onEdit={() => handleEdit(app)}
-                      onDelete={() => handleDelete(app)}
-                      showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                      artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-                    />
+                    {selectionMode ? (
+                      <label
+                        className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-theme-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelection(app)}
+                          className="h-4 w-4 cursor-pointer accent-purple-500"
+                        />
+                        {isSelected ? 'Selected' : 'Select'}
+                      </label>
+                    ) : (
+                      <ActionIcons
+                        onDownload={() => handleDownload(app)}
+                        onEdit={() => handleEdit(app)}
+                        onDelete={() => handleDelete(app)}
+                        showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                        artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                      />
+                    )}
                   </div>
                 </div>
                 <div className="sharedCardContent relative flex w-full min-w-0 flex-col">
@@ -928,7 +1037,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className={FOOTER_SLOT}>
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
                       <button
-                        onClick={() => onChangelogClick(app.Version, app.Changelog)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onChangelogClick(app.Version, app.Changelog);
+                        }}
                         className="px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
                       >
                         View full changelog
@@ -942,6 +1054,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
             })
           )}
         </div>
+
+        {selectionMode && (
+          <div className="sticky bottom-4 z-30 mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-white/20 bg-violet-950/80 px-4 py-3 backdrop-blur-lg">
+            <span className="font-semibold text-theme-primary">
+              {selection.size} selected
+            </span>
+
+            <button
+              onClick={handleSelectPage}
+              className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10"
+            >
+              Select all on page
+            </button>
+
+            {paginatedVersions.total > appVersions.length && (
+              <button
+                onClick={handleSelectAllMatching}
+                disabled={isSelectingAll}
+                className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSelectingAll ? 'Loading...' : `Select all ${paginatedVersions.total} matching filters`}
+              </button>
+            )}
+
+            <button
+              onClick={() => setSelection(new Map())}
+              disabled={selection.size === 0}
+              className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear
+            </button>
+
+            <button
+              onClick={() => setShowBulkDeleteModal(true)}
+              disabled={selection.size === 0}
+              className={`ml-auto ${BTN_DANGER}`}
+            >
+              Delete {selection.size} version{selection.size === 1 ? '' : 's'}
+            </button>
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-8">
@@ -1013,6 +1166,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               setSelectedVersion(null);
             }}
             onConfirm={handleDeleteConfirm}
+          />
+        )}
+
+        {showBulkDeleteModal && selectedApp && (
+          <DeleteVersionsConfirmationModal
+            appName={selectedApp}
+            versions={[...selection.values()]}
+            onClose={() => setShowBulkDeleteModal(false)}
+            onConfirm={handleBulkDeleteConfirm}
           />
         )}
 
