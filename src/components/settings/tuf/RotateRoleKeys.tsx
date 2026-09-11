@@ -72,7 +72,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
   const [selectedRole, setSelectedRole] = useState<BuiltInRole>('timestamp');
   const [keyCount, setKeyCount] = useState(1);
   const [threshold, setThreshold] = useState(1);
-  const [expirationDays, setExpirationDays] = useState(364);
+  const [expirationDays, setExpirationDays] = useState(0);
 
   const [rootMetadata, setRootMetadata] = useState<any>(null);
   const [rootMetadataAppName, setRootMetadataAppName] = useState<string | null>(null);
@@ -94,7 +94,15 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
   const [metadataStatusResult, setMetadataStatusResult] = useState<string | null>(null);
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
 
-  const rotateCommand = `tuf-kms rotate role ${selectedRole} \\\n  --keys ${keyCount} \\\n  --threshold ${threshold} \\\n  --expires ${expirationDays}`;
+  // 0 means "leave root's expiry where it is": tuf-kms keeps the current one
+  // when the flag is absent, and a rotation of an online role has no reason to
+  // move it by default.
+  const rotateCommand = [
+    `tuf-kms rotate role ${selectedRole}`,
+    `  --keys ${keyCount}`,
+    `  --threshold ${threshold}`,
+    ...(expirationDays > 0 ? [`  --root-expires ${expirationDays}`] : []),
+  ].join(' \\\n');
 
   useEffect(() => {
     setRootMetadata(null);
@@ -461,11 +469,15 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 <label className="block text-theme-primary mb-2">Root expiration (days)</label>
                 <input
                   type="number"
-                  min={1}
+                  min={0}
                   value={expirationDays}
-                  onChange={(e) => setExpirationDays(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  onChange={(e) => setExpirationDays(Math.max(0, parseInt(e.target.value, 10) || 0))}
                   className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
                 />
+                <p className="text-xs text-theme-primary opacity-70 mt-1">
+                  0 keeps root's current expiry. Any other number is the new lifetime of the <strong>root</strong> metadata
+                  this rotation produces — not of {selectedRole}.
+                </p>
               </div>
             </div>
 
@@ -500,7 +512,13 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                   </ul>
                   <p className="text-theme-primary text-sm leading-relaxed mb-2">
                     New keys use the key type stored in <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code>. The expiration is
-                    the lifetime of the root metadata this rotation produces, counted from the moment the command runs.
+                    the lifetime of the root metadata this rotation produces, counted from the moment the command runs —
+                    which is why the flag is called <code className="bg-theme-input px-1 rounded">--root-expires</code>.
+                  </p>
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    It cannot set {selectedRole}'s own lifetime: the server recomputes that from its own settings every time
+                    it re-signs, so any value put in the metadata here would last until the next artifact is published.
+                    Change it under <strong>TUF &rarr; Config</strong> instead.
                   </p>
                   <p className="text-theme-primary text-sm leading-relaxed">
                     <strong>Air-gapped machine:</strong> run <code className="bg-theme-input px-1 rounded">tuf-kms fetch</code> where there is
@@ -796,9 +814,12 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 <div className="whitespace-pre">tuf-kms fetch</div>
               </div>
               <p className="text-theme-primary text-sm leading-relaxed">
-                It re-verifies the repository and promotes the new {selectedRole} keys from pending to active. Nothing is
-                promoted until the repository actually serves them, so a submission that never landed cannot leave the
-                keystore out of sync.
+                It re-verifies the repository and reconciles the keystore against it: the new {selectedRole} keys go from
+                pending to active, the keys they replaced become retired, and thresholds are re-read. Nothing is promoted
+                until the repository actually serves them, so a submission that never landed cannot leave the keystore out
+                of sync. It also names the replaced keys to delete from <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code>,
+                and clears <code className="bg-theme-input px-1 rounded">out/</code>, which by then holds a spent submission
+                and private keys with no reason to stay on disk.
               </p>
             </div>
           </div>

@@ -462,8 +462,9 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
                   </ul>
                   <p className="text-theme-primary text-sm leading-relaxed mb-2">
                     New keys use the key type stored in <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code>. Both metadata
-                    files keep the lifetime they have now; override with <code className="bg-theme-input px-1 rounded">--targets-expires</code> and
-                    <code className="bg-theme-input px-1 rounded ml-1">--expires</code> (days) if you want different ones.
+                    files keep the lifetime they have now, and there is no flag to change it: the server recomputes both from
+                    its own settings the next time it re-signs, so any value chosen here would last only until the next
+                    artifact is published.
                   </p>
                   <p className="text-theme-primary text-sm leading-relaxed">
                     <strong>No network on that machine?</strong> Run <code className="bg-theme-input px-1 rounded">tuf-kms fetch</code> where

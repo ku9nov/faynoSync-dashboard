@@ -85,7 +85,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
   const { toastSuccess, toastError } = useToast();
 
-  const rotateCommand = `tuf-kms rotate root \\\n  --keys ${keyCount} \\\n  --expires ${expirationDays}`;
+  const rotateCommand = `tuf-kms rotate root \\\n  --keys ${keyCount} \\\n  --root-expires ${expirationDays}`;
 
   useEffect(() => {
     setRootMetadata(null);
@@ -606,6 +606,12 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <div className="flex-1">
                     <h3 className="text-yellow-500 font-semibold mb-2">Root Keys Rotation</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      Only need to push root's expiry out? <code className="bg-theme-input px-1 rounded">tuf-kms renew root --expires N</code> publishes
+                      a new root version signed by the keys root already has. No key is replaced, so it writes a single set of
+                      signatures (<code className="bg-theme-input px-1 rounded">out/signatures/root-*.json</code>) instead of an old and
+                      a new one; submit them through Steps 2 and 3 the same way. Rotate only when you actually want new root keys.
+                    </p>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       Root rotation happens offline. <code className="bg-theme-input px-1 rounded">tuf-kms rotate root</code> builds
                       the new root metadata and signs it with the keys in <code className="bg-theme-input px-1 rounded">keys/root/</code> on
                       your secure machine. The root private keys never leave it — the server only receives the metadata and the
@@ -661,7 +667,8 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
                   />
                   <p className="text-xs text-theme-primary opacity-70 mt-1">
-                    Counted from the moment the command runs, not from the current expiry date.
+                    Counted from the moment the command runs, not from the current expiry date. Leave the flag out entirely
+                    and root keeps the expiry it has now.
                   </p>
                 </div>
 
@@ -1354,9 +1361,10 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                       <div className="whitespace-pre">tuf-kms fetch</div>
                     </div>
                     <p className="text-theme-primary text-sm leading-relaxed">
-                      It re-verifies the repository and promotes the new root keys from pending to active. Nothing is promoted
-                      until the repository actually serves them, so a submission that never landed cannot leave the keystore
-                      out of sync.
+                      It re-verifies the repository and reconciles the keystore against it: the new root keys go from pending to
+                      active, the keys they replaced become retired, and thresholds are re-read. Nothing is promoted until the
+                      repository actually serves them, so a submission that never landed cannot leave the keystore out of sync.
+                      The retired root private keys stay on disk until you run <code className="bg-theme-input px-1 rounded">tuf-kms keys prune</code>.
                     </p>
                   </div>
                 </div>
