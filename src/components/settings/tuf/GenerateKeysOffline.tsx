@@ -6,6 +6,7 @@ import { getStatusColor, getStatusIcon } from '@/components/settings/tuf/utils';
 import { generateTufKmsCommands } from '@/components/settings/tuf/generateTufKmsCommands';
 import { Dropdown } from '@/components/common/Dropdown';
 import { FIELD_INPUT, FIELD_LABEL } from '@/components/common/ui';
+import { env } from '@/config/env';
 
 interface GenerateKeysOfflineProps {
   selectedApp: string;
@@ -26,7 +27,7 @@ export const GenerateKeysOffline: React.FC<GenerateKeysOfflineProps> = ({
   const [step1Status, setStep1Status] = useState<StepStatus>('ready');
   const [keyType, setKeyType] = useState<string>('ed25519');
   const [roleName, setRoleName] = useState<string>('default');
-  const [metadataUrl, setMetadataUrl] = useState<string>('');
+  const [metadataUrl, setMetadataUrl] = useState<string>(env.TUF_METADATA_URL || '');
   const [expiration, setExpiration] = useState({
     root: 364,
     timestamp: 1,
