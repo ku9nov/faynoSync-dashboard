@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { AxiosError } from 'axios';
+import { ModalFeedback } from './ModalFeedback';
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+} from './ui';
 
 interface ErrorResponse {
   error: string;
@@ -22,7 +34,6 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,57 +63,20 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
 
   return (
     <>
-      {error && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="font-roboto">Error: {error.error}</span>
-            {error.details && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </div>
-          {showDetails && error.details && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {error.details}
-            </div>
-          )}
-        </div>
-      )}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-        {...backdropProps}
-      >
-        <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-theme-primary font-roboto">
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
-            >
+      <ModalFeedback error={error} setError={setError} />
+      <div className={MODAL_OVERLAY} {...backdropProps}>
+        <div className={`${MODAL_SURFACE} w-96 max-h-[80vh] overflow-y-auto`}>
+          <div className={MODAL_HEADER}>
+            <h2 className={MODAL_TITLE}>{title}</h2>
+            <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label htmlFor="name" className="block text-theme-primary mb-2 font-roboto font-semibold">
+            <div className="mb-6">
+              <label htmlFor="name" className={FIELD_LABEL}>
                 {entityName}
               </label>
               <input
@@ -111,22 +85,15 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({
                 name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+                className={FIELD_INPUT}
                 required
               />
             </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
-              >
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={onClose} className={BTN_GHOST}>
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="header-action-btn px-4 py-2 font-roboto ml-2"
-              >
+              <button type="submit" className={BTN_PRIMARY}>
                 Create
               </button>
             </div>

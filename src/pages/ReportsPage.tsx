@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import {
@@ -20,8 +20,10 @@ import { useToast } from '@/hooks/useToast';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '@/styles/cards.css';
+import { Dropdown } from '@/components/common/Dropdown';
+import { DROPDOWN_MENU_STYLE, FIELD_INPUT, FIELD_LABEL } from '@/components/common/ui';
 
-const PANEL_CLASS = 'bg-theme-card rounded-2xl border border-theme-card-hover shadow-md backdrop-blur-lg';
+const PANEL_CLASS = 'bg-theme-card rounded-lg border border-theme-card-hover shadow-md backdrop-blur-lg';
 const REPORTS_PAGE_LIMIT = 20;
 const EVENT_TYPES = ['crash', 'startup_failure', 'update_failure', 'install_failure', 'rollback_failure'];
 const STATUS_TABS: { value: ReportStatusFilter; label: string }[] = [
@@ -40,14 +42,6 @@ const statusBadgeClass = (status: ReportStatus) => {
     default:
       return 'bg-amber-500/20 text-amber-300 border-amber-400/30';
   }
-};
-const INPUT_CLASS =
-  'w-full px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm';
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
 };
 
 const formatDateTime = (value: string) => {
@@ -89,90 +83,28 @@ const Badge = ({ label, className }: { label: string; className: string }) => (
   </span>
 );
 
-const ChevronIcon = ({ open }: { open: boolean }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={`text-theme-primary transition-transform ${open ? 'rotate-180' : ''}`}
-  >
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
-
 const FilterSelect = ({
   label,
   value,
-  placeholder,
+  anyLabel,
   options,
-  name,
-  openDropdown,
-  onToggle,
   onSelect,
 }: {
   label: string;
   value: string;
-  placeholder: string;
+  anyLabel: string;
   options: string[];
-  name: string;
-  openDropdown: string | null;
-  onToggle: (name: string) => void;
   onSelect: (value: string) => void;
 }) => (
   <div>
-    <label className="block text-theme-primary mb-2 text-sm font-roboto">{label}</label>
-    <div className="relative dropdown-container">
-      <div className="flex items-center space-x-2">
-        <button
-          type="button"
-          onClick={() => onToggle(name)}
-          className="header-additional-btn flex-1 p-2 pr-8 flex items-center justify-between"
-        >
-          <span className={value ? '' : 'text-theme-secondary'}>{value || placeholder}</span>
-          <ChevronIcon open={openDropdown === name} />
-        </button>
-        {value && (
-          <button
-            type="button"
-            onClick={() => onSelect('')}
-            className="header-settings-btn p-2"
-            title="Clear"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        )}
-      </div>
-      {openDropdown === name && (
-        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover max-h-60 overflow-y-auto" style={DROPDOWN_MENU_STYLE}>
-          {options.length > 0 ? (
-            options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => onSelect(option)}
-                className={`w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg flex items-center ${
-                  value === option ? 'bg-theme-button-primary bg-opacity-50' : ''
-                }`}
-              >
-                <span className="mr-2">{value === option ? '✓' : ''}</span>
-                {option}
-              </button>
-            ))
-          ) : (
-            <div className="px-4 py-3 text-theme-primary text-center">No options available</div>
-          )}
-        </div>
-      )}
-    </div>
+    <label className={FIELD_LABEL}>{label}</label>
+    <Dropdown
+      ariaLabel={label}
+      placeholder={anyLabel}
+      value={value}
+      onChange={onSelect}
+      options={[{ value: '', label: anyLabel }, ...options.map((option) => ({ value: option, label: option }))]}
+    />
   </div>
 );
 
@@ -183,7 +115,6 @@ export const ReportsPage = () => {
   const [filters, setFilters] = useState<ReportFilters>({});
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<ReportGroup | null>(null);
   const [groupToDelete, setGroupToDelete] = useState<ReportGroup | null>(null);
   const [groupToEdit, setGroupToEdit] = useState<ReportGroup | null>(null);
@@ -219,13 +150,8 @@ export const ReportsPage = () => {
     });
   };
 
-  const handleSelectToggle = (name: string) => {
-    setOpenDropdown((prev) => (prev === name ? null : name));
-  };
-
-  const handleSelect = (key: Exclude<keyof ReportFilters, 'status'>, name: string) => (value: string) => {
+  const handleSelect = (key: Exclude<keyof ReportFilters, 'status'>) => (value: string) => {
     updateFilter(key, value);
-    setOpenDropdown((prev) => (prev === name ? null : prev));
   };
 
   const handleFromChange = (date: Date | null) => {
@@ -289,17 +215,6 @@ export const ReportsPage = () => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container') && !target.closest('.react-datepicker')) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const renderHeader = () => (
     <Header
       title="Reports"
@@ -355,66 +270,51 @@ export const ReportsPage = () => {
               <FilterSelect
                 label="Application"
                 value={filters.app ?? ''}
-                placeholder="Select app"
+                anyLabel="Any application"
                 options={(apps as AppListItem[]).map((app) => app.AppName)}
-                name="app"
-                openDropdown={openDropdown}
-                onToggle={handleSelectToggle}
-                onSelect={handleSelect('app', 'app')}
+                onSelect={handleSelect('app')}
               />
               <FilterSelect
                 label="Channel"
                 value={filters.channel ?? ''}
-                placeholder="Select channel"
+                anyLabel="Any channel"
                 options={(channels as Channel[]).map((channel) => channel.ChannelName)}
-                name="channel"
-                openDropdown={openDropdown}
-                onToggle={handleSelectToggle}
-                onSelect={handleSelect('channel', 'channel')}
+                onSelect={handleSelect('channel')}
               />
               <FilterSelect
                 label="Platform"
                 value={filters.platform ?? ''}
-                placeholder="Select platform"
+                anyLabel="Any platform"
                 options={(platforms as Platform[]).map((platform) => platform.PlatformName)}
-                name="platform"
-                openDropdown={openDropdown}
-                onToggle={handleSelectToggle}
-                onSelect={handleSelect('platform', 'platform')}
+                onSelect={handleSelect('platform')}
               />
               <FilterSelect
                 label="Architecture"
                 value={filters.arch ?? ''}
-                placeholder="Select architecture"
+                anyLabel="Any architecture"
                 options={(architectures as Architecture[]).map((arch) => arch.ArchID)}
-                name="arch"
-                openDropdown={openDropdown}
-                onToggle={handleSelectToggle}
-                onSelect={handleSelect('arch', 'arch')}
+                onSelect={handleSelect('arch')}
               />
 
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Version</label>
+                <label className={FIELD_LABEL}>Version</label>
                 <input
                   type="text"
                   value={filters.version ?? ''}
                   onChange={(e) => updateFilter('version', e.target.value)}
                   placeholder="e.g. 1.4.2"
-                  className={INPUT_CLASS}
+                  className={FIELD_INPUT}
                 />
               </div>
               <FilterSelect
                 label="Event Type"
                 value={filters.type ?? ''}
-                placeholder="Select event type"
+                anyLabel="Any event type"
                 options={EVENT_TYPES}
-                name="type"
-                openDropdown={openDropdown}
-                onToggle={handleSelectToggle}
-                onSelect={handleSelect('type', 'type')}
+                onSelect={handleSelect('type')}
               />
               <div>
-                <label className="flex items-center gap-1.5 text-theme-primary mb-2 text-sm font-roboto">
+                <label className={`${FIELD_LABEL} flex items-center gap-1.5`}>
                   Reason
                   <span className="relative group inline-flex">
                     <i className="fas fa-info-circle text-theme-secondary cursor-help"></i>
@@ -428,12 +328,12 @@ export const ReportsPage = () => {
                   value={filters.reason ?? ''}
                   onChange={(e) => updateFilter('reason', e.target.value)}
                   placeholder="e.g. checksum_mismatch"
-                  className={INPUT_CLASS}
+                  className={FIELD_INPUT}
                 />
               </div>
 
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen From</label>
+                <label className={FIELD_LABEL}>Last Seen From</label>
                 <DatePicker
                   selected={fromDate}
                   onChange={handleFromChange}
@@ -442,13 +342,13 @@ export const ReportsPage = () => {
                   maxDate={new Date()}
                   placeholderText="Start date"
                   isClearable
-                  className={INPUT_CLASS}
+                  className={FIELD_INPUT}
                   calendarClassName="react-datepicker"
                   popperClassName="z-[90]"
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 text-sm font-roboto">Last Seen To</label>
+                <label className={FIELD_LABEL}>Last Seen To</label>
                 <DatePicker
                   selected={toDate}
                   onChange={handleToChange}
@@ -458,7 +358,7 @@ export const ReportsPage = () => {
                   maxDate={new Date()}
                   placeholderText="End date"
                   isClearable
-                  className={INPUT_CLASS}
+                  className={FIELD_INPUT}
                   calendarClassName="react-datepicker"
                   popperClassName="z-[90]"
                 />

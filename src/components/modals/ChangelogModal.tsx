@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChangelogEntry } from '@/hooks/use-query/useAppsQuery';
 import ReactMarkdown from 'react-markdown';
+import { BTN_GHOST, MARKDOWN_PREVIEW, MODAL_SURFACE, MODAL_TITLE } from '@/components/common/ui';
 
 interface ChangelogModalProps {
   appName: string;
@@ -18,38 +19,36 @@ export const ChangelogModal: React.FC<ChangelogModalProps> = ({
   const currentVersionChangelog = changelog.find(entry => entry.Version === version);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start sm:items-center justify-center z-[11000] p-4 overflow-y-auto"
-    onClick={onClose}
+    <div
+      className="fixed inset-0 bg-black/60 flex items-start sm:items-center justify-center z-[11000] p-4 overflow-y-auto"
+      onClick={onClose}
     >
-      <div className="bg-theme-modal rounded-lg p-4 sm:p-8 w-full max-w-[800px] max-h-[calc(100vh-2rem)] flex flex-col my-auto"
-      onClick={(e) => e.stopPropagation()}
+      <div
+        className={`${MODAL_SURFACE} w-full max-w-[800px] max-h-[calc(100vh-2rem)] flex flex-col my-auto`}
+        onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4">
-          Changelog for {appName} v{version}
-        </h2>
-        <div className="mb-4 overflow-y-auto min-h-0">
+        <h2 className={`${MODAL_TITLE} mb-1`}>Changelog</h2>
+        <p className="mb-4 text-sm text-white/70">
+          {appName} v{version}
+          {currentVersionChangelog && (
+            <> · {new Date(currentVersionChangelog.Date).toLocaleDateString()}</>
+          )}
+        </p>
+        <div className="mb-4 min-h-0 overflow-y-auto">
           {currentVersionChangelog ? (
-            <>
-              <p className="text-gray-600 mb-2">
-                Date: {new Date(currentVersionChangelog.Date).toLocaleDateString()}
-              </p>
-              <div className="prose prose-sm max-w-none bg-white dark:bg-white rounded p-4">
-                <ReactMarkdown>{currentVersionChangelog.Changes || 'No changes description'}</ReactMarkdown>
-              </div>
-            </>
+            <div className={MARKDOWN_PREVIEW}>
+              <ReactMarkdown>{currentVersionChangelog.Changes || 'No changes description'}</ReactMarkdown>
+            </div>
           ) : (
-            <p className="text-gray-600">No changelog information available for this version</p>
+            <p className="text-sm text-white/60">No changelog information available for this version</p>
           )}
         </div>
         <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg mr-2"
-          >
+          <button onClick={onClose} className={BTN_GHOST}>
             Close
           </button>
         </div>
       </div>
     </div>
   );
-}; 
+};

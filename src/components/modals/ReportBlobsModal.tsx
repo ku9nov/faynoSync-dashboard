@@ -2,6 +2,18 @@ import React, { useState } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { ReportGroup, ReportBlob, useReportBlobsQuery } from '@/hooks/use-query/useReportsQuery';
 import { copyToClipboard } from '@/utils/clipboard';
+import {
+  ACTION_BUTTON,
+  ACTION_GROUP,
+  BTN_GHOST,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+  ROW_META,
+  STATUS_BADGE,
+} from '@/components/common/ui';
 
 interface ReportBlobsModalProps {
   group: ReportGroup;
@@ -56,50 +68,59 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      {...backdropProps}
-    >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto flex flex-col">
-        <h2 className="text-2xl font-bold mb-1 text-theme-primary font-roboto">
-          Report Details
-        </h2>
-        <p className="text-sm text-theme-secondary mb-4">
+    <div className={MODAL_OVERLAY} {...backdropProps}>
+      <div className={`${MODAL_SURFACE} flex w-full max-w-2xl max-h-[80vh] flex-col overflow-y-auto`}>
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>Report details</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p className="mb-5 text-sm text-white/70">
           {group.application.name} v{group.application.version} · {formatLabel(group.event.type)} / {formatLabel(group.event.reason)}
         </p>
 
         {copyError && (
-          <div className="mb-4 p-2 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500 text-sm">
+          <div className="mb-4 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-2 text-sm text-red-200">
             {copyError}
           </div>
         )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-theme-primary"></div>
+          <div className="flex h-40 items-center justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/25 border-t-white"></div>
           </div>
         ) : blobs.length === 0 ? (
-          <div className="flex items-center justify-center h-40">
-            <p className="text-theme-primary opacity-75">No detail blobs available for this group</p>
+          <div className="flex h-40 items-center justify-center">
+            <p className="text-sm text-white/60">No detail blobs available for this group</p>
           </div>
         ) : (
-          <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+          <div className="flex-1 space-y-2 overflow-y-auto pr-1">
             {blobs.map((blob) => (
-              <div key={blob.id} className="bg-theme-card p-4 rounded-lg text-theme-primary">
-                <div className="flex justify-between items-start gap-3 mb-2">
+              <div key={blob.id} className="rounded-lg border border-white/15 bg-violet-950/30 p-4">
+                <div className="mb-2 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-mono text-sm break-all">{blob.storage.key}</p>
-                    <p className="text-sm text-theme-secondary mt-1">
-                      {blob.storage.content_type} · {blob.storage.encoding} · {formatBytes(blob.storage.compressed_size)}
+                    <p className="break-all font-mono text-sm text-theme-primary">{blob.storage.key}</p>
+                    <div className={`${ROW_META} mt-1`}>
+                      <span>{blob.storage.content_type}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{blob.storage.encoding}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{formatBytes(blob.storage.compressed_size)}</span>
                       {blob.storage.decompressed_size > blob.storage.compressed_size && (
-                        <> (decompressed {formatBytes(blob.storage.decompressed_size)})</>
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span>{formatBytes(blob.storage.decompressed_size)} decompressed</span>
+                        </>
                       )}
-                    </p>
-                    <p className="text-xs text-theme-secondary mt-1">
+                    </div>
+                    <p className="mt-1 text-xs text-white/50">
                       Created {formatDateTime(blob.created_at)} · Link expires {formatDateTime(blob.expires_at)}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border bg-purple-500/20 text-purple-300 border-purple-400/30 flex-shrink-0">
+                  <span className={`${STATUS_BADGE} shrink-0 border-violet-400/50 text-violet-200`}>
                     {blob.storage.driver}
                   </span>
                 </div>
@@ -108,18 +129,24 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
                     href={blob.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-theme-button-primary text-theme-primary text-sm font-medium hover:bg-theme-button-primary-hover transition-colors"
+                    className={`${BTN_GHOST} inline-flex items-center gap-2 py-1.5 text-sm`}
                   >
-                    <i className="fas fa-download"></i>
+                    <i className="fas fa-download text-green-400"></i>
                     Download
                   </a>
-                  <button
-                    onClick={() => handleCopyLink(blob)}
-                    className="p-2 hover:bg-theme-card-hover rounded-lg transition-colors"
-                    title="Copy presigned link"
-                  >
-                    <i className={`fas ${copiedId === blob.id ? 'fa-check text-green-500' : 'fa-copy text-theme-secondary'}`}></i>
-                  </button>
+                  <span className={ACTION_GROUP}>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLink(blob)}
+                      className={`${ACTION_BUTTON} ${
+                        copiedId === blob.id ? 'text-green-400' : 'text-purple-300 hover:bg-purple-400/20'
+                      }`}
+                      title="Copy presigned link"
+                      aria-label="Copy presigned link"
+                    >
+                      <i className={`fas ${copiedId === blob.id ? 'fa-check' : 'fa-copy'}`}></i>
+                    </button>
+                  </span>
                 </div>
               </div>
             ))}
@@ -127,10 +154,7 @@ export const ReportBlobsModal: React.FC<ReportBlobsModalProps> = ({ group, onClo
         )}
 
         <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
-          >
+          <button onClick={onClose} className={BTN_GHOST}>
             Close
           </button>
         </div>

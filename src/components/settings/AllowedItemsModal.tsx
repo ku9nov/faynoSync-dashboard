@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  MODAL_CLOSE,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+} from '@/components/common/ui';
 
 interface AllowedItemsModalProps {
   isOpen: boolean;
@@ -48,58 +57,43 @@ export const AllowedItemsModal: React.FC<AllowedItemsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high z-[10000] overflow-y-auto min-h-screen p-4"
+    <div
+      className={`${MODAL_OVERLAY} z-[10000] min-h-screen overflow-y-auto p-4`}
       {...backdropProps}
     >
-      <div 
-        className="bg-theme-gradient rounded-lg w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden"
+      <div
+        className={`${MODAL_SURFACE} flex w-full max-w-md max-h-[90vh] flex-col overflow-hidden p-0`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-theme-modal flex justify-between items-center">
-          <h2 className="text-xl font-bold text-theme-primary">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-theme-primary hover:text-theme-danger"
-          >
+        <div className="flex items-center justify-between gap-4 border-b border-white/15 p-4">
+          <h2 className={MODAL_TITLE}>{title}</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
             <i className="fas fa-times text-xl"></i>
           </button>
         </div>
-        
-        <div className="p-4 overflow-y-auto flex-grow">
-          <div className="space-y-2">
+
+        <div className="flex-grow overflow-y-auto p-4">
+          <div className="flex flex-col gap-2">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center">
-                <input
-                  type="checkbox"
-                  id={`item-${item.id}`}
-                  checked={selected.includes(item.id)}
-                  onChange={() => handleToggleItem(item.id)}
-                  className="mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
-                />
-                <label htmlFor={`item-${item.id}`} className="text-theme-primary font-semibold">
-                  {item.name}
-                </label>
-              </div>
+              <FlagCheckbox
+                key={item.id}
+                label={item.name}
+                checked={selected.includes(item.id)}
+                onChange={() => handleToggleItem(item.id)}
+              />
             ))}
           </div>
         </div>
-        
-        <div className="p-4 border-t border-theme-modal flex justify-end">
-          <button
-            onClick={handleSelectAll}
-            className="header-action-btn px-4 py-2 font-roboto mr-2"
-          >
+
+        <div className="flex justify-end gap-2 border-t border-white/15 p-4">
+          <button onClick={handleSelectAll} className={BTN_GHOST}>
             Select all
           </button>
-          <button
-            onClick={handleSave}
-            className="header-action-btn px-4 py-2 font-roboto"
-          >
-            Update List
+          <button onClick={handleSave} className={BTN_PRIMARY}>
+            Update list
           </button>
         </div>
       </div>
     </div>
   );
-}; 
+};

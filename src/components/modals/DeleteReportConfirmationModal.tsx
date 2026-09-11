@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { ReportGroup } from '@/hooks/use-query/useReportsQuery';
+import {
+  BTN_DANGER,
+  BTN_GHOST,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+} from '@/components/common/ui';
 
 interface DeleteReportConfirmationModalProps {
   group: ReportGroup;
@@ -33,45 +42,28 @@ export const DeleteReportConfirmationModal: React.FC<DeleteReportConfirmationMod
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      {...backdropProps}
-    >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-theme-primary font-roboto">Delete Report Group</h2>
-          <button
-            onClick={onClose}
-            className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
-          >
+    <div className={MODAL_OVERLAY} {...backdropProps}>
+      <div className={`${MODAL_SURFACE} w-96`}>
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>Delete report group</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <p className="text-theme-primary mb-2 font-semibold">
-          Permanently delete this report group?
-        </p>
-        <p className="text-theme-secondary text-sm mb-2">
+        <p className="mb-3 text-sm text-white/70">
           {group.application.name} v{group.application.version} · {formatLabel(group.event.type)} / {formatLabel(group.event.reason)}
         </p>
-        <p className="text-red-400 text-sm mb-6">
-          This removes the group, its detail blobs and the stored S3 objects. This action cannot be undone.
+        <p className="mb-6 flex items-start gap-3 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-3 text-sm text-red-200">
+          <i className="fas fa-exclamation-triangle mt-0.5"></i>
+          <span>This removes the group, its detail blobs and the stored S3 objects. It cannot be undone.</span>
         </p>
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 mr-2 border border-gray-300 shadow-sm"
-          >
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={BTN_GHOST}>
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isDeleting}
-            className="bg-red-600 text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-red-700 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ml-2 shadow-sm"
-          >
+          <button type="button" onClick={handleConfirm} disabled={isDeleting} className={BTN_DANGER}>
             {isDeleting ? 'Deleting...' : 'Delete'}
           </button>
         </div>

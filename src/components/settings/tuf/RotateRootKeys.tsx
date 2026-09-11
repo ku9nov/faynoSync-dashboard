@@ -1,15 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/useToast';
-import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
 import axiosInstance from '@/config/axios';
-import { generateRotateRootKeysPythonScript } from '@/components/settings/tuf/generateRotateRootKeysScript';
-import { generateCreateNewRootMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewRootMetadataScript';
-import { generateCreateNewRootMetadataPythonScriptOffline } from '@/components/settings/tuf/generateCreateNewRootMetadataScriptOffline';
-import { generateSignMetadataOfflinePythonScript } from '@/components/settings/tuf/generateSignMetadataOfflineScript';
-import { generateGenerateSignaturesPythonScript } from '@/components/settings/tuf/generateGenerateSignaturesScript';
 import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
-import { StepperModal, Step } from '@/components/common/StepperModal';
 
 interface RotateRootKeysProps {
   selectedApp: string;
@@ -72,23 +64,13 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   onCheckTufTasks,
 }) => {
   const [showRotateKeys, setShowRotateKeys] = useState(false);
-  const [rotationFlow, setRotationFlow] = useState<'online' | 'offline'>('online');
   const [keyCount, setKeyCount] = useState<number>(2);
-  const [exampleScript, setExampleScript] = useState<string>('');
-  const [showScript, setShowScript] = useState(false);
-  const [offlineExampleScript, setOfflineExampleScript] = useState<string>('');
-  const [showOfflineScript, setShowOfflineScript] = useState(false);
+  const [expirationDays, setExpirationDays] = useState<number>(364);
   const [rootMetadata, setRootMetadata] = useState<any>(null);
   const [rootMetadataAppName, setRootMetadataAppName] = useState<string | null>(null);
-  const [showRootMetadataStep2, setShowRootMetadataStep2] = useState(false);
-  const [showRootMetadataStep6, setShowRootMetadataStep6] = useState(false);
+  const [showRootMetadataStep1, setShowRootMetadataStep1] = useState(false);
+  const [showRootMetadataStep3, setShowRootMetadataStep3] = useState(false);
   const [loadingRootMetadata, setLoadingRootMetadata] = useState(false);
-  const [newRootMetadataScript, setNewRootMetadataScript] = useState<string>('');
-  const [showNewRootMetadataScript, setShowNewRootMetadataScript] = useState(false);
-  const [signMetadataOfflineScript, setSignMetadataOfflineScript] = useState<string>('');
-  const [showSignMetadataOfflineScript, setShowSignMetadataOfflineScript] = useState(false);
-  const [generateSignaturesScript, setGenerateSignaturesScript] = useState<string>('');
-  const [showGenerateSignaturesScript, setShowGenerateSignaturesScript] = useState(false);
   const [metadataPayload, setMetadataPayload] = useState<string>('');
   const [metadataPayloadError, setMetadataPayloadError] = useState<string>('');
   const [submittingMetadata, setSubmittingMetadata] = useState(false);
@@ -101,122 +83,22 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
   const [checkingMetadataStatus, setCheckingMetadataStatus] = useState(false);
   const [metadataStatusResult, setMetadataStatusResult] = useState<string | null>(null);
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
-  const [showGuidedTour, setShowGuidedTour] = useState(false);
-  const [selectedKeyType, setSelectedKeyType] = useState<KeyAlgorithm>(DEFAULT_KEY_ALGORITHM);
   const { toastSuccess, toastError } = useToast();
-  const { data: userData } = useUsersQuery();
 
-  // Calculate file names with app name and admin name
-  const adminName = userData?.owner || userData?.username || 'admin';
-  const rotateRootKeysScriptFileName = selectedApp && adminName
-    ? `rotate_root_keys_${selectedApp}_${adminName}.py`
-    : 'rotate_root_keys.py';
-  const newRootKeysInfoFileName = selectedApp && adminName 
-    ? `new_root_keys_info_${selectedApp}_${adminName}.json`
-    : 'new_root_keys_info_*.json';
-  const currentRootFileName = selectedApp && adminName
-    ? `current_root_${selectedApp}_${adminName}.json`
-    : 'current_root.json';
-  const createNewRootMetadataScriptFileName = selectedApp && adminName
-    ? `create_new_root_metadata_${selectedApp}_${adminName}.py`
-    : 'create_new_root_metadata.py';
-  const signMetadataOfflineScriptFileName = selectedApp && adminName
-    ? `sign_metadata_online_${selectedApp}_${adminName}.py`
-    : 'sign_metadata_online.py';
-  const signedNewRootMetadataFileName = selectedApp && adminName
-    ? `signed_new_root_metadata_${selectedApp}_${adminName}.json`
-    : 'signed_new_root_metadata.json';
-  const unsignedNewRootMetadataFileName = selectedApp && adminName
-    ? `new_root_metadata_${selectedApp}_${adminName}.json`
-    : 'new_root_metadata_.json';
-  const generateSignaturesScriptFileName = selectedApp && adminName
-    ? `generate_signatures_${selectedApp}_${adminName}.py`
-    : 'generate_signatures.py';
-  const detectedRootKeyType = useMemo(() => {
-    const normalizedRoot = normalizeTrustedRootMetadata(rootMetadata);
-    const keys = normalizedRoot?.signed?.keys;
-    const rootKeyIds = normalizedRoot?.signed?.roles?.root?.keyids;
-    const rootKeyId = Array.isArray(rootKeyIds) ? rootKeyIds[0] : null;
-    const fallbackKeyId = keys ? Object.keys(keys)[0] : null;
-    const keyIdForDetection = rootKeyId || fallbackKeyId;
-    const rawType = keyIdForDetection ? keys[keyIdForDetection]?.keytype : null;
-    try {
-      return normalizeKeyAlgorithm(rawType || DEFAULT_KEY_ALGORITHM);
-    } catch {
-      return DEFAULT_KEY_ALGORITHM;
-    }
-  }, [rootMetadata]);
-
-  useEffect(() => {
-    setSelectedKeyType(detectedRootKeyType);
-  }, [detectedRootKeyType]);
+  const rotateCommand = `tuf-kms rotate root \\\n  --keys ${keyCount} \\\n  --root-expires ${expirationDays}`;
 
   useEffect(() => {
     setRootMetadata(null);
     setRootMetadataAppName(null);
   }, [selectedApp]);
 
-  const generateExampleScript = () => {
-    if (!selectedApp || keyCount < 1) {
-      toastError('Please fill in all required fields');
-      return;
-    }
-
-    const adminName = userData?.owner || userData?.username || 'admin';
-    const script = generateRotateRootKeysPythonScript({
-      appName: selectedApp,
-      keyCount,
-      keyType: selectedKeyType,
-      adminName,
-      keyDirName: `root_keys_${selectedApp}_${adminName}`, // Online flow uses root_keys_{appName}_{adminName}
-    });
-
-    setExampleScript(script);
-    setShowScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const generateOfflineExampleScript = () => {
-    if (!selectedApp || keyCount < 1) {
-      toastError('Please fill in all required fields');
-      return;
-    }
-
-    const adminName = userData?.owner || userData?.username || 'admin';
-    const script = generateRotateRootKeysPythonScript({
-      appName: selectedApp,
-      keyCount,
-      keyType: selectedKeyType,
-      adminName,
-      keyDirName: `root_keys_${selectedApp}_${adminName}`, // Offline flow uses root_keys_{appName}_{adminName}
-    });
-
-    setOfflineExampleScript(script);
-    setShowOfflineScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleCopyExample = async () => {
-    if (exampleScript) {
-      try {
-        await navigator.clipboard.writeText(exampleScript);
-        toastSuccess('Script copied to clipboard successfully!');
-      } catch (err) {
-        console.error('Failed to copy example script:', err);
-        toastError('Failed to copy script');
-      }
-    }
-  };
-
-  const handleCopyOfflineExample = async () => {
-    if (offlineExampleScript) {
-      try {
-        await navigator.clipboard.writeText(offlineExampleScript);
-        toastSuccess('Script copied to clipboard successfully!');
-      } catch (err) {
-        console.error('Failed to copy offline example script:', err);
-        toastError('Failed to copy script');
-      }
+  const handleCopyRotateCommand = async () => {
+    try {
+      await navigator.clipboard.writeText(rotateCommand);
+      toastSuccess('Command copied to clipboard successfully!');
+    } catch (err) {
+      console.error('Failed to copy command:', err);
+      toastError('Failed to copy command');
     }
   };
 
@@ -295,110 +177,6 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
       } catch (err) {
         console.error('Failed to copy root metadata:', err);
         toastError('Failed to copy root metadata');
-      }
-    }
-  };
-
-  const generateNewRootMetadataScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-
-    const adminName = userData?.owner || userData?.username || 'admin';
-    
-    let script: string;
-    if (rotationFlow === 'offline') {
-
-      script = generateCreateNewRootMetadataPythonScriptOffline({
-        appName: selectedApp,
-        adminName,
-        keyType: selectedKeyType,
-      });
-    } else {
-      // Use online script generator
-      const keyDirName = `root_keys_${selectedApp}_${adminName}`;
-      script = generateCreateNewRootMetadataPythonScript({
-        appName: selectedApp,
-        adminName,
-        keyType: selectedKeyType,
-        keyDirName,
-      });
-    }
-
-    setNewRootMetadataScript(script);
-    setShowNewRootMetadataScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleCopyNewRootMetadataScript = async () => {
-    if (newRootMetadataScript) {
-      try {
-        await navigator.clipboard.writeText(newRootMetadataScript);
-        toastSuccess('Script copied to clipboard successfully!');
-      } catch (err) {
-        console.error('Failed to copy script:', err);
-        toastError('Failed to copy script');
-      }
-    }
-  };
-
-  const generateSignMetadataOfflineScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-
-    const adminName = userData?.owner || userData?.username || 'admin';
-    const script = generateSignMetadataOfflinePythonScript({
-      appName: selectedApp,
-      adminName,
-      keyType: selectedKeyType,
-    });
-
-    setSignMetadataOfflineScript(script);
-    setShowSignMetadataOfflineScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleCopySignMetadataOfflineScript = async () => {
-    if (signMetadataOfflineScript) {
-      try {
-        await navigator.clipboard.writeText(signMetadataOfflineScript);
-        toastSuccess('Script copied to clipboard successfully!');
-      } catch (err) {
-        console.error('Failed to copy script:', err);
-        toastError('Failed to copy script');
-      }
-    }
-  };
-
-  const generateGenerateSignaturesScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-
-    const adminName = userData?.owner || userData?.username || 'admin';
-    const script = generateGenerateSignaturesPythonScript({
-      appName: selectedApp,
-      adminName,
-      keyType: selectedKeyType,
-    });
-
-    setGenerateSignaturesScript(script);
-    setShowGenerateSignaturesScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleCopyGenerateSignaturesScript = async () => {
-    if (generateSignaturesScript) {
-      try {
-        await navigator.clipboard.writeText(generateSignaturesScript);
-        toastSuccess('Script copied to clipboard successfully!');
-      } catch (err) {
-        console.error('Failed to copy script:', err);
-        toastError('Failed to copy script');
       }
     }
   };
@@ -800,1519 +578,62 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
     }
   };
 
-  // Generate guided tour steps based on selected flow
-  const guidedTourSteps: Step[] = useMemo(() => {
-    const adminName = userData?.owner || userData?.username || 'admin';
-    const rotateRootKeysScriptFileName = selectedApp && adminName
-      ? `rotate_root_keys_${selectedApp}_${adminName}.py`
-      : 'rotate_root_keys.py';
-    const newRootKeysInfoFileName = selectedApp && adminName 
-      ? `new_root_keys_info_${selectedApp}_${adminName}.json`
-      : 'new_root_keys_info_*.json';
-    const currentRootFileName = selectedApp && adminName
-      ? `current_root_${selectedApp}_${adminName}.json`
-      : 'current_root.json';
-    const createNewRootMetadataScriptFileName = selectedApp && adminName
-      ? `create_new_root_metadata_${selectedApp}_${adminName}.py`
-      : 'create_new_root_metadata.py';
-    const signMetadataOfflineScriptFileName = selectedApp && adminName
-      ? `sign_metadata_offline_${selectedApp}_${adminName}.py`
-      : 'sign_metadata_offline.py';
-    const signedNewRootMetadataFileName = selectedApp && adminName
-      ? `signed_new_root_metadata_${selectedApp}_${adminName}.json`
-      : 'signed_new_root_metadata.json';
-    const unsignedNewRootMetadataFileName = selectedApp && adminName
-      ? `new_root_metadata_${selectedApp}_${adminName}.json`
-      : 'new_root_metadata_.json';
-    const generateSignaturesScriptFileName = selectedApp && adminName
-      ? `generate_signatures_${selectedApp}_${adminName}.py`
-      : 'generate_signatures.py';
-
-    if (rotationFlow === 'online') {
-      // Online Flow Steps
-      return [
-        {
-          stepNumber: 1,
-          title: 'Generate initial root metadata script',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Online Flow</h3>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      This script generates new TUF root keys for rotation. Configure the number of new keys 
-                      to generate, then generate and run the Python script on a secure offline machine.
-                    </p>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Prerequisites:</strong>
-                    </p>
-                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li>Python 3 must be installed</li>
-                      <li>cryptography library must be installed</li>
-                    </ul>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Instructions:</strong>
-                    </p>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                      <li>Configure the number of keys to generate below</li>
-                      <li>Click "Generate Script" to create the Python script</li>
-                      <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a faynoSync API server machine</li>
-                      <li>Set up Python environment and install dependencies:</li>
-                    </ol>
-                    <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
-                    </div>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
-                      <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
-                      <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
-                <input
-                  type="text"
-                  value={selectedApp}
-                  disabled
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
-                <input
-                  type="number"
-                  value={keyCount}
-                  onChange={(e) => setKeyCount(parseInt(e.target.value) || 1)}
-                  min="1"
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                />
-                <p className="text-xs text-theme-primary opacity-70 mt-1">
-                  Number of new root keys to generate for rotation
-                </p>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateExampleScript}
-                  disabled={!selectedApp || keyCount < 1}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {exampleScript && (
-                  <button
-                    onClick={handleCopyExample}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 2,
-          title: 'Get current root metadata',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      After you have successfully generated new root keys, you need to get the current root file. 
-                      Click the <strong>"Get current root"</strong> button and save the received JSON to a file named <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={handleGetCurrentRoot}
-                  disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingRootMetadata ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-download mr-2"></i>
-                      Get current root
-                    </>
-                  )}
-                </button>
-                {rootMetadata && (
-                  <button
-                    onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Root Metadata
-                  </button>
-                )}
-              </div>
-              {rootMetadata && (
-                <div className="mt-4">
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap max-h-60 overflow-y-auto">
-                      {JSON.stringify(rootMetadata, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
-          ),
-        },
-        {
-          stepNumber: 3,
-          title: 'Create new root metadata script',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have saved the <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code> file, 
-                      you can generate new metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code>. 
-                      You can see the command to run the script at the beginning of the generated script.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateNewRootMetadataScript}
-                  disabled={!selectedApp}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {newRootMetadataScript && (
-                  <button
-                    onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 4,
-          title: 'Sign metadata online',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now let's sign our metadata online. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{signMetadataOfflineScriptFileName}</code>. 
-                      The complete and correct command to run this script was returned at the end of the <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code> script.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateSignMetadataOfflineScript}
-                  disabled={!selectedApp}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {signMetadataOfflineScript && (
-                  <button
-                    onClick={handleCopySignMetadataOfflineScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 5,
-          title: 'Submit metadata',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have received <code className="bg-theme-input px-1 rounded">{signedNewRootMetadataFileName}</code>, 
-                      submit it here.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
-                <textarea
-                  value={metadataPayload}
-                  onChange={(e) => handleMetadataPayloadChange(e.target.value)}
-                  placeholder="Paste signed root metadata JSON here..."
-                  rows={8}
-                  className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
-                    metadataPayloadError ? 'border-red-500' : 'border-theme'
-                  }`}
-                />
-                {metadataPayloadError && (
-                  <p className="text-red-500 text-sm mt-1">{metadataPayloadError}</p>
-                )}
-              </div>
-              <button
-                onClick={handleSubmitMetadata}
-                disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submittingMetadata ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane mr-2"></i>
-                    Submit Metadata
-                  </>
-                )}
-              </button>
-            </div>
-          ),
-        },
-      ];
-    } else {
-      // Offline Flow Steps
-      return [
-        {
-          stepNumber: 1,
-          title: 'Generate initial root metadata script',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <h3 className="text-yellow-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Offline Flow</h3>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      This script generates new TUF root keys for rotation. Configure the number of new keys 
-                      to generate, then generate and run the Python script on a secure offline machine.
-                    </p>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Prerequisites:</strong>
-                    </p>
-                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li>Python 3 must be installed on an offline machine</li>
-                      <li>cryptography library must be installed</li>
-                      <li>Access to current root metadata</li>
-                      <li>Access to old root keys for signing</li>
-                    </ul>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Instructions:</strong>
-                    </p>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                      <li>Configure the number of keys to generate below</li>
-                      <li>Click "Generate Script" to create the Python script</li>
-                      <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a secure offline machine</li>
-                      <li>Set up Python environment and install dependencies:</li>
-                    </ol>
-                    <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
-                    </div>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
-                      <li>Keys will be saved to <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}/</code> folder (keep them locally, do not upload to ONLINE_KEY_DIR)</li>
-                      <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
-                <input
-                  type="text"
-                  value={selectedApp}
-                  disabled
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
-                <input
-                  type="number"
-                  value={keyCount}
-                  onChange={(e) => setKeyCount(parseInt(e.target.value) || 1)}
-                  min="1"
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                />
-                <p className="text-xs text-theme-primary opacity-70 mt-1">
-                  Number of new root keys to generate for rotation
-                </p>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateOfflineExampleScript}
-                  disabled={!selectedApp || keyCount < 1}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {offlineExampleScript && (
-                  <button
-                    onClick={handleCopyOfflineExample}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 2,
-          title: 'Get current root metadata',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      After you have successfully generated new root keys, you need to get the current root file. 
-                      Click the <strong>"Get current root"</strong> button and save the received JSON to a file named <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={handleGetCurrentRoot}
-                  disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingRootMetadata ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-download mr-2"></i>
-                      Get current root
-                    </>
-                  )}
-                </button>
-                {rootMetadata && (
-                  <button
-                    onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Root Metadata
-                  </button>
-                )}
-              </div>
-              {rootMetadata && (
-                <div className="mt-4">
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap max-h-60 overflow-y-auto">
-                      {JSON.stringify(rootMetadata, null, 2)}
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
-          ),
-        },
-        {
-          stepNumber: 3,
-          title: 'Create new root metadata script',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have saved the <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code> file, 
-                      you can generate new metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code>. 
-                      You can see the command to run the script at the beginning of the generated script.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateNewRootMetadataScript}
-                  disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {newRootMetadataScript && (
-                  <button
-                    onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 4,
-          title: 'Submit metadata',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have received <code className="bg-theme-input px-1 rounded">{unsignedNewRootMetadataFileName}</code>, 
-                      submit it here. This is the unsigned metadata that will be signed in the next steps.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
-                <textarea
-                  value={metadataPayload}
-                  onChange={(e) => handleMetadataPayloadChange(e.target.value)}
-                  placeholder="Paste unsigned root metadata JSON here..."
-                  rows={8}
-                  className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
-                    metadataPayloadError ? 'border-red-500' : 'border-theme'
-                  }`}
-                />
-                {metadataPayloadError && (
-                  <p className="text-red-500 text-sm mt-1">{metadataPayloadError}</p>
-                )}
-              </div>
-              <button
-                onClick={handleSubmitMetadata}
-                disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submittingMetadata ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane mr-2"></i>
-                    Submit Metadata
-                  </>
-                )}
-              </button>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 5,
-          title: 'Generate signatures',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      Generate signatures for the metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{generateSignaturesScriptFileName}</code>. 
-                      This script can work in two modes:
-                    </p>
-                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li><strong>Single signature mode:</strong> Signs with one key</li>
-                      <li><strong>Batch mode:</strong> Signs with all keys from key info JSON files</li>
-                    </ul>
-                    <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-3 mt-3">
-                      <p className="text-theme-primary text-sm leading-relaxed">
-                        <strong>Note:</strong> If you have all necessary files locally (key_info.json and new_root_keys_info.json), 
-                        use batch mode for convenience.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={generateGenerateSignaturesScript}
-                  disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {generateSignaturesScript && (
-                  <button
-                    onClick={handleCopyGenerateSignaturesScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-            </div>
-          ),
-        },
-        {
-          stepNumber: 6,
-          title: 'Submit signatures',
-          content: (
-            <div className="space-y-4">
-              <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      After generating signature files (signature1.json, signature2.json, signatureold1.json, etc.) in Step 5, 
-                      submit them one by one. Paste the JSON content from each signature file below and submit.
-                    </p>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Instructions:</strong>
-                    </p>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                      <li>Open a signature file (e.g., signature1.json or signatureold1.json)</li>
-                      <li>Copy the entire JSON content (should contain "keyid" and "sig" fields)</li>
-                      <li>Paste it into the field below</li>
-                      <li>Click "Submit Signature"</li>
-                      <li>Repeat for each signature file until you receive "Metadata update finished" message</li>
-                    </ol>
-                    <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-3 mt-3">
-                      <p className="text-theme-primary text-sm leading-relaxed">
-                        <strong>Note:</strong> You may receive errors about "not enough signatures" or "threshold not reached" 
-                        while submitting. This is expected - continue submitting signatures until the threshold is met and 
-                        you receive the "Metadata update finished" message.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Signature Payload</label>
-                <textarea
-                  value={signaturePayload}
-                  onChange={(e) => handleSignaturePayloadChange(e.target.value)}
-                  placeholder='Paste signature JSON here (e.g., {"keyid": "...", "sig": "..."})'
-                  rows={6}
-                  className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
-                    signaturePayloadError ? 'border-red-500' : 'border-theme'
-                  }`}
-                />
-                {signaturePayloadError && (
-                  <p className="text-red-500 text-sm mt-1">{signaturePayloadError}</p>
-                )}
-              </div>
-
-              {signatureStatus === 'success' && (
-                <div className="p-4 bg-green-500 bg-opacity-10 border border-green-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-check-circle text-green-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
-                      <p className="text-theme-primary text-sm">
-                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {signatureStatus === 'threshold' && (
-                <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-yellow-500 font-semibold mb-2">Threshold not reached yet</p>
-                      
-                      {signatureProgress ? (
-                        <div className="space-y-3">
-                          {/* Overall Progress */}
-                          <div className="bg-theme-input rounded-lg p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-theme-primary font-semibold">Overall Progress</span>
-                              <span className="text-yellow-500 font-bold">
-                                {signatureProgress.collected} / {signatureProgress.total}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                              <div 
-                                className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
-                                style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
-                              ></div>
-                            </div>
-                            <p className="text-theme-primary text-xs">
-                              {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
-                            </p>
-                          </div>
-
-                          {/* Breakdown by Old/New Keys */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-theme-input rounded-lg p-3">
-                              <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
-                              <p className="text-green-400 text-sm font-bold">
-                                {signatureProgress.oldCollected} collected
-                              </p>
-                              {signatureProgress.oldRemaining > 0 && (
-                                <p className="text-yellow-400 text-xs mt-1">
-                                  {signatureProgress.oldRemaining} more needed
-                                </p>
-                              )}
-                            </div>
-                            <div className="bg-theme-input rounded-lg p-3">
-                              <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
-                              <p className="text-green-400 text-sm font-bold">
-                                {signatureProgress.newCollected} collected
-                              </p>
-                              {signatureProgress.newRemaining > 0 && (
-                                <p className="text-yellow-400 text-xs mt-1">
-                                  {signatureProgress.newRemaining} more needed
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Signed Keys */}
-                          {signatureProgress.oldKeysSigned.length > 0 && (
-                            <div className="bg-theme-input rounded-lg p-3">
-                              <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
-                              <div className="flex flex-wrap gap-1">
-                                {signatureProgress.oldKeysSigned.map((key, idx) => (
-                                  <span 
-                                    key={idx}
-                                    className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
-                                  >
-                                    {key.substring(0, 8)}...
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Missing Keys */}
-                          {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
-                            <div className="bg-theme-input rounded-lg p-3">
-                              <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
-                              {signatureProgress.missingOldKeys.length > 0 && (
-                                <div className="mb-2">
-                                  <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {signatureProgress.missingOldKeys.map((key, idx) => (
-                                      <span 
-                                        key={idx}
-                                        className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
-                                      >
-                                        {key.substring(0, 8)}...
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              {signatureProgress.missingNewKeys.length > 0 && (
-                                <div>
-                                  <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {signatureProgress.missingNewKeys.map((key, idx) => (
-                                      <span 
-                                        key={idx}
-                                        className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
-                                      >
-                                        {key.substring(0, 8)}...
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ) : signatureErrorMessage && (
-                        <div>
-                          <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
-                            {signatureErrorMessage}
-                          </p>
-                          {(() => {
-                            // Fallback: Extract progress information (got X, want Y)
-                            const gotMatch = signatureErrorMessage.match(/got\s+(\d+)/i);
-                            const wantMatch = signatureErrorMessage.match(/want\s+(\d+)/i);
-                            if (gotMatch && wantMatch) {
-                              const got = parseInt(gotMatch[1], 10);
-                              const want = parseInt(wantMatch[1], 10);
-                              const remaining = want - got;
-                              return (
-                                <p className="text-theme-primary text-sm mb-2">
-                                  <strong>Progress:</strong> {got} of {want} signatures submitted 
-                                  ({remaining} more {remaining === 1 ? 'signature' : 'signatures'} needed)
-                                </p>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </div>
-                      )}
-                      
-                      <p className="text-theme-primary text-sm mt-3">
-                        Continue submitting more signatures. The input field has been cleared for the next signature.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {signatureStatus === 'partial' && (
-                <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-blue-500 font-semibold mb-1">Signature submitted</p>
-                      <p className="text-theme-primary text-sm">
-                        Continue submitting more signatures until the threshold is met. The input field has been cleared for the next signature.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {signatureStatus === 'error' && (
-                <div className="p-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-exclamation-circle text-red-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-red-500 font-semibold mb-1">Error submitting signature</p>
-                      {signatureErrorMessage && (
-                        <>
-                          <p className="text-theme-primary text-sm mb-2 font-mono text-xs bg-theme-input p-2 rounded">
-                            {signatureErrorMessage}
-                          </p>
-                          {/* Show progress even for error status if it contains threshold info */}
-                          {signatureProgress ? (
-                            <div className="mt-3 space-y-3">
-                              {/* Overall Progress */}
-                              <div className="bg-theme-input rounded-lg p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-theme-primary font-semibold">Overall Progress</span>
-                                  <span className="text-yellow-500 font-bold">
-                                    {signatureProgress.collected} / {signatureProgress.total}
-                                  </span>
-                                </div>
-                                <div className="w-full bg-gray-700 rounded-full h-2.5 mb-2">
-                                  <div 
-                                    className="bg-yellow-500 h-2.5 rounded-full transition-all duration-300"
-                                    style={{ width: `${(signatureProgress.collected / signatureProgress.total) * 100}%` }}
-                                  ></div>
-                                </div>
-                                <p className="text-theme-primary text-xs">
-                                  {signatureProgress.remaining} more {signatureProgress.remaining === 1 ? 'signature' : 'signatures'} required
-                                </p>
-                              </div>
-
-                              {/* Breakdown by Old/New Keys */}
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-theme-input rounded-lg p-3">
-                                  <p className="text-theme-primary text-xs font-semibold mb-1">Old Keys</p>
-                                  <p className="text-green-400 text-sm font-bold">
-                                    {signatureProgress.oldCollected} collected
-                                  </p>
-                                  {signatureProgress.oldRemaining > 0 && (
-                                    <p className="text-yellow-400 text-xs mt-1">
-                                      {signatureProgress.oldRemaining} more needed
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="bg-theme-input rounded-lg p-3">
-                                  <p className="text-theme-primary text-xs font-semibold mb-1">New Keys</p>
-                                  <p className="text-green-400 text-sm font-bold">
-                                    {signatureProgress.newCollected} collected
-                                  </p>
-                                  {signatureProgress.newRemaining > 0 && (
-                                    <p className="text-yellow-400 text-xs mt-1">
-                                      {signatureProgress.newRemaining} more needed
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Signed Keys */}
-                              {signatureProgress.oldKeysSigned.length > 0 && (
-                                <div className="bg-theme-input rounded-lg p-3">
-                                  <p className="text-theme-primary text-xs font-semibold mb-2">✓ Old Keys Signed</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {signatureProgress.oldKeysSigned.map((key, idx) => (
-                                      <span 
-                                        key={idx}
-                                        className="text-xs bg-green-500 bg-opacity-20 text-green-400 px-2 py-1 rounded font-mono"
-                                      >
-                                        {key.substring(0, 8)}...
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Missing Keys */}
-                              {(signatureProgress.missingOldKeys.length > 0 || signatureProgress.missingNewKeys.length > 0) && (
-                                <div className="bg-theme-input rounded-lg p-3">
-                                  <p className="text-theme-primary text-xs font-semibold mb-2">⚠ Missing Keys</p>
-                                  {signatureProgress.missingOldKeys.length > 0 && (
-                                    <div className="mb-2">
-                                      <p className="text-yellow-400 text-xs mb-1">Old Keys:</p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {signatureProgress.missingOldKeys.map((key, idx) => (
-                                          <span 
-                                            key={idx}
-                                            className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
-                                          >
-                                            {key.substring(0, 8)}...
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {signatureProgress.missingNewKeys.length > 0 && (
-                                    <div>
-                                      <p className="text-yellow-400 text-xs mb-1">New Keys:</p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {signatureProgress.missingNewKeys.map((key, idx) => (
-                                          <span 
-                                            key={idx}
-                                            className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-1 rounded font-mono"
-                                          >
-                                            {key.substring(0, 8)}...
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ) : signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')) && (
-                            <div className="mt-3 p-3 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                              <p className="text-yellow-500 text-sm font-semibold mb-2">Threshold not reached</p>
-                              <p className="text-theme-primary text-sm">
-                                This is expected - continue submitting more signatures until the threshold is met.
-                              </p>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      <p className="text-theme-primary text-sm mt-3">
-                        {signatureProgress || (signatureErrorMessage && (signatureErrorMessage.includes('not enough signatures') || signatureErrorMessage.includes('threshold not reached')))
-                          ? 'Continue submitting more signatures. The input field has been cleared for the next signature.'
-                          : 'Please check the error message above and try again.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={handleSubmitSignature}
-                  disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingSignature ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-paper-plane mr-2"></i>
-                      Submit Signature
-                    </>
-                  )}
-                </button>
-                
-                <button
-                  onClick={handleCheckMetadataStatus}
-                  disabled={!selectedApp || checkingMetadataStatus}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {checkingMetadataStatus ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-check-circle mr-2"></i>
-                      Check Status
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {metadataStatusResult === 'finished' && (
-                <div className="p-4 bg-green-500 bg-opacity-10 border border-green-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-check-circle text-green-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-green-500 font-semibold mb-1">Metadata update finished!</p>
-                      <p className="text-theme-primary text-sm">
-                        Root keys rotation has been completed successfully. All required signatures have been submitted and the threshold has been met. Now you can check "Root-Meta-Update" task in the history to see the result.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {metadataStatusResult === 'threshold-not-met' && (
-                <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                  <div className="flex items-start">
-                    <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                    <div className="flex-1">
-                      <p className="text-yellow-500 font-semibold mb-1">Threshold not reached</p>
-                      <p className="text-theme-primary text-sm">
-                        Continue submitting more signatures until the threshold is met.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ),
-        },
-      ];
-    }
-  }, [
-    selectedApp,
-    userData,
-    keyCount,
-    exampleScript,
-    offlineExampleScript,
-    rootMetadata,
-    loadingRootMetadata,
-    newRootMetadataScript,
-    signMetadataOfflineScript,
-    generateSignaturesScript,
-    metadataPayload,
-    metadataPayloadError,
-    submittingMetadata,
-    signaturePayload,
-    signaturePayloadError,
-    submittingSignature,
-    signatureStatus,
-    signatureErrorMessage,
-    checkingMetadataStatus,
-    metadataStatusResult,
-    rotationFlow,
-  ]);
 
   if (!selectedApp || !isBootstrapSuccess) {
     return null;
   }
 
   return (
-    <>
-      <StepperModal
-        isOpen={showGuidedTour}
-        onClose={() => setShowGuidedTour(false)}
-        steps={guidedTourSteps}
-        title={`Root Keys Rotation - Guided Tour (${rotationFlow === 'online' ? 'Online' : 'Offline'} Flow)`}
-      />
-      <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => setShowRotateKeys(!showRotateKeys)}
-            className="flex items-center justify-between flex-1 text-theme-primary hover:text-theme-button-primary transition-colors"
-          >
-            <h2 className="text-lg font-bold font-roboto">
-              Rotate Root Keys
-            </h2>
-            <i className={`fas fa-chevron-${showRotateKeys ? 'up' : 'down'}`}></i>
-          </button>
-          {showRotateKeys && (
-            <button
-              onClick={() => setShowGuidedTour(true)}
-              className="ml-4 bg-purple-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-purple-600 transition-colors flex items-center"
-              title="Start Guided Tour"
-            >
-              <i className="fas fa-route mr-2"></i>
-              Guided Tour
-            </button>
-          )}
-        </div>
+    <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => setShowRotateKeys(!showRotateKeys)}
+          className="flex items-center justify-between flex-1 text-theme-primary hover:text-theme-button-primary transition-colors"
+        >
+          <h2 className="text-lg font-bold">
+            Rotate Root Keys
+          </h2>
+          <i className={`fas fa-chevron-${showRotateKeys ? 'up' : 'down'}`}></i>
+        </button>
+      </div>
 
       {showRotateKeys && (
         <>
-          {/* Flow Selection */}
-          <div className="mb-6">
-            <label className="block text-theme-primary mb-3 font-roboto font-semibold">
-              Select Rotation Flow:
-            </label>
-            <div className="flex gap-4">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="rotationFlow"
-                  value="online"
-                  checked={rotationFlow === 'online'}
-                  onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
-                  className="mr-2"
-                />
-                <span className="text-theme-primary font-roboto">Online Flow</span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="radio"
-                  name="rotationFlow"
-                  value="offline"
-                  checked={rotationFlow === 'offline'}
-                  onChange={(e) => setRotationFlow(e.target.value as 'online' | 'offline')}
-                  className="mr-2"
-                />
-                <span className="text-theme-primary font-roboto">Offline Flow</span>
-              </label>
-            </div>
-          </div>
-
-          {rotationFlow === 'online' ? (
-            <>
-              {/* Online Flow Instructions */}
-              <div className="mb-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <h3 className="text-blue-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Online Flow</h3>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      This flow allows you to rotate root keys using the online API. Configure the number of new keys 
-                      to generate, then generate and run the Python script on a secure offline machine.
-                    </p>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Prerequisites:</strong>
-                    </p>
-                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li>Python 3 must be installed</li>
-                      <li>cryptography library must be installed</li>
-                    </ul>
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      <strong>Instructions:</strong>
-                    </p>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                      <li>Configure the number of keys to generate below</li>
-                      <li>Click "Generate Script" to create the Python script</li>
-                      <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a faynoSync API server machine</li>
-                      <li>Set up Python environment and install dependencies:</li>
-                    </ol>
-                    <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                      <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
-                    </div>
-                    <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
-                      <li>Copy the generated keys from <code className="bg-theme-input px-1 rounded">private_keys/</code> folder to the <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> folder specified in the environment variables of the faynosync API server</li>
-                      <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 1: Generate initial root metadata script
-              </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
-              <input
-                type="text"
-                value={selectedApp}
-                disabled
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2 disabled:opacity-50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
-              <input
-                type="number"
-                value={keyCount}
-                onChange={(e) => setKeyCount(parseInt(e.target.value) || 1)}
-                min="1"
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              />
-              <p className="text-xs text-theme-primary opacity-70 mt-1">
-                Number of new root keys to generate for rotation
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
-              <select
-                value={selectedKeyType}
-                onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              >
-                <option value="ed25519">ed25519</option>
-                <option value="rsa">rsa</option>
-                <option value="ecdsa">ecdsa</option>
-              </select>
-              <p className="text-xs text-theme-primary opacity-70 mt-1">
-                Auto-detected from current root metadata when available.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={generateExampleScript}
-                    disabled={!selectedApp || keyCount < 1}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <i className="fas fa-code mr-2"></i>
-                    Generate Script
-                  </button>
-                  {exampleScript && (
-                    <button
-                      onClick={handleCopyExample}
-                      className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                    >
-                      <i className="fas fa-copy mr-2"></i>
-                      Copy Script
-                    </button>
-                  )}
-                </div>
-                
-                {exampleScript && (
-                  <div className="mt-4">
-                    <button
-                      onClick={() => setShowScript(!showScript)}
-                      className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                    >
-                      <i className={`fas fa-chevron-${showScript ? 'up' : 'down'} mr-2`}></i>
-                      Generated Python Script {showScript ? '(click to hide)' : '(click to expand)'}
-                    </button>
-                    {showScript && (
-                      <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                        <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                          {exampleScript}
-                        </pre>
-                        <div className="mt-2 flex gap-2">
-                          <button
-                            onClick={handleCopyExample}
-                            className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                          >
-                            <i className="fas fa-copy mr-1"></i>
-                            Copy Script
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              <div className="h-px w-full bg-theme-card-hover"></div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 2: Get current root metadata
-              </h2>
-              {/* Info about getting current root */}
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      After you have successfully generated new root keys, you need to get the current root file. 
-                      Click the <strong>"Get current root"</strong> button and save the received JSON to a file named <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-2 items-center">
-                <button
-                  onClick={handleGetCurrentRoot}
-                  disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingRootMetadata ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-download mr-2"></i>
-                      Get current root
-                    </>
-                  )}
-                </button>
-                {rootMetadata && (
-                  <button
-                    onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Root Metadata
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {rootMetadata && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowRootMetadataStep2(!showRootMetadataStep2)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showRootMetadataStep2 ? 'up' : 'down'} mr-2`}></i>
-                  Current Root Metadata {showRootMetadataStep2 ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showRootMetadataStep2 && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                      {JSON.stringify(rootMetadata, null, 2)}
-                    </pre>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={handleCopyRootMetadata}
-                        className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                      >
-                        <i className="fas fa-copy mr-1"></i>
-                        Copy Root Metadata
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 3: Create new root metadata script
-            </h2>
-            {/* Info about creating new root metadata */}
-            <div className="mt-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-              <div className="flex items-start">
-                <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                <div className="flex-1">
-                  <p className="text-theme-primary text-sm leading-relaxed">
-                    Now that you have saved the <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code> file, 
-                    you can generate new metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code>. 
-                    You can see the command to run the script at the beginning of the generated script.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex gap-2 items-center">
-              <button
-                onClick={generateNewRootMetadataScript}
-                disabled={!selectedApp}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {newRootMetadataScript && (
-                <button
-                  onClick={handleCopyNewRootMetadataScript}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-
-            {newRootMetadataScript && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowNewRootMetadataScript(!showNewRootMetadataScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showNewRootMetadataScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showNewRootMetadataScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showNewRootMetadataScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                      {newRootMetadataScript}
-                    </pre>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={handleCopyNewRootMetadataScript}
-                        className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                      >
-                        <i className="fas fa-copy mr-1"></i>
-                        Copy Script
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 4: Sign metadata online
-            </h2>
-            {/* Info about signing metadata online */}
-            <div className="mt-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-              <div className="flex items-start">
-                <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                <div className="flex-1">
-                  <p className="text-theme-primary text-sm leading-relaxed">
-                    Now let's sign our metadata online. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{signMetadataOfflineScriptFileName}</code>. 
-                    The complete and correct command to run this script was returned at the end of the <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code> script.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex gap-2 items-center">
-              <button
-                onClick={generateSignMetadataOfflineScript}
-                disabled={!selectedApp}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {signMetadataOfflineScript && (
-                <button
-                  onClick={handleCopySignMetadataOfflineScript}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-
-            {signMetadataOfflineScript && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowSignMetadataOfflineScript(!showSignMetadataOfflineScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showSignMetadataOfflineScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showSignMetadataOfflineScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showSignMetadataOfflineScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                      {signMetadataOfflineScript}
-                    </pre>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={handleCopySignMetadataOfflineScript}
-                        className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                      >
-                        <i className="fas fa-copy mr-1"></i>
-                        Copy Script
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 5: Submit metadata
-            </h2>
-            {/* Info about submitting metadata */}
-            <div className="mt-6 p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-              <div className="flex items-start">
-                <i className="fas fa-info-circle text-blue-500 mr-3 mt-0.5 text-xl"></i>
-                <div className="flex-1">
-                  <p className="text-theme-primary text-sm leading-relaxed">
-                    Now that you have received <code className="bg-theme-input px-1 rounded">{signedNewRootMetadataFileName}</code>, 
-                    submit it here.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
-                <textarea
-                  value={metadataPayload}
-                  onChange={(e) => handleMetadataPayloadChange(e.target.value)}
-                  placeholder="Paste signed root metadata JSON here..."
-                  rows={8}
-                  className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
-                    metadataPayloadError ? 'border-red-500' : 'border-theme'
-                  }`}
-                />
-                {metadataPayloadError && (
-                  <p className="text-red-500 text-sm mt-1">{metadataPayloadError}</p>
-                )}
-              </div>
-
-              <button
-                onClick={handleSubmitMetadata}
-                disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submittingMetadata ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-paper-plane mr-2"></i>
-                    Submit Metadata
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-            </>
-          ) : (
-            <>
-              {/* Offline Flow Instructions */}
+              {/* Rotation instructions */}
               <div className="mb-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
-                    <h3 className="text-yellow-500 font-semibold mb-2 font-roboto">Root Keys Rotation - Offline Flow</h3>
+                    <h3 className="text-yellow-500 font-semibold mb-2">Root Keys Rotation</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      This flow allows you to rotate root keys completely offline without using the online API. 
-                      All operations are performed on a secure offline machine. Keys are stored in <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}</code> folder.
+                      Only need to push root's expiry out? Use the <strong>Renew Root</strong> panel above instead: <code className="bg-theme-input px-1 rounded">tuf-kms renew root --expires N</code> publishes
+                      a new root version signed by the keys root already has, so no key is replaced and no online key moves.
+                      Rotate only when you actually want new root keys.
+                    </p>
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      Root rotation happens offline. <code className="bg-theme-input px-1 rounded">tuf-kms rotate root</code> builds
+                      the new root metadata and signs it with the keys in <code className="bg-theme-input px-1 rounded">keys/root/</code> on
+                      your secure machine. The root private keys never leave it — the server only receives the metadata and the
+                      signatures you paste below.
                     </p>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       <strong>Prerequisites:</strong>
                     </p>
                     <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li>Python 3 must be installed on an offline machine</li>
-                      <li>cryptography library must be installed</li>
-                      <li>Access to current root metadata</li>
-                      <li>Access to old root keys for signing</li>
+                      <li>The tuf-kms working directory from the initial setup: <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code>, <code className="bg-theme-input px-1 rounded">keystore.json</code>, <code className="bg-theme-input px-1 rounded">keys/root/</code></li>
+                      <li>The passphrase that encrypts <code className="bg-theme-input px-1 rounded">keys/root/</code></li>
+                      <li><code className="bg-theme-input px-1 rounded">metadata_url</code> in <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code> — the command fetches and verifies the current root itself, so there is no file to download by hand</li>
                     </ul>
                   </div>
                 </div>
               </div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 1: Generate initial root metadata script
+
+              <h2 className="text-lg font-bold text-theme-primary">
+                Step 1: Rotate root keys
               </h2>
-              <div className="space-y-4">
+              <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">App Name</label>
+                  <label className="block text-theme-primary mb-2">App Name</label>
                   <input
                     type="text"
                     value={selectedApp}
@@ -2322,7 +643,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Count of Keys</label>
+                  <label className="block text-theme-primary mb-2">Count of Keys</label>
                   <input
                     type="number"
                     value={keyCount}
@@ -2331,253 +652,134 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                     className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
                   />
                   <p className="text-xs text-theme-primary opacity-70 mt-1">
-                    Number of new root keys to generate for rotation
+                    How many root keys the role has after the rotation. New keys are generated with the key type stored in tuf-kms.yaml.
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Key Type</label>
-                  <select
-                    value={selectedKeyType}
-                    onChange={(e) => setSelectedKeyType(normalizeKeyAlgorithm(e.target.value))}
+                  <label className="block text-theme-primary mb-2">Root Expiration (days)</label>
+                  <input
+                    type="number"
+                    value={expirationDays}
+                    onChange={(e) => setExpirationDays(parseInt(e.target.value) || 1)}
+                    min="1"
                     className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                  >
-                    <option value="ed25519">ed25519</option>
-                    <option value="rsa">rsa</option>
-                    <option value="ecdsa">ecdsa</option>
-                  </select>
+                  />
                   <p className="text-xs text-theme-primary opacity-70 mt-1">
-                    Auto-detected from current root metadata when available.
+                    Counted from the moment the command runs, not from the current expiry date. Leave the flag out entirely
+                    and root keeps the expiry it has now.
                   </p>
                 </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex gap-2 items-center">
+                <div>
+                  <label className="block text-theme-primary mb-2">Run on the offline machine</label>
+                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
+                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{rotateCommand}</pre>
+                    <div className="mt-2 flex gap-2">
                       <button
-                        onClick={generateOfflineExampleScript}
-                        disabled={!selectedApp || keyCount < 1}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleCopyRotateCommand}
+                        className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
                       >
-                        <i className="fas fa-code mr-2"></i>
-                        Generate Script
+                        <i className="fas fa-copy mr-1"></i>
+                        Copy Command
                       </button>
-                      {offlineExampleScript && (
-                        <button
-                          onClick={handleCopyOfflineExample}
-                          className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                        >
-                          <i className="fas fa-copy mr-2"></i>
-                          Copy Script
-                        </button>
-                      )}
                     </div>
-                    
-                    {offlineExampleScript && (
-                      <div className="mt-4">
-                        <button
-                          onClick={() => setShowOfflineScript(!showOfflineScript)}
-                          className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                        >
-                          <i className={`fas fa-chevron-${showOfflineScript ? 'up' : 'down'} mr-2`}></i>
-                          Generated Python Script {showOfflineScript ? '(click to hide)' : '(click to expand)'}
-                        </button>
-                        {showOfflineScript && (
-                          <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                            <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                              {offlineExampleScript}
-                            </pre>
-                            <div className="mt-2 flex gap-2">
-                              <button
-                                onClick={handleCopyOfflineExample}
-                                className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                              >
-                                <i className="fas fa-copy mr-1"></i>
-                                Copy Script
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+                  <div className="flex items-start">
+                    <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
+                    <div className="flex-1">
+                      <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                        The command asks for the root passphrase, then writes:
+                      </p>
+                      <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
+                        <li><code className="bg-theme-input px-1 rounded">out/root-metadata.json</code> — the new root metadata, for Step 2</li>
+                        <li><code className="bg-theme-input px-1 rounded">out/signatures/root-old-*.json</code> and <code className="bg-theme-input px-1 rounded">out/signatures/root-new-*.json</code> — the signatures, for Step 3</li>
+                      </ul>
+                      <p className="text-theme-primary text-sm leading-relaxed">
+                        The new keys are written to <code className="bg-theme-input px-1 rounded">keys/root/</code> as <strong>pending</strong>. They
+                        become the active ones only after Step 4, so a rotation that fails halfway leaves the keystore usable.
+                      </p>
+                      <p className="text-theme-primary text-sm leading-relaxed mt-2">
+                        <strong>Air-gapped machine:</strong> run <code className="bg-theme-input px-1 rounded">tuf-kms fetch</code> where there
+                        is network, carry <code className="bg-theme-input px-1 rounded">trust/</code> over, and add <code className="bg-theme-input px-1 rounded">--trust-dir /media/usb/trust</code> to
+                        the command above.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  <button
+                    onClick={handleGetCurrentRoot}
+                    disabled={!selectedApp || loadingRootMetadata}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loadingRootMetadata ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-download mr-2"></i>
+                        Get current root
+                      </>
+                    )}
+                  </button>
+                  {rootMetadata && (
+                    <button
+                      onClick={handleCopyRootMetadata}
+                      className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
+                    >
+                      <i className="fas fa-copy mr-2"></i>
+                      Copy Root Metadata
+                    </button>
+                  )}
+                </div>
+
+                {rootMetadata && (
+                  <div>
+                    <button
+                      onClick={() => setShowRootMetadataStep1(!showRootMetadataStep1)}
+                      className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
+                    >
+                      <i className={`fas fa-chevron-${showRootMetadataStep1 ? 'up' : 'down'} mr-2`}></i>
+                      Current Root Metadata {showRootMetadataStep1 ? '(click to hide)' : '(click to expand)'}
+                    </button>
+                    {showRootMetadataStep1 && (
+                      <div className="bg-theme-input rounded-lg p-4 border border-theme">
+                        <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
+                          {JSON.stringify(rootMetadata, null, 2)}
+                        </pre>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            onClick={handleCopyRootMetadata}
+                            className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
+                          >
+                            <i className="fas fa-copy mr-1"></i>
+                            Copy Root Metadata
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                  
-                  <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                    <div className="flex items-start">
-                      <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                      <div className="flex-1">
-                        <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                          <strong>Instructions:</strong>
-                        </p>
-                        <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                          <li>Configure the number of keys to generate above</li>
-                          <li>Click "Generate Script" to create the Python script</li>
-                          <li>Copy the generated script and save it as <code className="bg-theme-input px-1 rounded">{rotateRootKeysScriptFileName}</code> on a secure offline machine</li>
-                          <li>Set up Python environment and install dependencies:</li>
-                        </ol>
-                        <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
-                          <div className="whitespace-pre">python3 -m venv .venv<br />source .venv/bin/activate  # On Windows: .venv\Scripts\activate<br />pip install cryptography securesystemslib<br />python3 {rotateRootKeysScriptFileName}</div>
-                        </div>
-                        <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1" start={5}>
-                          <li>Keys will be saved to <code className="bg-theme-input px-1 rounded">root_keys_{selectedApp}_{adminName}/</code> folder (keep them locally, do not upload to ONLINE_KEY_DIR)</li>
-                          <li>Use the generated <code className="bg-theme-input px-1 rounded">{newRootKeysInfoFileName}</code> file for reference when updating root metadata</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-              
+
               <div className="h-px w-full bg-theme-card-hover mt-6"></div>
-              <h2 className="text-lg font-bold font-roboto text-theme-primary">
-                Step 2: Get current root metadata
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
+                Step 2: Submit metadata
               </h2>
-              {/* Info about getting current root */}
               <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
                     <p className="text-theme-primary text-sm leading-relaxed">
-                      After you have successfully generated new root keys, you need to get the current root file. 
-                      Click the <strong>"Get current root"</strong> button and save the received JSON to a file named <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-4 flex gap-2 items-center">
-                <button
-                  onClick={handleGetCurrentRoot}
-                  disabled={!selectedApp || loadingRootMetadata}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingRootMetadata ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-download mr-2"></i>
-                      Get current root
-                    </>
-                  )}
-                </button>
-                {rootMetadata && (
-                  <button
-                    onClick={handleCopyRootMetadata}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Root Metadata
-                  </button>
-                )}
-              </div>
-
-              {rootMetadata && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setShowRootMetadataStep2(!showRootMetadataStep2)}
-                    className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                  >
-                    <i className={`fas fa-chevron-${showRootMetadataStep2 ? 'up' : 'down'} mr-2`}></i>
-                    Current Root Metadata {showRootMetadataStep2 ? '(click to hide)' : '(click to expand)'}
-                  </button>
-                  {showRootMetadataStep2 && (
-                    <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                      <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                        {JSON.stringify(rootMetadata, null, 2)}
-                      </pre>
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={handleCopyRootMetadata}
-                          className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                        >
-                          <i className="fas fa-copy mr-1"></i>
-                          Copy Root Metadata
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
-                Step 3: Create new root metadata script
-              </h2>
-              {/* Info about creating new root metadata */}
-              <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have saved the <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code> file, 
-                      you can generate new metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{createNewRootMetadataScriptFileName}</code>. 
-                      You can see the command to run the script at the beginning of the generated script.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex gap-2 items-center">
-                <button
-                  onClick={generateNewRootMetadataScript}
-                  disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {newRootMetadataScript && (
-                  <button
-                    onClick={handleCopyNewRootMetadataScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-
-              {newRootMetadataScript && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setShowNewRootMetadataScript(!showNewRootMetadataScript)}
-                    className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                  >
-                    <i className={`fas fa-chevron-${showNewRootMetadataScript ? 'up' : 'down'} mr-2`}></i>
-                    Generated Python Script {showNewRootMetadataScript ? '(click to hide)' : '(click to expand)'}
-                  </button>
-                  {showNewRootMetadataScript && (
-                    <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                      <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                        {newRootMetadataScript}
-                      </pre>
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={handleCopyNewRootMetadataScript}
-                          className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                        >
-                          <i className="fas fa-copy mr-1"></i>
-                          Copy Script
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
-                Step 4: Submit metadata
-              </h2>
-              {/* Info about submitting metadata */}
-              <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed">
-                      Now that you have received <code className="bg-theme-input px-1 rounded">{unsignedNewRootMetadataFileName}</code>, 
-                      submit it here.
+                      Paste the contents of <code className="bg-theme-input px-1 rounded">out/root-metadata.json</code> here. It is the
+                      complete document, with both <code className="bg-theme-input px-1 rounded">signed</code> and <code className="bg-theme-input px-1 rounded">signatures</code>.
                     </p>
                   </div>
                 </div>
@@ -2585,11 +787,11 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Metadata Payload</label>
+                  <label className="block text-theme-primary mb-2">Metadata Payload</label>
                   <textarea
                     value={metadataPayload}
                     onChange={(e) => handleMetadataPayloadChange(e.target.value)}
-                    placeholder="Paste unsigned root metadata JSON here..."
+                    placeholder="Paste the contents of out/root-metadata.json here..."
                     rows={8}
                     className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
                       metadataPayloadError ? 'border-red-500' : 'border-theme'
@@ -2603,7 +805,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 <button
                   onClick={handleSubmitMetadata}
                   disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submittingMetadata ? (
                     <>
@@ -2618,108 +820,33 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   )}
                 </button>
               </div>
-              
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
-                Step 5: Generate signatures
+
+              <div className="h-px w-full bg-theme-card-hover mt-6"></div>
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
+                Step 3: Submit signatures
               </h2>
-              {/* Info about generating signatures */}
               <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
                 <div className="flex items-start">
                   <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                   <div className="flex-1">
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      Generate signatures for the metadata. Generate the script and save it with the name <code className="bg-theme-input px-1 rounded">{generateSignaturesScriptFileName}</code>. 
-                      This script can work in two modes:
-                    </p>
-                    <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
-                      <li><strong>Single signature mode:</strong> Signs with one key</li>
-                      <li><strong>Batch mode:</strong> Signs with all keys from key info JSON files</li>
-                    </ul>
-                    <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-3 mt-3">
-                      <p className="text-theme-primary text-sm leading-relaxed">
-                        <strong>Note:</strong> If you have all necessary files locally (key_info.json and new_root_keys_info.json), 
-                        use batch mode for convenience.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex gap-2 items-center">
-                <button
-                  onClick={generateGenerateSignaturesScript}
-                  disabled={!selectedApp}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <i className="fas fa-code mr-2"></i>
-                  Generate Script
-                </button>
-                {generateSignaturesScript && (
-                  <button
-                    onClick={handleCopyGenerateSignaturesScript}
-                    className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                  >
-                    <i className="fas fa-copy mr-2"></i>
-                    Copy Script
-                  </button>
-                )}
-              </div>
-
-              {generateSignaturesScript && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setShowGenerateSignaturesScript(!showGenerateSignaturesScript)}
-                    className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                  >
-                    <i className={`fas fa-chevron-${showGenerateSignaturesScript ? 'up' : 'down'} mr-2`}></i>
-                    Generated Python Script {showGenerateSignaturesScript ? '(click to hide)' : '(click to expand)'}
-                  </button>
-                  {showGenerateSignaturesScript && (
-                    <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                      <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
-                        {generateSignaturesScript}
-                      </pre>
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          onClick={handleCopyGenerateSignaturesScript}
-                          className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
-                        >
-                          <i className="fas fa-copy mr-1"></i>
-                          Copy Script
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <h2 className="text-lg font-bold font-roboto text-theme-primary mt-6">
-                Step 6: Submit signatures
-              </h2>
-              {/* Info about submitting signatures */}
-              <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-                <div className="flex items-start">
-                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
-                  <div className="flex-1">
-                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      After generating signature files (signature1.json, signature2.json, signatureold1.json, etc.) in Step 5, 
-                      submit them one by one. Paste the JSON content from each signature file below and submit.
+                      Submit the files from <code className="bg-theme-input px-1 rounded">out/signatures/</code> one at a time. The
+                      <code className="bg-theme-input px-1 rounded">root-old-*</code> files prove the current root keys approve the change; the
+                      <code className="bg-theme-input px-1 rounded">root-new-*</code> files prove you hold the new ones.
                     </p>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       <strong>Instructions:</strong>
                     </p>
                     <ol className="text-theme-primary text-sm leading-relaxed list-decimal list-inside ml-2 space-y-1 mb-3">
-                      <li>Open a signature file (e.g., signature1.json or signatureold1.json)</li>
-                      <li>Copy the entire JSON content (should contain "keyid" and "sig" fields)</li>
-                      <li>Paste it into the field below</li>
+                      <li>Open one signature file — it contains a single <code className="bg-theme-input px-1 rounded">{'{"keyid": "...", "sig": "..."}'}</code> object</li>
+                      <li>Paste the whole file into the field below</li>
                       <li>Click "Submit Signature"</li>
-                      <li>Repeat for each signature file until you receive "Metadata update finished" message</li>
+                      <li>Repeat for every file until you get "Metadata update finished"</li>
                     </ol>
                     <div className="bg-yellow-500 bg-opacity-20 rounded-lg p-3 mt-3">
                       <p className="text-theme-primary text-sm leading-relaxed">
-                        <strong>Note:</strong> You may receive errors about "not enough signatures" or "threshold not reached" 
-                        while submitting. This is expected - continue submitting signatures until the threshold is met and 
-                        you receive the "Metadata update finished" message.
+                        <strong>Note:</strong> errors about "not enough signatures" or "threshold not reached" are expected until
+                        enough signatures are in. Keep submitting.
                       </p>
                     </div>
                   </div>
@@ -2728,7 +855,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
 
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-theme-primary mb-2 font-roboto">Signature Payload</label>
+                  <label className="block text-theme-primary mb-2">Signature Payload</label>
                   <textarea
                     value={signaturePayload}
                     onChange={(e) => handleSignaturePayloadChange(e.target.value)}
@@ -3049,7 +1176,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleSubmitSignature}
                     disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submittingSignature ? (
                       <>
@@ -3067,7 +1194,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleCheckMetadataStatus}
                     disabled={!selectedApp || checkingMetadataStatus}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {checkingMetadataStatus ? (
                       <>
@@ -3085,7 +1212,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleGetCurrentRoot}
                     disabled={!selectedApp || loadingRootMetadata}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loadingRootMetadata ? (
                       <>
@@ -3103,7 +1230,7 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <button
                     onClick={handleDeleteSigningMetadata}
                     disabled={!selectedApp || deletingSigningMetadata}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deletingSigningMetadata ? (
                       <>
@@ -3122,13 +1249,13 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                 {rootMetadata && (
                   <div className="mt-4">
                     <button
-                      onClick={() => setShowRootMetadataStep6(!showRootMetadataStep6)}
+                      onClick={() => setShowRootMetadataStep3(!showRootMetadataStep3)}
                       className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
                     >
-                      <i className={`fas fa-chevron-${showRootMetadataStep6 ? 'up' : 'down'} mr-2`}></i>
-                      Current Root Metadata {showRootMetadataStep6 ? '(click to hide)' : '(click to expand)'}
+                      <i className={`fas fa-chevron-${showRootMetadataStep3 ? 'up' : 'down'} mr-2`}></i>
+                      Current Root Metadata {showRootMetadataStep3 ? '(click to hide)' : '(click to expand)'}
                     </button>
-                    {showRootMetadataStep6 && (
+                    {showRootMetadataStep3 && (
                       <div className="bg-theme-input rounded-lg p-4 border border-theme">
                         <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
                           {JSON.stringify(rootMetadata, null, 2)}
@@ -3217,13 +1344,32 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   </div>
                 )}
               </div>
-            </>
-          )}
+
+              <div className="h-px w-full bg-theme-card-hover mt-6"></div>
+              <h2 className="text-lg font-bold text-theme-primary mt-6">
+                Step 4: Promote the new keys
+              </h2>
+              <div className="mt-6 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+                <div className="flex items-start">
+                  <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
+                  <div className="flex-1">
+                    <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                      Once you see "Metadata update finished", run this on the machine that holds the keys:
+                    </p>
+                    <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
+                      <div className="whitespace-pre">tuf-kms fetch</div>
+                    </div>
+                    <p className="text-theme-primary text-sm leading-relaxed">
+                      It re-verifies the repository and reconciles the keystore against it: the new root keys go from pending to
+                      active, the keys they replaced become retired, and thresholds are re-read. Nothing is promoted until the
+                      repository actually serves them, so a submission that never landed cannot leave the keystore out of sync.
+                      The retired root private keys stay on disk until you run <code className="bg-theme-input px-1 rounded">tuf-kms keys prune</code>.
+                    </p>
+                  </div>
+                </div>
+              </div>
         </>
       )}
-      </div>
-    </>
+    </div>
   );
 };
-
-

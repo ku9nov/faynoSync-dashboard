@@ -1,14 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axiosInstance from '@/config/axios';
 import { useToast } from '@/hooks/useToast';
-import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
-import { generateRotateDelegatedRoleKeysPythonScript } from '@/components/settings/tuf/generateRotateDelegatedRoleKeysScript';
-import { generateCreateNewTargetsDelegationMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewTargetsMetadataDelegationRotationScript';
-import { generateCreateNewDelegatedRoleMetadataPythonScript } from '@/components/settings/tuf/generateCreateNewDelegatedRoleMetadataScript';
-import { generateBuildDelegatedRotationRequestPythonScript } from '@/components/settings/tuf/generateBuildDelegatedRotationRequestScript';
-import { generateSignMetadataForApiPythonScript } from '@/components/settings/tuf/generateSignMetadataForApiScript';
-import { generateUpdateKeyInfoDelegatedRotationPythonScript } from '@/components/settings/tuf/generateUpdateKeyInfoDelegatedRotationScript';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
 import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
 
 interface RotateDelegatedKeysProps {
@@ -17,9 +9,6 @@ interface RotateDelegatedKeysProps {
   onSaveToHistory: (entry: Omit<import('@/components/settings/tuf/types').TufHistoryEntry, 'id'>) => void;
   onCheckTufTasks: (taskId?: string) => void;
 }
-
-const sanitizeRoleForFileTag = (roleName: string): string =>
-  roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'default';
 
 const isThresholdNotMetError = (message: string): boolean => {
   const normalized = message.toLowerCase();
@@ -91,26 +80,11 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
   onCheckTufTasks,
 }) => {
   const { toastSuccess, toastError } = useToast();
-  const { data: userData } = useUsersQuery();
 
   const [showRotateDelegatedKeys, setShowRotateDelegatedKeys] = useState(false);
   const [roleName, setRoleName] = useState('default');
   const [keyCount, setKeyCount] = useState(1);
   const [threshold, setThreshold] = useState(1);
-  const [selectedKeyType, setSelectedKeyType] = useState<KeyAlgorithm>(DEFAULT_KEY_ALGORITHM);
-
-  const [rotateScript, setRotateScript] = useState('');
-  const [showRotateScript, setShowRotateScript] = useState(false);
-  const [targetsScript, setTargetsScript] = useState('');
-  const [showTargetsScript, setShowTargetsScript] = useState(false);
-  const [delegatedScript, setDelegatedScript] = useState('');
-  const [showDelegatedScript, setShowDelegatedScript] = useState(false);
-  const [requestScript, setRequestScript] = useState('');
-  const [showRequestScript, setShowRequestScript] = useState(false);
-  const [signScript, setSignScript] = useState('');
-  const [showSignScript, setShowSignScript] = useState(false);
-  const [updateKeyInfoScript, setUpdateKeyInfoScript] = useState('');
-  const [showUpdateKeyInfoScript, setShowUpdateKeyInfoScript] = useState(false);
 
   const [targetsMetadata, setTargetsMetadata] = useState<any>(null);
   const [delegatedMetadata, setDelegatedMetadata] = useState<any>(null);
@@ -129,84 +103,14 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
   const [signatureStatus, setSignatureStatus] = useState('');
   const [signatureStatusMessage, setSignatureStatusMessage] = useState('');
   const [signatureErrorMessage, setSignatureErrorMessage] = useState('');
-  const [targetsSignaturesRequired, setTargetsSignaturesRequired] = useState(2);
-  const [delegatedSignaturesRequired, setDelegatedSignaturesRequired] = useState(1);
 
   const [checkingSigningQueue, setCheckingSigningQueue] = useState(false);
   const [signingQueueMessage, setSigningQueueMessage] = useState('');
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
 
-  const adminName = userData?.owner || userData?.username || 'admin';
-  const roleFileTag = sanitizeRoleForFileTag(roleName);
   const normalizedRoleName = roleName.trim() || 'default';
 
-  const rotateScriptFileName = selectedApp
-    ? `rotate_delegated_role_keys_${selectedApp}_${adminName}.py`
-    : 'rotate_delegated_role_keys.py';
-  const createTargetsScriptFileName = selectedApp
-    ? `create_new_targets_metadata_delegation_rotation_${selectedApp}_${adminName}.py`
-    : 'create_new_targets_metadata_delegation_rotation.py';
-  const createDelegatedScriptFileName = selectedApp
-    ? `create_new_delegated_role_metadata_${selectedApp}_${adminName}.py`
-    : 'create_new_delegated_role_metadata.py';
-  const buildRequestScriptFileName = selectedApp
-    ? `build_delegated_rotation_request_${selectedApp}_${adminName}.py`
-    : 'build_delegated_rotation_request.py';
-  const signScriptFileName = selectedApp
-    ? `sign_metadata_for_api_${selectedApp}_${adminName}.py`
-    : 'sign_metadata_for_api.py';
-  const updateKeyInfoScriptFileName = selectedApp
-    ? `update_key_info_delegated_rotation_${selectedApp}_${adminName}.py`
-    : 'update_key_info_delegated_rotation.py';
-  const keyInfoFileName = selectedApp
-    ? `key_info_${selectedApp}_${adminName}.json`
-    : 'key_info.json';
-  const newRoleKeysInfoFileName = selectedApp
-    ? `new_${roleFileTag}_keys_info_${selectedApp}_${adminName}.json`
-    : 'new_role_keys_info.json';
-  const currentTargetsFileName = selectedApp
-    ? `current_targets_${selectedApp}_${adminName}.json`
-    : 'current_targets.json';
-  const currentDelegatedFileName = selectedApp
-    ? `current_${roleFileTag}_${selectedApp}_${adminName}.json`
-    : 'current_delegated.json';
-  const newTargetsMetadataFileName = selectedApp
-    ? `new_targets_metadata_${selectedApp}_${adminName}.json`
-    : 'new_targets_metadata.json';
-  const newDelegatedMetadataFileName = selectedApp
-    ? `new_${roleFileTag}_metadata_${selectedApp}_${adminName}.json`
-    : 'new_delegated_metadata.json';
-  const rotationRequestFileName = selectedApp
-    ? `rotation_request_${roleFileTag}_${selectedApp}_${adminName}.json`
-    : 'rotation_request.json';
-  const signTargetsPayloadPrefix = selectedApp
-    ? `sign_targets_payload_${roleFileTag}_${selectedApp}_${adminName}`
-    : 'sign_targets_payload';
-  const signDelegatedPayloadPrefix = selectedApp
-    ? `sign_${roleFileTag}_payload_${selectedApp}_${adminName}`
-    : 'sign_delegated_payload';
-
-  useEffect(() => {
-    setDelegatedSignaturesRequired(Math.max(1, threshold));
-  }, [threshold]);
-
-  const targetsSignCommands = Array.from({ length: Math.max(1, targetsSignaturesRequired) }, (_, index) => ({
-    metadataFile: newTargetsMetadataFileName,
-    role: 'targets',
-    keyArgName: '--key-info',
-    keyArgValue: keyInfoFileName,
-    keyIndex: index,
-    outputFile: `${signTargetsPayloadPrefix}_${index}.json`,
-  }));
-
-  const delegatedSignCommands = Array.from({ length: Math.max(1, delegatedSignaturesRequired) }, (_, index) => ({
-    metadataFile: newDelegatedMetadataFileName,
-    role: normalizedRoleName,
-    keyArgName: '--new-keys',
-    keyArgValue: newRoleKeysInfoFileName,
-    keyIndex: index,
-    outputFile: `${signDelegatedPayloadPrefix}_${index}.json`,
-  }));
+  const rotateCommand = `tuf-kms rotate delegated ${normalizedRoleName} \\\n  --keys ${keyCount} \\\n  --threshold ${threshold}`;
 
   const handleCopyToClipboard = async (value: string, successMessage: string) => {
     try {
@@ -270,80 +174,6 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
     } finally {
       setLoadingDelegatedMetadata(false);
     }
-  };
-
-  const buildGeneratorParams = () => ({
-    appName: selectedApp,
-    adminName,
-    roleName: normalizedRoleName,
-    roleFileTag,
-    keyCount,
-    threshold,
-    keyType: selectedKeyType,
-  });
-
-  const handleGenerateRotateScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    if (threshold < 1 || keyCount < 1 || threshold > keyCount) {
-      toastError('Invalid key count or threshold');
-      return;
-    }
-    setRotateScript(generateRotateDelegatedRoleKeysPythonScript(buildGeneratorParams()));
-    setShowRotateScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleGenerateTargetsScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    setTargetsScript(generateCreateNewTargetsDelegationMetadataPythonScript(buildGeneratorParams()));
-    setShowTargetsScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleGenerateDelegatedScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    setDelegatedScript(generateCreateNewDelegatedRoleMetadataPythonScript(buildGeneratorParams()));
-    setShowDelegatedScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleGenerateRequestScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    setRequestScript(generateBuildDelegatedRotationRequestPythonScript(buildGeneratorParams()));
-    setShowRequestScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleGenerateSignScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    setSignScript(generateSignMetadataForApiPythonScript(buildGeneratorParams()));
-    setShowSignScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const handleGenerateUpdateKeyInfoScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    setUpdateKeyInfoScript(generateUpdateKeyInfoDelegatedRotationPythonScript(buildGeneratorParams()));
-    setShowUpdateKeyInfoScript(false);
-    toastSuccess('Python script generated successfully!');
   };
 
   const handleSubmitRotationRequest = async () => {
@@ -547,80 +377,108 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
         onClick={() => setShowRotateDelegatedKeys(!showRotateDelegatedKeys)}
         className="flex items-center justify-between w-full text-left text-theme-primary hover:text-theme-button-primary transition-colors"
       >
-        <h2 className="text-lg font-bold font-roboto">Rotate Delegated Role Keys</h2>
+        <h2 className="text-lg font-bold">Rotate Delegated Role Keys</h2>
         <i className={`fas fa-chevron-${showRotateDelegatedKeys ? 'up' : 'down'}`}></i>
       </button>
 
       {showRotateDelegatedKeys && (
         <div className="mt-6 space-y-6">
           <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              This flow rotates the keys of a delegated role (for example, <code className="bg-theme-input px-1 rounded">default</code>).
+              It rewrites targets metadata with the new delegation and bumps the delegated role's own metadata, then signs both
+              through the signing API.
+            </p>
             <p className="text-theme-primary text-sm leading-relaxed">
-              This flow stages delegated role metadata rotation (for example, <code className="bg-theme-input px-1 rounded">default</code>)
-              and then signs both updated metadata files through the signing API.
+              Root is not involved: the change is authorised by the targets keys, which are online keys.
+              <code className="bg-theme-input px-1 rounded ml-1">tuf-kms rotate delegated</code> therefore does not ask for the root
+              passphrase.
             </p>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Flow parameters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Delegated role name</label>
-              <input
-                type="text"
-                value={roleName}
-                onChange={(e) => setRoleName(e.target.value)}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                placeholder="default"
-              />
-            </div>
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Number of keys</label>
-              <input
-                type="number"
-                min={1}
-                value={keyCount}
-                onChange={(e) => setKeyCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Role threshold</label>
-              <input
-                type="number"
-                min={1}
-                max={keyCount}
-                value={threshold}
-                onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-theme-primary mb-2 font-roboto">Key algorithm</label>
-              <select
-                value={selectedKeyType}
-                onChange={(e) => setSelectedKeyType(e.target.value as KeyAlgorithm)}
-                className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-              >
-                <option value="ed25519">ed25519</option>
-                <option value="ecdsa">ecdsa</option>
-                <option value="rsa">rsa</option>
-              </select>
-            </div>
-          </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 0: Get trusted metadata snapshot</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 1: Rotate delegated role keys</h2>
           <div className="space-y-4">
-            <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
-              <p className="text-theme-primary text-sm leading-relaxed">
-                Download and save two current files before rotation:
-                <code className="bg-theme-input px-1 rounded ml-1">{currentTargetsFileName}</code> and
-                <code className="bg-theme-input px-1 rounded ml-1">{currentDelegatedFileName}</code>.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-theme-primary mb-2">Delegated role name</label>
+                <input
+                  type="text"
+                  value={roleName}
+                  onChange={(e) => setRoleName(e.target.value)}
+                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                  placeholder="default"
+                />
+              </div>
+              <div>
+                <label className="block text-theme-primary mb-2">Number of keys</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={keyCount}
+                  onChange={(e) => setKeyCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-theme-primary mb-2">Role threshold</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={keyCount}
+                  value={threshold}
+                  onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
+                />
+              </div>
             </div>
+
+            <div>
+              <label className="block text-theme-primary mb-2">Run on the machine that holds the keystore</label>
+              <div className="bg-theme-input rounded-lg p-4 border border-theme">
+                <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{rotateCommand}</pre>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => handleCopyToClipboard(rotateCommand, 'Command copied to clipboard successfully!')}
+                    className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
+                  >
+                    <i className="fas fa-copy mr-1"></i>
+                    Copy Command
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+              <div className="flex items-start">
+                <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
+                <div className="flex-1">
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    The command fetches and verifies the current metadata itself, then writes:
+                  </p>
+                  <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
+                    <li><code className="bg-theme-input px-1 rounded">out/online-keys/</code> — the new {normalizedRoleName} keys, for Step 2</li>
+                    <li><code className="bg-theme-input px-1 rounded">out/delegated-rotation-request.json</code> — targets plus the delegated role metadata, for Step 3</li>
+                    <li><code className="bg-theme-input px-1 rounded">out/signatures/targets-*.json</code> and <code className="bg-theme-input px-1 rounded">out/signatures/{normalizedRoleName}-*.json</code> — the sign payloads, for Step 4</li>
+                  </ul>
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    New keys use the key type stored in <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code>. Both metadata
+                    files keep the lifetime they have now, and there is no flag to change it: the server recomputes both from
+                    its own settings the next time it re-signs, so any value chosen here would last only until the next
+                    artifact is published.
+                  </p>
+                  <p className="text-theme-primary text-sm leading-relaxed">
+                    <strong>No network on that machine?</strong> Run <code className="bg-theme-input px-1 rounded">tuf-kms fetch</code> where
+                    there is, carry <code className="bg-theme-input px-1 rounded">trust/</code> over, and add <code className="bg-theme-input px-1 rounded">--trust-dir /media/usb/trust</code>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex gap-2 items-center flex-wrap">
               <button
                 onClick={handleFetchCurrentTargets}
                 disabled={!selectedApp || loadingTargetsMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingTargetsMetadata ? (
                   <>
@@ -637,7 +495,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {targetsMetadata && (
                 <button
                   onClick={() => handleCopyToClipboard(JSON.stringify(targetsMetadata, null, 2), 'Targets metadata copied successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Targets Metadata
@@ -646,7 +504,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleFetchCurrentDelegated}
                 disabled={!selectedApp || loadingDelegatedMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingDelegatedMetadata ? (
                   <>
@@ -663,7 +521,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               {delegatedMetadata && (
                 <button
                   onClick={() => handleCopyToClipboard(JSON.stringify(delegatedMetadata, null, 2), 'Delegated metadata copied successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Delegated Metadata
@@ -710,219 +568,36 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 1: Generate delegated role keys</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 2: Copy the new keys to the server</h2>
           <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {rotateScriptFileName} {'\\'}
-              <br />
-              --role-name {normalizedRoleName} {'\\'}
-              <br />
-              --output-dir . {'\\'}
-              <br />
-              --count {keyCount} {'\\'}
-              <br />
-              --threshold {threshold} {'\\'}
-              <br />
-              --app-name {selectedApp} {'\\'}
-              <br />
-              --admin-name {adminName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateRotateScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {rotateScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(rotateScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {rotateScript && (
-              <div>
-                <button
-                  onClick={() => setShowRotateScript(!showRotateScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showRotateScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showRotateScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showRotateScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{rotateScript}</pre>
-                  </div>
-                )}
+            <div className="p-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
+              <div className="flex items-start">
+                <i className="fas fa-exclamation-triangle text-red-500 mr-3 mt-0.5 text-xl"></i>
+                <div className="flex-1">
+                  <p className="text-theme-primary text-sm leading-relaxed">
+                    Copy <code className="bg-theme-input px-1 rounded">out/online-keys/*</code> into <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> on
+                    the faynosync API server <strong>before</strong> staging the rotation below. The server signs {normalizedRoleName} with
+                    those keys and cannot do it without the files.
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 2: Build new targets metadata with updated delegation</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 3: Stage metadata on backend</h2>
           <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {createTargetsScriptFileName} {'\\'}
-              <br />
-              --current-targets {currentTargetsFileName} {'\\'}
-              <br />
-              --new-keys {newRoleKeysInfoFileName} {'\\'}
-              <br />
-              --role-name {normalizedRoleName} {'\\'}
-              <br />
-              --output {newTargetsMetadataFileName}
+            <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+              <p className="text-theme-primary text-sm leading-relaxed">
+                Paste the contents of <code className="bg-theme-input px-1 rounded">out/delegated-rotation-request.json</code> here.
+              </p>
             </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateTargetsScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {targetsScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(targetsScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {targetsScript && (
-              <div>
-                <button
-                  onClick={() => setShowTargetsScript(!showTargetsScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showTargetsScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showTargetsScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showTargetsScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{targetsScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 3: Build new delegated role metadata</h2>
-          <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {createDelegatedScriptFileName} {'\\'}
-              <br />
-              --current {currentDelegatedFileName} {'\\'}
-              <br />
-              --role-name {normalizedRoleName} {'\\'}
-              <br />
-              --output {newDelegatedMetadataFileName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateDelegatedScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {delegatedScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(delegatedScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {delegatedScript && (
-              <div>
-                <button
-                  onClick={() => setShowDelegatedScript(!showDelegatedScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showDelegatedScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showDelegatedScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showDelegatedScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{delegatedScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 4: Build rotation request payload</h2>
-          <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {buildRequestScriptFileName} {'\\'}
-              <br />
-              --role-name {normalizedRoleName} {'\\'}
-              <br />
-              --targets-metadata {newTargetsMetadataFileName} {'\\'}
-              <br />
-              --delegated-metadata {newDelegatedMetadataFileName} {'\\'}
-              <br />
-              --delegator targets {'\\'}
-              <br />
-              --output {rotationRequestFileName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateRequestScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {requestScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(requestScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {requestScript && (
-              <div>
-                <button
-                  onClick={() => setShowRequestScript(!showRequestScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showRequestScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showRequestScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showRequestScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{requestScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 5: Stage metadata on backend</h2>
-          <div className="space-y-4">
             <textarea
               value={rotationRequestPayload}
               onChange={(e) => {
                 setRotationRequestPayload(e.target.value);
                 setRotationRequestError('');
               }}
-              placeholder={`Paste ${rotationRequestFileName} JSON payload here...`}
+              placeholder="Paste the contents of out/delegated-rotation-request.json here..."
               rows={8}
               className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
                 rotationRequestError ? 'border-red-500' : 'border-theme'
@@ -932,7 +607,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             <button
               onClick={handleSubmitRotationRequest}
               disabled={!selectedApp || !rotationRequestPayload.trim() || submittingRotationRequest}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submittingRotationRequest ? (
                 <>
@@ -948,161 +623,19 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </button>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 6: Check signing queue status</h2>
-          <div className="space-y-4">
-            <button
-              onClick={handleCheckSigningQueue}
-              disabled={!selectedApp || checkingSigningQueue}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {checkingSigningQueue ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Checking...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-check-circle mr-2"></i>
-                  Check Signing Queue
-                </>
-              )}
-            </button>
-            {signingQueueMessage && (
-              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-                <p className="text-theme-primary text-sm">{signingQueueMessage}</p>
-              </div>
-            )}
+          <h2 className="text-lg font-bold text-theme-primary">Step 4: Submit each sign payload</h2>
+          <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              Submit the files from <code className="bg-theme-input px-1 rounded">out/signatures/</code> one at a time — the
+              <code className="bg-theme-input px-1 rounded mx-1">targets-*</code> payloads first, then the
+              <code className="bg-theme-input px-1 rounded mx-1">{normalizedRoleName}-*</code> ones. Each file already carries its own
+              role, so paste it as it is.
+            </p>
+            <p className="text-theme-primary text-sm leading-relaxed">
+              "Threshold not reached" between payloads is expected. Use "Check Status" to see what the signing queue is still
+              waiting for.
+            </p>
           </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 7: Generate sign payloads with one script (targets + delegated)</h2>
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-              <p className="text-theme-primary text-sm leading-relaxed">
-                Use <code className="bg-theme-input px-1 rounded">{signScriptFileName}</code> for both targets and delegated signing.
-                Only parameters change. Number of runs depends on signatures required for each role.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Targets signatures required</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={targetsSignaturesRequired}
-                  onChange={(e) => setTargetsSignaturesRequired(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Delegated signatures required</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={delegatedSignaturesRequired}
-                  onChange={(e) => setDelegatedSignaturesRequired(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                />
-                <p className="text-theme-secondary text-xs mt-1">
-                  Auto-filled from delegated threshold in Step 1, but can be changed.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-3 bg-theme-input rounded-lg border border-theme">
-              <p className="text-theme-primary text-sm">
-                Total sign script runs: <strong>{targetsSignaturesRequired + delegatedSignaturesRequired}</strong>
-              </p>
-            </div>
-
-            <h3 className="text-base font-bold font-roboto text-theme-primary">7A. Targets payloads (old targets keys)</h3>
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              {targetsSignCommands.map((command, index) => (
-                <React.Fragment key={`targets-sign-command-${command.keyIndex}`}>
-                  {index > 0 && (
-                    <>
-                      <br />
-                    </>
-                  )}
-                  python3 {signScriptFileName} {'\\'}
-                  <br />
-                  --metadata {command.metadataFile} {'\\'}
-                  <br />
-                  --role {command.role} {'\\'}
-                  <br />
-                  {command.keyArgName} {command.keyArgValue} {'\\'}
-                  <br />
-                  --key-index {command.keyIndex} {'\\'}
-                  <br />
-                  --output {command.outputFile}
-                  <br />
-                </React.Fragment>
-              ))}
-            </div>
-
-            <h3 className="text-base font-bold font-roboto text-theme-primary">7B. Delegated payloads (new delegated keys)</h3>
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              {delegatedSignCommands.map((command, index) => (
-                <React.Fragment key={`delegated-sign-command-${command.keyIndex}`}>
-                  {index > 0 && (
-                    <>
-                      <br />
-                    </>
-                  )}
-                  python3 {signScriptFileName} {'\\'}
-                  <br />
-                  --metadata {command.metadataFile} {'\\'}
-                  <br />
-                  --role {command.role} {'\\'}
-                  <br />
-                  {command.keyArgName} {command.keyArgValue} {'\\'}
-                  <br />
-                  --key-index {command.keyIndex} {'\\'}
-                  <br />
-                  --output {command.outputFile}
-                  <br />
-                </React.Fragment>
-              ))}
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateSignScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {signScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(signScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {signScript && (
-              <div>
-                <button
-                  onClick={() => setShowSignScript(!showSignScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showSignScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showSignScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showSignScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{signScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 8: Submit each sign payload to API</h2>
           <div className="space-y-4">
             <textarea
               value={signaturePayload}
@@ -1147,7 +680,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleSubmitSignaturePayload}
                 disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingSignature ? (
                   <>
@@ -1165,7 +698,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleCheckSigningQueue}
                 disabled={!selectedApp || checkingSigningQueue}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {checkingSigningQueue ? (
                   <>
@@ -1183,7 +716,7 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
               <button
                 onClick={handleDeleteSigningMetadata}
                 disabled={!selectedApp || deletingSigningMetadata}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingSigningMetadata ? (
                   <>
@@ -1200,52 +733,27 @@ export const RotateDelegatedKeys: React.FC<RotateDelegatedKeysProps> = ({
             </div>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 9: Update local key info</h2>
-          <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {updateKeyInfoScriptFileName} {'\\'}
-              <br />
-              --key-info {keyInfoFileName} {'\\'}
-              <br />
-              --new-keys {newRoleKeysInfoFileName} {'\\'}
-              <br />
-              --role-name {normalizedRoleName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={handleGenerateUpdateKeyInfoScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {updateKeyInfoScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(updateKeyInfoScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {updateKeyInfoScript && (
-              <div>
-                <button
-                  onClick={() => setShowUpdateKeyInfoScript(!showUpdateKeyInfoScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showUpdateKeyInfoScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showUpdateKeyInfoScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showUpdateKeyInfoScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{updateKeyInfoScript}</pre>
-                  </div>
-                )}
+            {signingQueueMessage && (
+              <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+                <p className="text-theme-primary text-sm">{signingQueueMessage}</p>
               </div>
             )}
+
+          <h2 className="text-lg font-bold text-theme-primary">Step 5: Promote the new keys</h2>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+              <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                Once the dashboard reports signing complete, run this on the machine that holds the keystore:
+              </p>
+              <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
+                <div className="whitespace-pre">tuf-kms fetch</div>
+              </div>
+              <p className="text-theme-primary text-sm leading-relaxed">
+                It re-verifies the repository and promotes the new {normalizedRoleName} keys from pending to active. Nothing is
+                promoted until the repository actually serves them, so a rotation that never landed cannot leave the keystore
+                out of sync.
+              </p>
+            </div>
           </div>
         </div>
       )}

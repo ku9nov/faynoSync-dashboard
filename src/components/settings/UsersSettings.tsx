@@ -425,7 +425,7 @@ export const UsersSettings: React.FC = () => {
         <div className="mb-4 flex justify-end">
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200"
           >
             <i className="fas fa-user-plus mr-2"></i>
             Create User

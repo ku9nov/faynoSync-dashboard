@@ -82,7 +82,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
 
     return (
       <div
-        className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
         onClick={() => setSelectedResultEntry(null)}
       >
         <div
@@ -142,7 +142,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
     return (
       <>
         <div className="bg-theme-card p-6 rounded-lg border border-theme-card-hover">
-          <h2 className="text-lg font-bold font-roboto text-theme-primary mb-4">History</h2>
+          <h2 className="text-lg font-bold text-theme-primary mb-4">History</h2>
           {history.length === 0 ? (
             <p className="text-theme-primary opacity-70 text-center py-4">No history yet</p>
           ) : (
@@ -223,7 +223,7 @@ export const HistoryTable: React.FC<HistoryProps> = ({
           onClick={() => setShowHistory(!showHistory)}
           className="flex items-center justify-between w-full text-theme-primary hover:text-theme-button-primary"
         >
-          <h2 className="text-lg font-bold font-roboto">History</h2>
+          <h2 className="text-lg font-bold">History</h2>
           <i className={`fas fa-chevron-${showHistory ? 'up' : 'down'}`}></i>
         </button>
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UsersSettings } from '@/components/settings/UsersSettings';
+import { MODAL_CLOSE } from '@/components/common/ui';
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -63,7 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 grid place-items-center modal-overlay-high"
+      className="fixed inset-0 bg-black/60 grid place-items-center modal-overlay-high"
       style={{ zIndex: 11000 }}
     >
       <div 
@@ -72,8 +73,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         style={modalStyle}
       >
         {/* Sidebar */}
-        <div className="w-48 bg-theme-gradient p-4">
-          <h2 className="text-lg font-bold text-theme-primary mb-4">Settings</h2>
+        <div className="w-48 border-r border-white/15 bg-theme-gradient p-4">
+          <h2 className="mb-4 text-lg font-bold text-theme-primary">Settings</h2>
           <nav>
             {menuItems.map((item) => (
               <button
@@ -86,10 +87,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     setCurrentPage(item.id as SettingsPage);
                   }
                 }}
-                className={`w-full text-left px-3 py-1.5 rounded-lg mb-1.5 flex items-center text-sm ${
+                className={`mb-1.5 flex w-full items-center rounded-lg border px-3 py-1.5 text-left text-sm transition-colors ${
                   currentPage === item.id
-                    ? 'bg-theme-button-primary bg-opacity-50 text-theme-primary'
-                    : 'text-theme-primary hover:bg-theme-button-primary-hover hover:bg-opacity-50'
+                    ? 'border-violet-400/50 bg-violet-500/20 font-semibold text-theme-primary'
+                    : 'border-transparent text-white/75 hover:bg-white/10 hover:text-theme-primary'
                 }`}
               >
                 <i className={`fas ${item.icon} mr-2`}></i>
@@ -106,10 +107,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <h1 className="text-xl font-bold text-theme-primary">
               {menuItems.find(item => item.id === currentPage)?.label}
             </h1>
-            <button
-              onClick={onClose}
-              className="text-theme-primary hover:text-theme-danger"
-            >
+            <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
               <i className="fas fa-times text-lg"></i>
             </button>
           </div>

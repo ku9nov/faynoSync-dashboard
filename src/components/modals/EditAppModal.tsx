@@ -2,6 +2,20 @@ import React, { useState } from 'react';
 import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
 import { BaseModal } from '@/components/common/BaseModal';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import {
+  ACTION_BUTTON,
+  ACTION_GROUP,
+  BTN_GHOST,
+  BTN_PRIMARY,
+  DROPZONE,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  ROW,
+  ROW_META,
+  ROW_TILE,
+  ROW_TITLE,
+} from '@/components/common/ui';
 
 interface EditAppModalProps {
   onClose: () => void;
@@ -122,72 +136,51 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-theme-primary mb-2 font-roboto font-semibold">App Name</label>
+          <label className={FIELD_LABEL}>App Name</label>
           <input
             type="text"
             value={formData.app}
             onChange={(e) => setFormData(prev => ({ ...prev, app: e.target.value }))}
-            className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+            className={FIELD_INPUT}
             required
             placeholder="Enter app name"
           />
         </div>
 
         <div>
-          <label className="block text-theme-primary mb-2 font-roboto font-semibold">Description</label>
+          <label className={FIELD_LABEL}>Description</label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
+            className={FIELD_INPUT}
             rows={4}
             placeholder="Enter app description"
           />
         </div>
 
-        <div className="mb-6 flex items-start">
-          <input
-            type="checkbox"
-            id="tuf"
+        <div className="mb-6 flex flex-col gap-2">
+          <FlagCheckbox
+            label="Enable TUF"
+            description="Sign this application's artifacts with The Update Framework"
             checked={formData.tuf}
-            onChange={(e) => setFormData(prev => ({ ...prev, tuf: e.target.checked }))}
-            className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+            onChange={(checked) => setFormData(prev => ({ ...prev, tuf: checked }))}
           />
-          <label htmlFor="tuf" className="text-theme-primary font-roboto cursor-pointer select-none">
-            <div className="font-semibold">Enable tuf</div>
-            <div className="text-sm text-purple-200">Enable TUF (The Update Framework) for this application</div>
-          </label>
-        </div>
-
-        <div className="mb-6 flex items-start">
-          <input
-            type="checkbox"
-            id="reports"
+          <FlagCheckbox
+            label="Enable reports"
+            description="Collect update reports for this application"
             checked={formData.reports}
-            onChange={(e) => setFormData(prev => ({ ...prev, reports: e.target.checked }))}
-            className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+            onChange={(checked) => setFormData(prev => ({ ...prev, reports: checked }))}
           />
-          <label htmlFor="reports" className="text-theme-primary font-roboto cursor-pointer select-none">
-            <div className="font-semibold">Enable reports</div>
-            <div className="text-sm text-purple-200">Enable Reports for this application</div>
-          </label>
-        </div>
-
-        <div className="mb-6 flex items-start">
-          <input
-            type="checkbox"
-            id="cdn"
+          <FlagCheckbox
+            label="Enable CDN"
+            description="Serve artifacts through a CDN edge"
             checked={formData.cdn}
-            onChange={(e) => setFormData(prev => ({ ...prev, cdn: e.target.checked }))}
-            className="mt-1 mr-3 accent-purple-500 w-5 h-5 border border-theme rounded transition-all duration-150 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 bg-theme-input shadow-sm"
+            onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
           />
-          <label htmlFor="cdn" className="text-theme-primary font-roboto cursor-pointer select-none">
-            <div className="font-semibold">Enable CDN</div>
-            <div className="text-sm text-purple-200">Serve artifacts through CDN for this application</div>
-          </label>
         </div>
 
         <div>
-          <label className="block text-theme-primary mb-2 font-roboto font-semibold">Logo</label>
+          <label className={FIELD_LABEL}>Logo</label>
           <div className="relative">
             <input
               ref={fileInputRef}
@@ -197,36 +190,35 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
               id="file-upload"
               accept="image/*"
             />
-            <label
-              htmlFor="file-upload"
-              className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Choose Logo
+            <label htmlFor="file-upload" className={DROPZONE}>
+              <i className="fas fa-plus"></i>
+              Choose a logo
             </label>
           </div>
           {formData.file && (
-            <div className="mt-4 flex items-center justify-between bg-theme-input bg-opacity-50 p-3 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <div>
-                  <div className="text-theme-primary font-roboto">{formData.file.name}</div>
-                  <div className="text-purple-200 text-sm font-roboto">{formatFileSize(formData.file.size)}</div>
+            <div className={`${ROW} mt-2`}>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className={ROW_TILE}>
+                  <i className="fas fa-image text-white/90"></i>
+                </span>
+                <div className="min-w-0">
+                  <p className={ROW_TITLE}>{formData.file.name}</p>
+                  <div className={ROW_META}>
+                    <span>{formatFileSize(formData.file.size)}</span>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, file: null }))}
-                className="text-theme-primary hover:text-red-300 transition-colors duration-200"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className={ACTION_GROUP}>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, file: null }))}
+                  className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
+                  title="Remove file"
+                  aria-label="Remove file"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -236,18 +228,18 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className={BTN_GHOST}
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="bg-theme-button-submit text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-submit-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className={`${BTN_PRIMARY} flex items-center gap-2`}
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-theme-primary mr-2"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
                 Updating...
               </>
             ) : (

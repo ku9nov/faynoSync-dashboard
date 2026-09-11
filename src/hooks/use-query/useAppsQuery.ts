@@ -59,6 +59,64 @@ export interface VersionFilters {
   arch: string;
 }
 
+export type BulkDeleteOutcome = {
+  deletedIds: string[];
+  orphanedLinks: string[];
+  remainingIds: string[];
+  error: string | null;
+};
+
+// Mirrors MAX_BULK_DELETE_VERSIONS on the server. A page holds 9 versions, so a
+// page-wide selection still goes out as one all-or-nothing request.
+const BULK_DELETE_CHUNK = 10;
+
+const buildSearchParams = (
+  appName: string,
+  page: number,
+  limit: number,
+  filters?: VersionFilters,
+) => {
+  const params = new URLSearchParams({
+    app_name: appName,
+    limit: limit.toString(),
+    page: page.toString(),
+  });
+
+  if (filters) {
+    if (filters.channel) params.append('channel', filters.channel);
+    if (filters.published !== null) params.append('published', filters.published.toString());
+    if (filters.critical !== null) params.append('critical', filters.critical.toString());
+    if (filters.platform) params.append('platform', filters.platform);
+    if (filters.arch) params.append('arch', filters.arch);
+  }
+
+  return params;
+};
+
+const requestVersionDelete = async (ids: string[]) => {
+  const params = new URLSearchParams();
+  ids.forEach(id => params.append('id', id));
+  const response = await axiosInstance.delete(`/apps/delete?${params.toString()}`);
+  return response.data;
+};
+
+const describeDeleteError = (err: unknown): string => {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+  if (!data) {
+    return (err as Error)?.message || 'Failed to delete versions';
+  }
+
+  const parts = [String(data.error || 'Failed to delete versions')];
+  if (data.details) parts.push(String(data.details));
+  for (const key of ['forbidden', 'not_found', 'apps'] as const) {
+    const list = data[key];
+    if (Array.isArray(list) && list.length > 0) {
+      parts.push(`${key.replace('_', ' ')}: ${list.join(', ')}`);
+    }
+  }
+  return parts.join(' - ');
+};
+
 export const useAppsQuery = (
   appName?: string, 
   page: number = 1, 
@@ -71,21 +129,7 @@ export const useAppsQuery = (
     queryKey: ['apps', appName, page, refreshKey, filters],
     queryFn: async () => {
       if (appName) {
-        const params = new URLSearchParams({
-          app_name: appName,
-          limit: '9',
-          page: page.toString()
-        });
-
-        // Add filters to params if they exist
-        if (filters) {
-          if (filters.channel) params.append('channel', filters.channel);
-          if (filters.published !== null) params.append('published', filters.published.toString());
-          if (filters.critical !== null) params.append('critical', filters.critical.toString());
-          if (filters.platform) params.append('platform', filters.platform);
-          if (filters.arch) params.append('arch', filters.arch);
-        }
-
+        const params = buildSearchParams(appName, page, 9, filters);
         const response = await axiosInstance.get(`/search?${params.toString()}`);
         return response.data;
       } else {
@@ -154,9 +198,8 @@ export const useAppsQuery = (
   });
 
   const deleteAppMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await axiosInstance.delete(`/apps/delete?id=${id}`);
-    },
+    mutationFn: async (ids: string | string[]) =>
+      requestVersionDelete(Array.isArray(ids) ? ids : [ids]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['apps'] });
     },
@@ -218,6 +261,54 @@ export const useAppsQuery = (
     await deleteAppMutation.mutateAsync(id);
   };
 
+  // The server refuses more ids than MAX_BULK_DELETE_VERSIONS, so a selection wider
+  // than one page goes out in chunks. Each chunk is atomic on its own; the run stops
+  // at the first failing chunk so the report can name what is still there.
+  const deleteVersions = async (
+    ids: string[],
+    onProgress?: (done: number, total: number) => void,
+  ): Promise<BulkDeleteOutcome> => {
+    const deletedIds: string[] = [];
+    const orphanedLinks: string[] = [];
+    let chunkSize = BULK_DELETE_CHUNK;
+    let index = 0;
+
+    while (index < ids.length) {
+      const chunk = ids.slice(index, index + chunkSize);
+      try {
+        const data = await requestVersionDelete(chunk);
+        if (Array.isArray(data?.orphaned_links)) {
+          orphanedLinks.push(...data.orphaned_links);
+        }
+        deletedIds.push(...chunk);
+        index += chunk.length;
+        onProgress?.(deletedIds.length, ids.length);
+      } catch (err) {
+        const data = (err as { response?: { data?: { limit?: number } } })?.response?.data;
+        const serverLimit = typeof data?.limit === 'number' ? data.limit : 0;
+        if (serverLimit > 0 && serverLimit < chunkSize) {
+          chunkSize = serverLimit;
+          continue;
+        }
+        return {
+          deletedIds,
+          orphanedLinks,
+          remainingIds: ids.slice(index),
+          error: describeDeleteError(err),
+        };
+      }
+    }
+
+    return { deletedIds, orphanedLinks, remainingIds: [], error: null };
+  };
+
+  const fetchAllMatchingVersions = async (total: number): Promise<AppVersion[]> => {
+    if (!appName || total <= 0) return [];
+    const params = buildSearchParams(appName, 1, total, filters);
+    const response = await axiosInstance.get(`/search?${params.toString()}`);
+    return (response.data?.items || []) as AppVersion[];
+  };
+
   const deleteArtifact = async (id: string, appName: string, version: string, artifactIndex: number) => {
     await deleteArtifactMutation.mutateAsync({ id, appName, version, artifactIndex });
   };
@@ -235,5 +326,5 @@ export const useAppsQuery = (
     return undefined;
   };
 
-  return { apps, updateApp, deleteApp, getVersionById, deleteArtifact, isLoading, refetch };
+  return { apps, updateApp, deleteApp, deleteVersions, fetchAllMatchingVersions, getVersionById, deleteArtifact, isLoading, refetch };
 }; 

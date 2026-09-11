@@ -3,6 +3,21 @@ import { useBackdropClose } from '../../hooks/useBackdropClose';
 import { Artifact } from '@/hooks/use-query/useAppsQuery';
 import axiosInstance from '@/config/axios';
 import { copyToClipboard } from '@/utils/clipboard';
+import { getPlatformIcon } from '@/utils/platformIcon';
+import {
+  ACTION_BUTTON,
+  ACTION_GROUP,
+  BTN_GHOST,
+  MODAL_CLOSE,
+  MODAL_HEADER,
+  MODAL_OVERLAY,
+  MODAL_SURFACE,
+  MODAL_TITLE,
+  ROW_META,
+  ROW_TILE,
+  ROW_TITLE,
+  STATUS_BADGE,
+} from '@/components/common/ui';
 
 interface DownloadArtifactsModalProps {
   artifacts: Artifact[];
@@ -88,98 +103,84 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center animate-fade-in modal-overlay-high"
-      {...backdropProps}
-    >
-      <div className="bg-theme-modal-gradient p-8 rounded-lg w-96 max-h-[80vh] overflow-y-auto flex flex-col">
-        <h2 className="text-2xl font-bold mb-4 text-theme-primary font-roboto">
-          Select Artifact to Download
-        </h2>
+    <div className={MODAL_OVERLAY} {...backdropProps}>
+      <div className={`${MODAL_SURFACE} flex w-[460px] max-h-[80vh] flex-col overflow-y-auto`}>
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>Download artifact</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
         {copyError && (
-          <div className="mb-4 p-2 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500 text-sm">
+          <div className="mb-4 rounded-lg border border-red-500/45 bg-violet-950/40 px-3 py-2 text-sm text-red-200">
             {copyError}
           </div>
         )}
-        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
+        <div className="flex-1 space-y-2 overflow-y-auto pr-1">
           {artifacts.map((artifact, index) => (
             <div
               key={index}
-              className="bg-theme-card p-4 rounded-lg text-theme-primary hover:bg-theme-card-hover transition-colors cursor-pointer"
+              className="cursor-pointer rounded-lg border border-white/15 bg-violet-950/30 p-3 transition-colors hover:bg-violet-950/50"
               onClick={() => handleDownload(artifact)}
             >
-              <div className="flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-semibold">{artifact.platform}</p>
-                    <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
-                    <p className="text-sm text-gray-300">Package: {artifact.package}</p>
-                    {artifact.TufTaskID && (
-                      <div className="mt-1 flex items-center gap-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
-                          artifact.TufSigned 
-                            ? 'bg-green-500/20 text-green-300 border-green-400/30' 
-                            : 'bg-red-500/20 text-red-300 border-red-400/30'
-                        }`}>
-                          <svg 
-                            className="w-3 h-3" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth="2" 
-                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                            />
-                          </svg>
-                          TUF
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <i className="fas fa-download text-green-500 ml-4 flex-shrink-0"></i>
-                </div>
-                <div className="mt-3">
-                  <p className="text-sm text-gray-300 mb-1">Share link:</p>
-                  <div className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="overflow-x-auto pb-1" style={{
-                        maxWidth: 'calc(24rem - 64px)',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'rgb(107 114 128) transparent'
-                      }}>
-                        <p className="text-base text-gray-200 whitespace-nowrap pr-2 font-mono">
-                          {artifact.link}
-                        </p>
-                      </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className={ROW_TILE}>
+                    <i className={`${getPlatformIcon(artifact.platform)} text-white/90`}></i>
+                  </span>
+                  <div className="min-w-0">
+                    <p className={ROW_TITLE}>{artifact.platform}</p>
+                    <div className={ROW_META}>
+                      <span>{artifact.arch}</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="truncate">{artifact.package}</span>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopyLink(artifact.link, index);
-                      }}
-                      className="p-1 hover:bg-theme-card-hover rounded transition-colors flex-shrink-0"
-                      title="Copy link"
-                    >
-                      <i className={`fas ${copiedIndex === index ? 'fa-check text-green-500' : 'fa-copy text-gray-300'}`}></i>
-                    </button>
                   </div>
+                  {artifact.TufTaskID && (
+                    <span
+                      className={`${STATUS_BADGE} shrink-0 ${
+                        artifact.TufSigned ? 'text-green-300 border-green-500/40' : 'text-red-300 border-red-500/45'
+                      }`}
+                    >
+                      <i className="fas fa-shield-alt text-[11px]"></i>
+                      {artifact.TufSigned ? 'signed' : 'unsigned'}
+                    </span>
+                  )}
                 </div>
+                <i className="fas fa-download shrink-0 text-green-400"></i>
+              </div>
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-white/10 bg-violet-950/40 px-2 py-1.5">
+                <p className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-white/70">
+                  {artifact.link}
+                </p>
+                <span className={ACTION_GROUP}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyLink(artifact.link, index);
+                    }}
+                    className={`${ACTION_BUTTON} ${
+                      copiedIndex === index ? 'text-green-400' : 'text-purple-300 hover:bg-purple-400/20'
+                    }`}
+                    title={copiedIndex === index ? 'Copied' : 'Copy link'}
+                    aria-label={copiedIndex === index ? 'Copied' : 'Copy link'}
+                  >
+                    <i className={`fas ${copiedIndex === index ? 'fa-check' : 'fa-copy'}`}></i>
+                  </button>
+                </span>
               </div>
             </div>
           ))}
         </div>
         <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
-          >
+          <button onClick={onClose} className={BTN_GHOST}>
             Close
           </button>
         </div>
       </div>
     </div>
   );
-}; 
+};

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useBackdropClose } from '../../hooks/useBackdropClose';
+import { ModalFeedback } from './ModalFeedback';
+import { MODAL_CLOSE, MODAL_HEADER, MODAL_OVERLAY, MODAL_SURFACE, MODAL_TITLE } from './ui';
 
 interface BaseModalProps {
   title: string;
@@ -24,78 +26,21 @@ export const BaseModal: React.FC<BaseModalProps> = ({
   setError,
   className = '',
 }) => {
-  const [showDetails, setShowDetails] = useState(false);
-
   const backdropProps = useBackdropClose(onClose);
 
   return (
-    <div 
-      className="fixed inset-0 flex items-center justify-center animate-fade-in modal-overlay-high"
-      {...backdropProps}
-    >
-      <div className={`bg-theme-modal-gradient p-8 rounded-lg ${className}`}>
-        {isLoading && (
-          <div className="fixed top-4 right-4 bg-theme-button-primary text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50">
-            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-theme-primary"></div>
-            <span className="font-roboto">Processing...</span>
-          </div>
-        )}
-        {isSuccess && (
-          <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-50 animate-fade-in">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="font-roboto">{successMessage}</span>
-          </div>
-        )}
-        {error && (
-          <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[60] animate-fade-in">
-            <div className="flex items-center space-x-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-roboto">Error: {error.error}</span>
-              {error.details && (
-                <button
-                  onClick={() => setShowDetails(!showDetails)}
-                  className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-                >
-                  <svg
-                    className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              )}
-              {setError && (
-                <button
-                  onClick={() => setError(null)}
-                  className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {showDetails && error.details && (
-              <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-                {error.details}
-              </div>
-            )}
-          </div>
-        )}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-theme-primary font-roboto">
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-theme-primary hover:text-theme-primary-hover transition-colors duration-200"
-          >
+    <div className={MODAL_OVERLAY} {...backdropProps}>
+      <div className={`${MODAL_SURFACE} ${className}`}>
+        <ModalFeedback
+          isLoading={isLoading}
+          isSuccess={isSuccess}
+          successMessage={successMessage}
+          error={error}
+          setError={setError}
+        />
+        <div className={MODAL_HEADER}>
+          <h2 className={MODAL_TITLE}>{title}</h2>
+          <button onClick={onClose} className={MODAL_CLOSE} aria-label="Close">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -105,4 +50,4 @@ export const BaseModal: React.FC<BaseModalProps> = ({
       </div>
     </div>
   );
-}; 
+};

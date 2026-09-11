@@ -1,8 +1,9 @@
 import React from 'react';
-import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse } from '@/hooks/use-query/useAppsQuery';
+import { useAppsQuery, AppVersion, AppListItem, ChangelogEntry, PaginatedResponse, BulkDeleteOutcome } from '@/hooks/use-query/useAppsQuery';
 import { ActionIcons } from '@/components/ActionIcons';
 import { EditVersionModal } from '@/components/modals/EditVersionModal';
 import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal';
+import { DeleteVersionsConfirmationModal, SelectedVersion } from '@/components/modals/DeleteVersionsConfirmationModal';
 import { DownloadArtifactsModal } from '@/components/modals/DownloadArtifactsModal';
 import { EditAppModal } from '@/components/modals/EditAppModal';
 import { DeleteAppConfirmationModal } from '@/components/modals/DeleteAppConfirmationModal';
@@ -15,14 +16,29 @@ import { useArchitectureQuery } from '@/hooks/use-query/useArchitectureQuery';
 import { useChannelQuery } from '@/hooks/use-query/useChannelQuery';
 import { useToast } from '@/hooks/useToast';
 import ReactMarkdown from 'react-markdown';
+import { getPlatformIcon } from '@/utils/platformIcon';
+import { useAppDataQuery } from '@/hooks/use-query/useAppDataQuery';
+import { AppLogo } from '@/components/common/AppLogo';
+import { Dropdown } from '@/components/common/Dropdown';
 import '@/styles/cards.css';
 
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
-};
+import {
+  BTN_DANGER,
+  PLATFORM_CHIP,
+  SECTION_LABEL,
+  STATUS_BADGE,
+  STATUS_DOT,
+  TUF_BADGE_STYLE,
+} from '@/components/common/ui';
+
+// Fixed-height slots for the optional bits of the bottom block. Reserving the space
+// costs a little emptiness on simple versions and buys every tile in a row the same
+// baseline for its changelog and actions.
+const TUF_SLOT = 'min-h-[41px]';
+const CHANGELOG_SLOT = 'mt-3 min-h-[42px]';
+const FOOTER_SLOT = 'mt-4 min-h-[40px]';
+
+const SECTION = `${SECTION_LABEL} mt-5 mb-2`;
 
 interface DashboardProps {
   selectedApp: string | null;
@@ -72,31 +88,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     arch: ''
   });
 
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
-
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
-
-  const handleOptionClick = (dropdownName: string, value: any) => {
-    setFilters(prev => ({ ...prev, [dropdownName]: value }));
-    setOpenDropdown(null);
-  };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   React.useEffect(() => {
     if (!selectedApp || typeof window === 'undefined') {
       return;
@@ -109,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const { architectures } = useArchitectureQuery();
   const { channels } = useChannelQuery();
 
-  const { apps, updateApp, deleteApp, isLoading } = useAppsQuery(
+  const { apps, updateApp, deleteApp, deleteVersions, fetchAllMatchingVersions, isLoading } = useAppsQuery(
     selectedApp || undefined, 
     currentPage, 
     refreshKey,
@@ -128,6 +119,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [hoveredArtifactsPopoverId, setHoveredArtifactsPopoverId] = React.useState<string | null>(null);
   const [suppressHoverArtifactsPopoverId, setSuppressHoverArtifactsPopoverId] = React.useState<string | null>(null);
   const [isRegeneratingReportKey, setIsRegeneratingReportKey] = React.useState(false);
+  const [selectionMode, setSelectionMode] = React.useState(false);
+  const [selection, setSelection] = React.useState<Map<string, SelectedVersion>>(new Map());
+  const [isSelectingAll, setIsSelectingAll] = React.useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = React.useState(false);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -153,16 +148,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const filteredAppList = useSearch(appList, searchTerm) as AppListItem[];
 
-  const { data: appData } = useQuery({
-    queryKey: ['appData', selectedApp],
-    queryFn: async () => {
-      if (!selectedApp) return null;
-      const response = await axiosInstance.get('/app/list');
-      const app = response.data.apps.find((a: AppListItem) => a.AppName === selectedApp);
-      return app || null;
-    },
-    enabled: !!selectedApp,
-  });
+  const { data: appData } = useAppDataQuery(selectedApp);
 
   const { data: reportKeysData, isLoading: isReportKeysLoading } = useQuery({
     queryKey: ['reportKeys', selectedApp],
@@ -318,6 +304,73 @@ export const Dashboard: React.FC<DashboardProps> = ({
     queryClient.invalidateQueries({ queryKey: ['apps'] });
   };
 
+  // Selection is page-local on purpose: what is selected must stay on screen, so
+  // anything that changes the visible set drops it. "Select all matching" is the
+  // one deliberate exception and it announces its own count.
+  React.useEffect(() => {
+    setSelectionMode(false);
+    setSelection(new Map());
+  }, [selectedApp, currentPage, filters]);
+
+  const toggleSelection = (app: AppVersion) => {
+    setSelection(prev => {
+      const next = new Map(prev);
+      if (next.has(app.ID)) {
+        next.delete(app.ID);
+      } else {
+        next.set(app.ID, { id: app.ID, version: app.Version, channel: app.Channel });
+      }
+      return next;
+    });
+  };
+
+  const handleSelectPage = () => {
+    setSelection(new Map(
+      appVersions.map(app => [app.ID, { id: app.ID, version: app.Version, channel: app.Channel }])
+    ));
+  };
+
+  const handleSelectAllMatching = async () => {
+    setIsSelectingAll(true);
+    try {
+      const all = await fetchAllMatchingVersions(paginatedVersions.total);
+      setSelection(new Map(
+        all.map(app => [app.ID, { id: app.ID, version: app.Version, channel: app.Channel }])
+      ));
+    } catch {
+      toastError('Failed to load all matching versions');
+    } finally {
+      setIsSelectingAll(false);
+    }
+  };
+
+  const handleBulkDeleteConfirm = async (
+    ids: string[],
+    onProgress: (done: number, total: number) => void,
+  ): Promise<BulkDeleteOutcome> => {
+    const outcome = await deleteVersions(ids, onProgress);
+
+    setSelection(prev => {
+      const next = new Map(prev);
+      outcome.deletedIds.forEach(id => next.delete(id));
+      return next;
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ['apps'] });
+    await queryClient.refetchQueries({ queryKey: ['apps'] });
+
+    if (outcome.deletedIds.length > 0) {
+      toastSuccess(`Deleted ${outcome.deletedIds.length} version${outcome.deletedIds.length === 1 ? '' : 's'}`);
+    }
+    if (outcome.error) {
+      toastError(outcome.error);
+    } else {
+      setSelectionMode(false);
+    }
+
+    return outcome;
+  };
+
   const handleDeleteAppConfirm = async () => {
     if (selectedAppData) {
       try {
@@ -469,13 +522,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const getArtifactSummary = (artifacts: AppVersion['Artifacts']) => {
-    const groupedByPlatform = artifacts.reduce<Record<string, { count: number; label: string }>>((acc, artifact) => {
+    const groupedByPlatform = artifacts.reduce<Record<string, { count: number; label: string; unsigned: number }>>((acc, artifact) => {
       const rawPlatform = artifact.platform?.trim() || 'N/A';
       const key = rawPlatform.toLowerCase();
       if (!acc[key]) {
-        acc[key] = { count: 0, label: rawPlatform };
+        acc[key] = { count: 0, label: rawPlatform, unsigned: 0 };
       }
       acc[key].count += 1;
+      if (artifact.TufSigned === false) {
+        acc[key].unsigned += 1;
+      }
       return acc;
     }, {});
 
@@ -484,6 +540,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .map(([, value]) => ({
         count: value.count,
         label: value.label,
+        unsigned: value.unsigned,
       }));
 
     const visibleGroups = sortedGroups.slice(0, 3);
@@ -491,6 +548,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     return {
       visibleSummary: visibleGroups.map(item => `${item.label}(${item.count})`).join(' '),
+      visibleGroups,
       hiddenGroupsCount,
       details: artifacts.map(artifact => {
         const platform = artifact.platform?.trim() || 'N/A';
@@ -504,9 +562,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   if (selectedApp) {
     return (
       <div className="mt-8">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
         <button
           onClick={onBackClick}
-          className="mb-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+          className="self-start px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -523,78 +582,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </svg>
           Back
         </button>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 min-w-0">
-            {appData?.Logo ? (
-              <div className="relative w-12 h-12">
-                <img 
-                  src={appData.Logo} 
-                  alt={`${selectedApp} logo`}
-                  className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
-                  loading="lazy"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.opacity = '0';
-                    setTimeout(() => {
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
-                      target.style.opacity = '1';
-                    }, 300);
-                  }}
-                  onLoad={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.opacity = '1';
-                  }}
-                />
-                <div className="absolute inset-0 rounded-lg bg-theme-card animate-pulse" />
-                {appData?.Private && (
-                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
-                          <svg 
-                            className="w-3 h-3 text-theme-primary" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth="2" 
-                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                            />
-                          </svg>
-                        </div>
-                      )}
-              </div>
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-theme-card flex items-center justify-center">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className="text-theme-primary-hover"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <path d="M12 8v8"></path>
-                  <path d="M8 12h8"></path>
-                </svg>
-              </div>
-            )}
-            <h2 
-              className="text-2xl font-bold text-theme-primary truncate" 
-              title={selectedApp}
-            >
-              {selectedApp}
-            </h2>
-          </div>
 
           {appData?.Reports && (
             <div
-              className="relative group w-full lg:w-auto lg:min-w-[420px] h-12 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 flex items-center gap-2"
+              className="relative group w-full lg:w-auto lg:ml-auto lg:min-w-[420px] h-12 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 flex items-center gap-2"
             >
               <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-blue-200 flex-shrink-0">
                 <svg
@@ -614,11 +605,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </span>
 
               {isReportKeysLoading ? (
-                <p className="text-xs text-theme-primary/70 truncate">Loading...</p>
+                <p className="text-xs text-white/70 truncate">Loading...</p>
               ) : reportKeyForApp?.key_value ? (
                 <>
                   <p
-                    className="font-mono text-xs text-theme-primary/95 overflow-x-auto whitespace-nowrap flex-1 min-w-0"
+                    className="font-mono text-xs text-white/95 overflow-x-auto whitespace-nowrap flex-1 min-w-0"
                   >
                     {reportKeyForApp.key_value}
                   </p>
@@ -669,7 +660,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </>
               ) : (
-                <p className="text-xs text-theme-primary/70 truncate">Not available yet</p>
+                <p className="text-xs text-white/70 truncate">Not available yet</p>
               )}
 
               {reportKeyForApp?.key_value && (
@@ -684,228 +675,83 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Filters Section */}
         <div className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('channel')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.channel || 'All Channels'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'channel' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'channel' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('channel', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Channels
-                  </button>
-                  {channels.map(channel => (
-                    <button
-                      key={channel.ID}
-                      onClick={() => handleOptionClick('channel', channel.ChannelName)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {channel.ChannelName}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Channel"
+              placeholder="All channels"
+              value={filters.channel}
+              onChange={(channel) => setFilters(prev => ({ ...prev, channel }))}
+              options={[
+                { value: '', label: 'All channels' },
+                ...channels.map(channel => ({ value: channel.ChannelName, label: channel.ChannelName })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('platform')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.platform || 'All Platforms'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'platform' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('platform', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Platforms
-                  </button>
-                  {platforms.map(platform => (
-                    <button
-                      key={platform.ID}
-                      onClick={() => handleOptionClick('platform', platform.PlatformName)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {platform.PlatformName}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Platform"
+              placeholder="All platforms"
+              value={filters.platform}
+              onChange={(platform) => setFilters(prev => ({ ...prev, platform }))}
+              options={[
+                { value: '', label: 'All platforms' },
+                ...platforms.map(platform => ({
+                  value: platform.PlatformName,
+                  label: platform.PlatformName,
+                  icon: getPlatformIcon(platform.PlatformName),
+                })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('arch')}
-                className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span className="block min-w-0 flex-1 truncate text-left">{filters.arch || 'All Architectures'}</span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'arch' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('arch', '')}
-                    className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    All Architectures
-                  </button>
-                  {architectures.map(arch => (
-                    <button
-                      key={arch.ID}
-                      onClick={() => handleOptionClick('arch', arch.ArchID)}
-                      className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                    >
-                      {arch.ArchID}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown
+              ariaLabel="Architecture"
+              placeholder="All architectures"
+              value={filters.arch}
+              onChange={(arch) => setFilters(prev => ({ ...prev, arch }))}
+              options={[
+                { value: '', label: 'All architectures' },
+                ...architectures.map(arch => ({ value: arch.ArchID, label: arch.ArchID })),
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('published')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span>
-                  {filters.published === null ? 'Publication Status' :
-                   filters.published ? 'Published' : 'Not Published'}
-                </span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'published' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'published' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('published', null)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    Publication Status
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('published', true)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
-                  >
-                    Published
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('published', false)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                  >
-                    Not Published
-                  </button>
-                </div>
-              )}
-            </div>
+            <Dropdown<boolean | null>
+              ariaLabel="Publication status"
+              placeholder="Publication status"
+              value={filters.published}
+              onChange={(published) => setFilters(prev => ({ ...prev, published }))}
+              options={[
+                { value: null, label: 'Any publication status' },
+                { value: true, label: 'Published' },
+                { value: false, label: 'Not published' },
+              ]}
+            />
 
-            <div className="relative dropdown-container">
-              <button
-                onClick={() => handleDropdownClick('critical')}
-                className="w-full bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-              >
-                <span>
-                  {filters.critical === null ? 'Critical Status' :
-                   filters.critical ? 'Critical' : 'Not Critical'}
-                </span>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                  className={`text-theme-primary transition-transform ${openDropdown === 'critical' ? 'rotate-180' : ''}`}
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              {openDropdown === 'critical' && (
-                <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-10 border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                  <button
-                    onClick={() => handleOptionClick('critical', null)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg"
-                  >
-                    Critical Status
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('critical', true)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors"
-                  >
-                    Critical
-                  </button>
-                  <button
-                    onClick={() => handleOptionClick('critical', false)}
-                    className="w-full text-left px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors last:rounded-b-lg"
-                  >
-                    Not Critical
-                  </button>
-                </div>
-              )}
-            </div>
+            <Dropdown<boolean | null>
+              ariaLabel="Critical status"
+              placeholder="Critical status"
+              value={filters.critical}
+              onChange={(critical) => setFilters(prev => ({ ...prev, critical }))}
+              options={[
+                { value: null, label: 'Any critical status' },
+                { value: true, label: 'Critical' },
+                { value: false, label: 'Not critical' },
+              ]}
+            />
           </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+          {appVersions.length > 0 && (
+            <button
+              onClick={() => {
+                setSelectionMode(prev => !prev);
+                setSelection(new Map());
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-theme-primary ${
+                selectionMode ? 'bg-theme-card-hover' : 'bg-theme-card hover:bg-theme-card-hover'
+              }`}
+            >
+              <i className={`fas ${selectionMode ? 'fa-times' : 'fa-check-square'}`}></i>
+              {selectionMode ? 'Cancel selection' : 'Select'}
+            </button>
+          )}
 
           {/* Reset Filters Button */}
           {(filters.channel || filters.platform || filters.arch || filters.published !== null || filters.critical !== null) && (
@@ -936,6 +782,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               Reset Filters
             </button>
           )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -954,16 +801,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
               const isIncompleteRollout =
                 app.Published && app.RolloutPercent != null && app.RolloutPercent < 100;
               const artifactSummary = getArtifactSummary(app.Artifacts);
-              
+              const isSelected = selection.has(app.ID);
+
               return (
               <div
                 key={app.ID}
+                onClick={selectionMode ? () => toggleSelection(app) : undefined}
                 className={`sharedCard backdrop-blur-lg rounded-lg p-6 text-theme-primary transition-all relative ${
                   isDangerZone
                     ? 'border-2 border-red-500'
                     : isIncompleteRollout
                     ? 'border-2 border-amber-500 bg-theme-card hover:bg-theme-card-hover'
                     : 'bg-theme-card hover:bg-theme-card-hover'
+                } ${selectionMode ? 'cursor-pointer' : ''} ${
+                  isSelected ? 'ring-2 ring-purple-400' : ''
                 }`}
                 style={{
                   ['--card-color' as any]: isDangerZone ? '#EF4444' : isIncompleteRollout ? '#F59E0B' : '#8B5CF6',
@@ -972,7 +823,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.3)',
                     animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                   } : isIncompleteRollout ? {
-                    boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.35), 0 0 0 1px rgba(245, 158, 11, 0.25)'
+                    animation: 'glowAmber 2.4s ease-in-out infinite'
                   } : {})
                 }}
                 onMouseEnter={(e) => {
@@ -986,119 +837,90 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   }
                 }}
               >
-                <div className="flex items-center justify-end mb-4 min-w-0 w-full">
+                <div className={`flex items-center mb-4 min-w-0 w-full ${selectionMode ? 'justify-start' : 'justify-end'}`}>
                   <div className="flex gap-2 flex-shrink-0 items-center">
-                    {tufStatus && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={(e) => handleTufPublish(e, app)}
-                          disabled={publishingTuf[app.ID]}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-                            publishingTuf[app.ID]
-                              ? 'opacity-50 cursor-not-allowed'
-                              : 'hover:opacity-80 active:scale-95'
-                          } ${
-                            tufStatus === 'all-signed'
-                              ? 'bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30'
-                              : tufStatus === 'partial'
-                              ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30 hover:bg-yellow-500/30'
-                              : 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30'
-                          }`}
-                          title={publishingTuf[app.ID] ? 'Publishing...' : 'Publish TUF artifacts'}
-                        >
-                          {publishingTuf[app.ID] ? (
-                            <svg 
-                              className="w-3 h-3 animate-spin" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </svg>
-                          ) : (
-                            <svg 
-                              className="w-3 h-3" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                              />
-                            </svg>
-                          )}
-                          TUF
-                        </button>
-                      </div>
+                    {selectionMode ? (
+                      <label
+                        className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-theme-primary"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelection(app)}
+                          className="h-4 w-4 cursor-pointer accent-purple-500"
+                        />
+                        {isSelected ? 'Selected' : 'Select'}
+                      </label>
+                    ) : (
+                      <ActionIcons
+                        onDownload={() => handleDownload(app)}
+                        onEdit={() => handleEdit(app)}
+                        onDelete={() => handleDelete(app)}
+                        showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
+                        artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
+                      />
                     )}
-                    <ActionIcons
-                      onDownload={() => handleDownload(app)}
-                      onEdit={() => handleEdit(app)}
-                      onDelete={() => handleDelete(app)}
-                      showDownload={app.Artifacts.length === 1 ? !!app.Artifacts[0].link : true}
-                      artifactLink={app.Artifacts.length === 1 ? app.Artifacts[0].link : undefined}
-                    />
                   </div>
                 </div>
-                <div className="sharedCardContent relative w-full min-w-0">
-                  <h3 
-                    className="sharedCardTitle text-2xl font-bold mb-3 text-white" 
-                    style={{
-                      background: 'linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                      letterSpacing: '0.025em'
-                    }}
+                <div className="sharedCardContent relative flex w-full min-w-0 flex-col">
+                  <h3
+                    className="text-2xl font-extrabold tracking-tight text-theme-primary"
                     title={`Version ${app.Version}`}
                   >
-                    Version {app.Version}
+                    {app.Version}
                   </h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="text-sm text-theme-primary/70 flex-1 sharedCardDescription">
-                      Channel: {app.Channel}
-                    </p>
-                  </div>
-                  <p className="mb-2 text-theme-primary/70 text-sm">
-                    Last updated: {formatDate(app.Updated_at)}
+                  <p className="mt-1 mb-6 text-sm text-white/70">
+                    <span className="mr-2 inline-flex items-center rounded-full border border-purple-300/45 bg-purple-500/30 px-2 py-0.5 text-xs font-semibold text-purple-100">
+                      {app.Channel}
+                    </span>
+                    {formatDate(app.Updated_at)}
                   </p>
-                  <div className="flex gap-2 mb-2">
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      app.Published ? 'bg-green-500' : 'bg-red-500'
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`${STATUS_BADGE} ${
+                      app.Published
+                        ? 'text-green-300 border-green-500/40'
+                        : 'text-slate-200 border-slate-400/40'
                     }`}>
+                      <span className={`${STATUS_DOT} ${app.Published ? 'bg-green-500' : 'bg-slate-400'}`}></span>
                       {app.Published ? 'Published' : 'Not published'}
                     </span>
                     {app.Critical && (
-                      <span className="px-2 py-1 rounded text-sm bg-red-500">
+                      <span className={`${STATUS_BADGE} text-red-300 border-red-500/45`}>
+                        <span className={`${STATUS_DOT} bg-red-500`}></span>
                         Critical
                       </span>
                     )}
                     {app.Intermediate && (
-                      <span className="px-2 py-1 rounded text-sm bg-yellow-500">
+                      <span className={`${STATUS_BADGE} text-amber-300 border-amber-500/45`}>
+                        <span className={`${STATUS_DOT} bg-amber-500`}></span>
                         Intermediate
+                      </span>
+                    )}
+                    {tufStatus && (
+                      <span
+                        className={`${STATUS_BADGE} ${TUF_BADGE_STYLE[tufStatus].badge}`}
+                        title={TUF_BADGE_STYLE[tufStatus].hint}
+                      >
+                        <span className={`${STATUS_DOT} ${TUF_BADGE_STYLE[tufStatus].dot}`}></span>
+                        {TUF_BADGE_STYLE[tufStatus].label}
                       </span>
                     )}
                     {isIncompleteRollout && (
                       <span
-                        className="px-2 py-1 rounded text-sm bg-amber-500 text-black"
+                        className={`${STATUS_BADGE} text-blue-300 border-blue-500/45`}
                         title="Staged rollout is not fully deployed"
                       >
+                        <span className={`${STATUS_DOT} bg-blue-500`}></span>
                         Rollout {app.RolloutPercent}%
                       </span>
                     )}
                   </div>
                   {app.Artifacts.length > 0 && (
+                    <>
+                    <p className={SECTION}>Artifacts</p>
                     <div
-                      className="relative group mb-2 w-full min-w-0"
+                      className="relative group w-full min-w-0"
                       onMouseEnter={() => {
                         setHoveredArtifactsPopoverId(app.ID);
                       }}
@@ -1109,7 +931,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     >
                       <button
                         type="button"
-                        className="block w-full min-w-0 max-w-full truncate px-2 py-1 rounded text-xs bg-theme-card/70 border border-theme-card-hover text-theme-primary/90 hover:text-theme-primary transition-colors text-left"
+                        className="flex w-full min-w-0 max-w-full flex-wrap gap-2 text-left"
                         title={`Artifacts: ${artifactSummary.visibleSummary}${artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1124,8 +946,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           });
                         }}
                       >
-                        Artifacts: {artifactSummary.visibleSummary}
-                        {artifactSummary.hiddenGroupsCount > 0 ? ` +${artifactSummary.hiddenGroupsCount}` : ''}
+                        {artifactSummary.visibleGroups.map(group => (
+                          <span key={group.label} className={PLATFORM_CHIP}>
+                            <i className={`${getPlatformIcon(group.label)} opacity-90`}></i>
+                            {group.label}
+                            <b className="font-bold tabular-nums">{group.count}</b>
+                            {tufStatus && group.unsigned > 0 && (
+                              <i
+                                className="fas fa-shield-alt text-[11px] text-amber-300"
+                                title={`${group.unsigned} not signed`}
+                              ></i>
+                            )}
+                          </span>
+                        ))}
+                        {artifactSummary.hiddenGroupsCount > 0 && (
+                          <span className={PLATFORM_CHIP}>+{artifactSummary.hiddenGroupsCount}</span>
+                        )}
                       </button>
                       <div
                         className={`absolute left-0 right-0 bottom-full z-20 mb-2 rounded-lg border border-theme-card-hover bg-gray-900 p-3 shadow-xl transition-opacity duration-150 max-h-44 overflow-hidden flex flex-col ${
@@ -1145,17 +981,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </p>
                         <div className="overflow-y-auto pr-1 flex-1 min-h-0">
                           {artifactSummary.details.map((detail, index) => (
-                            <p key={`${app.ID}-artifact-${index}`} className="text-xs text-theme-primary/80 break-all mb-1 last:mb-0">
+                            <p key={`${app.ID}-artifact-${index}`} className="text-xs text-white/80 break-all mb-1 last:mb-0">
                               {detail}
                             </p>
                           ))}
                         </div>
                       </div>
                     </div>
+                    </>
                   )}
-                  <div className="mt-2 p-3 rounded-lg h-20">
+                  {/* Anchored to the bottom of the tile: the grid stretches every card to the
+                      tallest in its row, so without this the changelog and actions land at a
+                      different height in each neighbour. Each slot keeps its height whether or
+                      not its content exists, so only the gap above this block varies. */}
+                  <div className="mt-auto pt-4">
+                  <div className={TUF_SLOT}>
+                    {tufStatus && tufStatus !== 'all-signed' && (
+                      <button
+                        onClick={(e) => handleTufPublish(e, app)}
+                        disabled={publishingTuf[app.ID]}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/55 bg-violet-950/50 px-3 py-2 text-[13px] font-bold text-amber-300 transition-colors hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Publish TUF artifacts"
+                      >
+                        <i className={`fas ${publishingTuf[app.ID] ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>
+                        {publishingTuf[app.ID] ? 'Signing…' : 'Sign remaining artifacts with TUF'}
+                      </button>
+                    )}
+                  </div>
+                  <div className={`${CHANGELOG_SLOT} border-l-2 border-white/20 pl-3`}>
                     {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes ? (
-                      <div className="text-sm text-theme-primary/80 line-clamp-3 prose prose-sm prose-invert max-w-none">
+                      <div className="text-sm text-white/80 line-clamp-2 prose prose-sm prose-invert max-w-none">
                         <ReactMarkdown
                           components={{
                             p: ({ children }) => <p className="m-0">{children}</p>,
@@ -1174,25 +1029,72 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="text-sm text-theme-primary/60 italic">
+                      <p className="text-sm text-white/60 italic">
                         Changelog not provided
                       </p>
                     )}
                   </div>
-                  {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
-                    <button
-                      onClick={() => onChangelogClick(app.Version, app.Changelog)}
-                      className="mt-4 px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
-                    >
-                      View full changelog
-                    </button>
-                  )}
+                  <div className={FOOTER_SLOT}>
+                    {app.Changelog && app.Changelog.length > 0 && app.Changelog[0].Changes && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onChangelogClick(app.Version, app.Changelog);
+                        }}
+                        className="px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+                      >
+                        View full changelog
+                      </button>
+                    )}
+                  </div>
+                  </div>
                 </div>
               </div>
               );
             })
           )}
         </div>
+
+        {selectionMode && (
+          <div className="sticky bottom-4 z-30 mt-6 flex flex-wrap items-center gap-3 rounded-lg border border-white/20 bg-violet-950/80 px-4 py-3 backdrop-blur-lg">
+            <span className="font-semibold text-theme-primary">
+              {selection.size} selected
+            </span>
+
+            <button
+              onClick={handleSelectPage}
+              className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10"
+            >
+              Select all on page
+            </button>
+
+            {paginatedVersions.total > appVersions.length && (
+              <button
+                onClick={handleSelectAllMatching}
+                disabled={isSelectingAll}
+                className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSelectingAll ? 'Loading...' : `Select all ${paginatedVersions.total} matching filters`}
+              </button>
+            )}
+
+            <button
+              onClick={() => setSelection(new Map())}
+              disabled={selection.size === 0}
+              className="rounded-lg border border-white/25 px-3 py-1.5 text-sm font-semibold text-theme-primary transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Clear
+            </button>
+
+            <button
+              onClick={() => setShowBulkDeleteModal(true)}
+              disabled={selection.size === 0}
+              className={`ml-auto ${BTN_DANGER}`}
+            >
+              Delete {selection.size} version{selection.size === 1 ? '' : 's'}
+            </button>
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-8">
@@ -1267,6 +1169,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           />
         )}
 
+        {showBulkDeleteModal && selectedApp && (
+          <DeleteVersionsConfirmationModal
+            appName={selectedApp}
+            versions={[...selection.values()]}
+            onClose={() => setShowBulkDeleteModal(false)}
+            onConfirm={handleBulkDeleteConfirm}
+          />
+        )}
+
         {showDownloadModal && selectedVersion && (
           <DownloadArtifactsModal
             artifacts={selectedVersion.Artifacts}
@@ -1301,43 +1212,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center mb-4 min-w-0 w-full">
               <div className="relative w-12 h-12 flex-shrink-0">
                 <div className="sharedCardIcon w-12 h-12">
-                  {app.Logo ? (
-                    <img 
-                      src={app.Logo} 
-                      alt={`${app.AppName} logo`}
-                      className="w-full h-full rounded-lg object-contain bg-theme-card-hover transition-opacity duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.opacity = '0';
-                        setTimeout(() => {
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM5Q0E2RkYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHJ4PSIyIiByeT0iMiI+PC9yZWN0PjxwYXRoIGQ9Ik0xMiA4djgiPjwvcGF0aD48cGF0aCBkPSJNOCAxMmg4Ij48L3BhdGg+PC9zdmc+';
-                          target.style.opacity = '1';
-                        }, 300);
-                      }}
-                      onLoad={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.opacity = '1';
-                      }}
-                    />
-                  ) : (
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="24" 
-                      height="24" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                      className="text-theme-primary-hover w-full h-full"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                      <path d="M12 8v8"></path>
-                      <path d="M8 12h8"></path>
-                    </svg>
-                  )}
+                  <AppLogo name={app.AppName} logo={app.Logo} />
                 </div>
                 {app.Private && (
                   <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1 z-10">
@@ -1442,7 +1317,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="relative sharedCardContent">
               <div className="flex items-center gap-2">
-                <p className={`text-sm text-theme-primary/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'} sharedCardDescription`}>
+                <p className={`text-sm text-white/70 flex-1 ${!expandedApps[app.ID] && 'line-clamp-1'} sharedCardDescription`}>
                   {app.Description || 'No description available'}
                 </p>
                 {app.Description && app.Description.length > 50 && (

@@ -10,6 +10,35 @@ import { BaseModal } from '@/components/common/BaseModal';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { AppListItem } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
+import { getPlatformIcon } from '@/utils/platformIcon';
+import { Dropdown } from '@/components/common/Dropdown';
+import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import { ModalFeedback } from '@/components/common/ModalFeedback';
+import {
+  ACTION_BUTTON,
+  ACTION_GROUP,
+  BTN_GHOST,
+  BTN_PRIMARY,
+  BTN_WARNING,
+  DROPZONE,
+  FIELD_INPUT,
+  FIELD_LABEL,
+  MARKDOWN_PREVIEW,
+  NOTE_WARNING,
+  ROW,
+  ROW_META,
+  ROW_TILE,
+  ROW_TITLE,
+  SECTION_LABEL,
+  SEGMENTED_GROUP,
+  STATUS_BADGE,
+  STATUS_DOT,
+  TUF_BADGE_STYLE,
+  segmentedButton,
+} from '@/components/common/ui';
+import type { TufStatus } from '@/components/common/ui';
+
+const SECTION = `${SECTION_LABEL} mt-6 mb-2`;
 
 interface EditVersionModalProps {
   appName: string;
@@ -45,11 +74,127 @@ interface ErrorResponse {
   details?: string;
 }
 
-const DROPDOWN_MENU_STYLE = {
-  background: 'var(--dropdown-bg)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  boxShadow: '0 16px 40px rgba(15, 23, 42, 0.35)',
+// 0 and 100 are states, not just numbers — each zone owns its badge and its sentence.
+const ROLLOUT_ZONES = [
+  { max: 0, label: 'Paused', badge: 'text-slate-200 border-slate-400/40', dot: 'bg-slate-400' },
+  { max: 9, label: 'Canary', badge: 'text-amber-300 border-amber-500/45', dot: 'bg-amber-500' },
+  { max: 99, label: 'Ramping', badge: 'text-blue-300 border-blue-500/45', dot: 'bg-blue-500' },
+  { max: 100, label: 'Full rollout', badge: 'text-green-300 border-green-500/40', dot: 'bg-green-500' },
+];
+
+const ROLLOUT_TICKS = Array.from({ length: 21 }, (_, i) => i * 5);
+
+const clampRollout = (value: number) => Math.max(0, Math.min(100, Math.round(value || 0)));
+
+interface RolloutSliderProps {
+  value: number;
+  channel: string;
+  onChange: (value: number) => void;
+}
+
+const RolloutSlider: React.FC<RolloutSliderProps> = ({ value, channel, onChange }) => {
+  const zone = ROLLOUT_ZONES.find(z => value <= z.max) ?? ROLLOUT_ZONES[ROLLOUT_ZONES.length - 1];
+
+  const hint =
+    value === 0
+      ? 'Paused — no new device is offered this version.'
+      : value === 100
+      ? `Every device on ${channel} is offered this version.`
+      : `Offered to ${value} of every 100 devices on ${channel}.`;
+
+  return (
+    <div>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div className="flex items-baseline gap-1 tabular-nums">
+          <span className="text-[32px] font-extrabold leading-none tracking-tight text-theme-primary">{value}</span>
+          <span className="text-sm font-semibold text-white/60">% of devices on {channel}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`${STATUS_BADGE} ${zone.badge}`}>
+            <span className={`${STATUS_DOT} ${zone.dot}`}></span>
+            {zone.label}
+          </span>
+          <div className="inline-flex items-stretch overflow-hidden rounded-lg border border-white/15 bg-violet-950/40">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={value}
+              onChange={(e) => onChange(clampRollout(Number(e.target.value)))}
+              className="w-14 bg-transparent py-2 text-center font-mono text-sm font-bold tabular-nums text-theme-primary focus:outline-none focus:ring-2 focus:ring-inset focus:ring-theme-focus [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              aria-label="Rollout percent"
+            />
+            <button
+              type="button"
+              onClick={() => onChange(clampRollout(value - 5))}
+              className="w-7 border-l border-white/15 bg-white/5 font-mono text-sm font-bold text-theme-primary transition-colors hover:bg-white/15"
+              aria-label="Decrease by 5"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange(clampRollout(value + 5))}
+              className="w-7 border-l border-white/15 bg-white/5 font-mono text-sm font-bold text-theme-primary transition-colors hover:bg-white/15"
+              aria-label="Increase by 5"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* The thumb travels between 9px insets, so the rail, ticks and bubble share that inset. */}
+      <div className="relative h-[18px]">
+        <span
+          className="pointer-events-none absolute bottom-[22px] z-10 -translate-x-1/2 rounded-md bg-violet-400 px-2 py-[3px] font-mono text-xs font-bold tabular-nums text-violet-950"
+          style={{ left: `calc(9px + (100% - 18px) * ${value} / 100)` }}
+        >
+          {value}%
+        </span>
+        <span className="absolute left-[9px] right-[9px] top-[6px] h-1.5 overflow-hidden rounded-full border border-white/15 bg-violet-950/45">
+          <span
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-600 to-violet-400"
+            style={{ width: `${value}%` }}
+          ></span>
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={value}
+          onChange={(e) => onChange(clampRollout(Number(e.target.value)))}
+          className="rollout-range relative z-20 h-[18px] w-full cursor-pointer"
+          aria-label="Staged rollout percent"
+        />
+      </div>
+
+      <div className="relative mx-[9px] h-5" aria-hidden="true">
+        {ROLLOUT_TICKS.map((tick) => (
+          <React.Fragment key={tick}>
+            <span
+              className={`absolute top-0 w-px -translate-x-1/2 ${
+                tick % 25 === 0 ? 'h-2 bg-white/55' : 'h-1 bg-white/25'
+              }`}
+              style={{ left: `${tick}%` }}
+            ></span>
+            {tick % 25 === 0 && (
+              <span
+                className="absolute top-[10px] -translate-x-1/2 font-mono text-[10px] font-semibold tabular-nums text-white/55"
+                style={{ left: `${tick}%` }}
+              >
+                {tick}
+              </span>
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <p className="mt-3 text-sm text-white/60">{hint}</p>
+    </div>
+  );
 };
 
 export const EditVersionModal: React.FC<EditVersionModalProps> = ({
@@ -68,7 +213,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const [arch, setArch] = React.useState<string>('');
   const [updater, setUpdater] = React.useState<string>('');
   const [signature, setSignature] = React.useState<string>('');
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = React.useState(false);
   const [artifactToDelete, setArtifactToDelete] = React.useState<{ index: number; platform: string; arch: string } | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
@@ -87,7 +231,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   const queryClient = useQueryClient();
   const { toastSuccess, toastError } = useToast();
   const [error, setError] = useState<{ error: string; details?: string } | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [isPublishingTuf, setIsPublishingTuf] = useState(false);
 
   // Get app data to check if TUF is enabled
@@ -114,10 +257,6 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
     }
   }, [showUpdaterDropdown, updater]);
 
-  const handleDropdownClick = (dropdownName: string) => {
-    setOpenDropdown(openDropdown === dropdownName ? null : dropdownName);
-  };
-
   const handleOptionClick = (dropdownName: string, value: string) => {
     if (dropdownName === 'platform') {
       setPlatform(value);
@@ -130,22 +269,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       setUpdater(value);
       setSignature('');
     }
-    setOpenDropdown(null);
   };
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.dropdown-container')) {
-        setOpenDropdown(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   React.useEffect(() => {
     setFormData(currentData);
@@ -332,6 +456,29 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
       setArtifactToDelete(null);
     }
   };
+
+  // Mirrors getTufSignStatus in Dashboard.tsx so the modal reports the same state as the card.
+  const tufStatus = React.useMemo<TufStatus | null>(() => {
+    if (!appData?.Tuf) {
+      return null;
+    }
+    const tufArtifacts = formData.Artifacts.filter(
+      artifact => artifact.TufTaskID || (artifact.TufTaskID === null && artifact.TufSigned === false)
+    );
+    if (tufArtifacts.length === 0) {
+      return formData.Artifacts.length > 0 ? 'none' : null;
+    }
+    const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned === true).length;
+    if (signedCount === tufArtifacts.length) {
+      return 'all-signed';
+    }
+    return signedCount > 0 ? 'partial' : 'none';
+  }, [appData?.Tuf, formData.Artifacts]);
+
+  const unsignedCount = React.useMemo(
+    () => formData.Artifacts.filter(artifact => artifact.TufSigned !== true).length,
+    [formData.Artifacts]
+  );
 
   const hasValidArtifacts = React.useMemo(() => {
     return formData.Artifacts && 
@@ -610,7 +757,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   return (
     <>
       <BaseModal
-        title={`Edit Version ${version}`}
+        title={`Edit version ${version}`}
         onClose={onClose}
         isLoading={isLoading}
         isSuccess={isSuccess}
@@ -619,475 +766,302 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         setError={setError}
         className="w-[800px] max-h-[90vh] overflow-y-auto relative"
       >
-        <div className="mb-4">
-          <p className="text-theme-primary">App Name: {appName}</p>
-          <p className="text-theme-primary">Version: {version}</p>
-          <p className="text-theme-primary">Channel: {channel}</p>
+        <div className="-mt-2 flex flex-wrap items-center gap-2 text-sm text-white/70">
+          <span className="inline-flex items-center rounded-full border border-purple-300/45 bg-purple-500/30 px-2 py-0.5 text-xs font-semibold text-purple-100">
+            {channel}
+          </span>
+          <span>{appName}</span>
         </div>
 
-        {hasValidArtifacts ? (
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xl font-bold text-theme-primary font-roboto">Existing Artifacts</h3>
-              {appData?.Tuf && (
-                <button
-                  onClick={handleTufPublish}
-                  disabled={isPublishingTuf}
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                    isPublishingTuf
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:opacity-80 active:scale-95 cursor-pointer'
-                  } bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30`}
-                  title={isPublishingTuf ? 'Publishing...' : 'Publish TUF artifacts'}
-                  type="button"
-                >
-                  {isPublishingTuf ? (
-                    <svg 
-                      className="w-3 h-3 animate-spin" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  ) : (
-                    <svg 
-                      className="w-3 h-3" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth="2" 
-                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                      />
-                    </svg>
-                  )}
-                  {isPublishingTuf ? 'Publishing...' : 'Sign All'}
-                </button>
-              )}
-            </div>
-            <div className="space-y-4">
-              {formData.Artifacts.map((artifact, index) => (
-                <div
-                  key={index}
-                  className="bg-theme-card p-4 rounded-lg text-theme-primary hover:bg-theme-card-hover transition-colors"
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold">{artifact.platform}</p>
-                      <p className="text-sm text-gray-300">Architecture: {artifact.arch}</p>
-                      <p className="text-sm text-gray-300">Package: {artifact.package}</p>
-                      {artifact.TufTaskID && (
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${
-                            artifact.TufSigned 
-                              ? 'bg-green-500/20 text-green-300 border-green-400/30' 
-                              : 'bg-red-500/20 text-red-300 border-red-400/30'
-                          }`}>
-                            <svg 
-                              className="w-3 h-3" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth="2" 
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                              />
-                            </svg>
-                            TUF
-                          </span>
-                          {artifact.TufSigned && (
-                            <button
-                              onClick={() => handleUnsignArtifact(index)}
-                              disabled={isUnsigning}
-                              className="text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              type="button"
-                              title="Unsign artifact from TUF"
-                            >
-                              {isUnsigning ? (
-                                <i className="fas fa-spinner fa-spin"></i>
-                              ) : (
-                                <i className="fas fa-unlock"></i>
-                              )}
-                            </button>
-                          )}
+        <form onSubmit={handleSubmit} noValidate>
+          <p className={SECTION}>Release flags</p>
+          <div className="flex flex-wrap gap-2">
+            <FlagCheckbox
+              label="Published"
+              tone="green"
+              checked={formData.Published}
+              onChange={(checked) => setFormData({ ...formData, Published: checked })}
+            />
+            <FlagCheckbox
+              label="Critical"
+              tone="red"
+              checked={formData.Critical}
+              onChange={(checked) => setFormData({ ...formData, Critical: checked })}
+            />
+            <FlagCheckbox
+              label="Intermediate"
+              tone="amber"
+              checked={formData.Intermediate}
+              onChange={(checked) => setFormData({ ...formData, Intermediate: checked })}
+            />
+          </div>
+
+          <p className={SECTION}>
+            Artifacts
+            {tufStatus && (
+              <span
+                className={`${STATUS_BADGE} ${TUF_BADGE_STYLE[tufStatus].badge} normal-case tracking-normal`}
+                title={TUF_BADGE_STYLE[tufStatus].hint}
+              >
+                <span className={`${STATUS_DOT} ${TUF_BADGE_STYLE[tufStatus].dot}`}></span>
+                {TUF_BADGE_STYLE[tufStatus].label}
+              </span>
+            )}
+          </p>
+
+          {hasValidArtifacts ? (
+            <>
+              <div className="space-y-2">
+                {formData.Artifacts.map((artifact, index) => (
+                  <div key={index} className={ROW}>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className={ROW_TILE}>
+                        <i className={`${getPlatformIcon(artifact.platform)} text-white/90`}></i>
+                      </span>
+                      <div className="min-w-0">
+                        <p className={ROW_TITLE}>{artifact.platform}</p>
+                        <div className={ROW_META}>
+                          <span>{artifact.arch}</span>
+                          <span aria-hidden="true">·</span>
+                          <span className="truncate">{artifact.package}</span>
                         </div>
+                      </div>
+                      {artifact.TufTaskID && (
+                        <span
+                          className={`${STATUS_BADGE} shrink-0 ${
+                            artifact.TufSigned
+                              ? 'text-green-300 border-green-500/40'
+                              : 'text-red-300 border-red-500/45'
+                          }`}
+                        >
+                          <i className="fas fa-shield-alt text-[11px]"></i>
+                          {artifact.TufSigned ? 'signed' : 'unsigned'}
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center">
-                      <button 
-                        onClick={() => handleDownload(artifact)} 
-                        className="text-green-500 hover:text-green-400"
+                    <div className={ACTION_GROUP}>
+                      <button
                         type="button"
+                        onClick={() => handleDownload(artifact)}
+                        className={`${ACTION_BUTTON} text-green-400 hover:bg-green-500/20`}
+                        title="Download"
+                        aria-label="Download"
                       >
                         <i className="fas fa-download"></i>
                       </button>
+                      {artifact.TufSigned && (
+                        <button
+                          type="button"
+                          onClick={() => handleUnsignArtifact(index)}
+                          disabled={isUnsigning}
+                          className={`${ACTION_BUTTON} text-amber-300 hover:bg-amber-500/25 disabled:cursor-not-allowed disabled:opacity-50`}
+                          title="Unsign artifact from TUF"
+                          aria-label="Unsign artifact from TUF"
+                        >
+                          <i className={`fas ${isUnsigning ? 'fa-spinner fa-spin' : 'fa-unlock'}`}></i>
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
-                        className="text-theme-danger hover:text-red-400 ml-4"
                         type="button"
+                        onClick={() => handleDeleteArtifact(index, artifact.platform, artifact.arch)}
+                        className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
+                        title="Delete"
+                        aria-label="Delete"
                       >
-                        <i className="fas fa-times"></i>
+                        <i className="fas fa-trash"></i>
                       </button>
                     </div>
+                  </div>
+                ))}
+              </div>
+              {appData?.Tuf && tufStatus !== null && tufStatus !== 'all-signed' && (
+                <button
+                  type="button"
+                  onClick={handleTufPublish}
+                  disabled={isPublishingTuf}
+                  className={`${BTN_WARNING} mt-2`}
+                  title="Publish TUF artifacts"
+                >
+                  <i className={`fas ${isPublishingTuf ? 'fa-spinner fa-spin' : 'fa-shield-alt'}`}></i>
+                  {isPublishingTuf
+                    ? 'Signing…'
+                    : `Sign ${unsignedCount} remaining ${unsignedCount === 1 ? 'artifact' : 'artifacts'} with TUF`}
+                </button>
+              )}
+            </>
+          ) : (
+            <div className={NOTE_WARNING}>
+              <i className="fas fa-exclamation-triangle"></i>
+              This version has no artifacts yet — upload them below.
+            </div>
+          )}
+
+          <p className={SECTION}>Add files</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-upload"
+          />
+          <label
+            htmlFor="file-upload"
+            className={DROPZONE}
+          >
+            <i className="fas fa-plus"></i>
+            Choose files to upload
+          </label>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {selectedFiles.map((file, index) => (
+                <div key={index} className={ROW}>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className={ROW_TILE}>
+                      <i className="fas fa-file text-white/90"></i>
+                    </span>
+                    <div className="min-w-0">
+                      <p className={ROW_TITLE}>{file.name}</p>
+                      <div className={ROW_META}>
+                        <span>{formatFileSize(file.size)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={ACTION_GROUP}>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className={`${ACTION_BUTTON} text-red-300 hover:bg-red-500/25`}
+                      title="Remove file"
+                      aria-label="Remove file"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="mb-6 bg-yellow-500/20 p-4 rounded-lg">
-            <p className="text-yellow-200 font-roboto">
-              This version doesn't have artifacts yet, please upload them
-            </p>
-          </div>
-        )}
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-              Add New Files
-            </label>
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="w-full px-4 py-2 bg-theme-button-primary text-theme-primary rounded-lg cursor-pointer hover:bg-theme-input transition-colors duration-200 flex items-center justify-center font-roboto"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Choose Files
-              </label>
+          {selectedFiles.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              {platforms.length > 0 && (
+                <div>
+                  <label className={FIELD_LABEL}>Platform</label>
+                  <Dropdown
+                    ariaLabel="Platform"
+                    placeholder="Select platform"
+                    value={platform}
+                    onChange={(value) => handleOptionClick('platform', value)}
+                    options={platforms.map((p) => ({
+                      value: p.PlatformName,
+                      label: p.PlatformName,
+                      icon: getPlatformIcon(p.PlatformName),
+                    }))}
+                  />
+                </div>
+              )}
+              {architectures.length > 0 && (
+                <div>
+                  <label className={FIELD_LABEL}>Architecture</label>
+                  <Dropdown
+                    ariaLabel="Architecture"
+                    placeholder="Select architecture"
+                    value={arch}
+                    onChange={(value) => handleOptionClick('arch', value)}
+                    options={architectures.map((a) => ({ value: a.ArchID, label: a.ArchID }))}
+                  />
+                </div>
+              )}
+              {showUpdaterDropdown && (
+                <div className="col-span-2">
+                  <label className={FIELD_LABEL}>
+                    Updater
+                    <span className="ml-2 font-normal text-white/50">
+                      This platform has several enabled updaters — pick one if needed.
+                    </span>
+                  </label>
+                  <Dropdown
+                    ariaLabel="Updater"
+                    placeholder="manual (default)"
+                    value={updater}
+                    onChange={(value) => handleOptionClick('updater', value)}
+                    options={availableUpdaters.map((u) => ({ value: u.type, label: u.type }))}
+                  />
+                </div>
+              )}
+              {updater === 'tauri' && (
+                <div className="col-span-2">
+                  <label className={FIELD_LABEL}>Signature</label>
+                  <input
+                    type="text"
+                    name="signature"
+                    value={signature}
+                    onChange={(e) => setSignature(e.target.value)}
+                    className={FIELD_INPUT}
+                    placeholder="Enter signature for Tauri updater"
+                    required
+                  />
+                </div>
+              )}
             </div>
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between bg-theme-input bg-opacity-50 p-3 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-5 h-5 text-theme-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <div>
-                        <div className="text-theme-primary font-roboto">{file.name}</div>
-                        <div className="text-purple-200 text-sm font-roboto">{formatFileSize(file.size)}</div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="text-theme-primary hover:text-red-300 transition-colors duration-200"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {selectedFiles.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                {platforms.length > 0 && (
-                  <div>
-                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-                      Platform
-                    </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('platform')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                      >
-                        <span className="block min-w-0 flex-1 truncate text-left">{platform || 'Select platform'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'platform' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                      {openDropdown === 'platform' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                          {platforms.map((p) => (
-                            <button
-                              key={p.ID}
-                              type="button"
-                              onClick={() => handleOptionClick('platform', p.PlatformName)}
-                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                            >
-                              {p.PlatformName}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {architectures.length > 0 && (
-                  <div>
-                    <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-                      Architecture
-                    </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('arch')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                      >
-                        <span className="block min-w-0 flex-1 truncate text-left">{arch || 'Select architecture'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'arch' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                      {openDropdown === 'arch' && (
-                        <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                          {architectures.map((a) => (
-                            <button
-                              key={a.ID}
-                              type="button"
-                              onClick={() => handleOptionClick('arch', a.ArchID)}
-                              className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                            >
-                              {a.ArchID}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                                 {showUpdaterDropdown && (
-                   <div>
-                     <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-                       Updater
-                       <span className="text-sm text-theme-secondary ml-2">
-                         (This platform has multiple enabled updaters, select desired updater if necessary)
-                       </span>
-                     </label>
-                    <div className="relative dropdown-container">
-                      <button
-                        type="button"
-                        onClick={() => handleDropdownClick('updater')}
-                        className="w-full min-w-0 bg-theme-card text-theme-primary rounded-lg p-2 pr-8 flex items-center justify-between hover:bg-theme-card-hover transition-colors"
-                      >
-                                                 <span className="block min-w-0 flex-1 truncate text-left">{updater || 'manual (default)'}</span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="16" 
-                          height="16" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round"
-                          className={`text-theme-primary transition-transform flex-shrink-0 ml-2 ${openDropdown === 'updater' ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </button>
-                                             {openDropdown === 'updater' && (
-                         <div className="absolute top-full left-0 right-0 mt-1 backdrop-blur-2xl rounded-lg shadow-lg z-[90] border border-theme-card-hover" style={DROPDOWN_MENU_STYLE}>
-                           {availableUpdaters.map((u) => (
-                             <button
-                               key={u.type}
-                               type="button"
-                               onClick={() => handleOptionClick('updater', u.type)}
-                               className="w-full text-left truncate px-4 py-2 text-theme-primary hover:bg-theme-card-hover transition-colors first:rounded-t-lg last:rounded-b-lg"
-                             >
-                               {u.type}
-                             </button>
-                           ))}
-                         </div>
-                       )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+          )}
 
-            {updater === 'tauri' && (
-              <div>
-                <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-                  Signature
-                </label>
-                <input
-                  type="text"
-                  name="signature"
-                  value={signature}
-                  onChange={(e) => setSignature(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
-                  placeholder="Enter signature for Tauri updater"
-                  required
-                />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-              Changelog
-            </label>
-            <div className="flex gap-2 mb-2">
+          <p className={SECTION}>
+            Changelog
+            <span className={`${SEGMENTED_GROUP} normal-case tracking-normal`}>
               <button
                 type="button"
-                onClick={() => setIsPreview(!isPreview)}
-                className="text-theme-primary text-sm hover:text-gray-300"
+                onClick={() => setIsPreview(false)}
+                aria-pressed={!isPreview}
+                className={segmentedButton(!isPreview)}
               >
-                {isPreview ? 'Edit' : 'Preview'}
+                Edit
               </button>
+              <button
+                type="button"
+                onClick={() => setIsPreview(true)}
+                aria-pressed={isPreview}
+                className={segmentedButton(isPreview, true)}
+              >
+                Preview
+              </button>
+            </span>
+          </p>
+          {isPreview ? (
+            <div className={MARKDOWN_PREVIEW}>
+              <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
             </div>
-            {isPreview ? (
-              <div className="bg-white dark:bg-white p-4 rounded prose prose-sm max-w-none">
-                <ReactMarkdown>{formData.Changelog}</ReactMarkdown>
-              </div>
-            ) : (
-              <textarea
-                value={formData.Changelog}
-                onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
-                className="w-full px-4 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-theme-secondary shadow-sm"
-                placeholder="Enter changelog in Markdown format..."
-              />
-            )}
-          </div>
+          ) : (
+            <textarea
+              value={formData.Changelog}
+              onChange={(e) => setFormData({ ...formData, Changelog: e.target.value })}
+              className={`${FIELD_INPUT} min-h-[110px] font-mono text-sm`}
+              placeholder="Enter changelog in Markdown format..."
+            />
+          )}
 
-          <div className="flex gap-4">
-            <label className="flex items-center text-theme-primary font-roboto">
-              <input
-                type="checkbox"
-                checked={formData.Published}
-                onChange={(e) => setFormData({ ...formData, Published: e.target.checked })}
-                className="mr-2"
-              />
-              Published
-            </label>
-            <label className="flex items-center text-theme-primary font-roboto">
-              <input
-                type="checkbox"
-                checked={formData.Critical}
-                onChange={(e) => setFormData({ ...formData, Critical: e.target.checked })}
-                className="mr-2"
-              />
-              Critical
-            </label>
-            <label className="flex items-center text-theme-primary font-roboto">
-              <input
-                type="checkbox"
-                checked={formData.Intermediate}
-                onChange={(e) => setFormData({ ...formData, Intermediate: e.target.checked })}
-                className="mr-2"
-              />
-              Intermediate
-            </label>
-          </div>
+          <p className={SECTION}>Staged rollout</p>
+          <RolloutSlider value={rollout} channel={channel} onChange={setRollout} />
 
-          <div>
-            <label className="block text-theme-primary mb-2 font-roboto font-semibold">
-              Staged rollout (%)
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={rollout}
-                  onChange={(e) => setRollout(Number(e.target.value))}
-                  className="w-full accent-purple-400"
-                />
-                <div className="flex justify-between mt-1 px-[7px]">
-                  {Array.from({ length: 11 }, (_, i) => i * 10).map((tick) => (
-                    <button
-                      key={tick}
-                      type="button"
-                      onClick={() => setRollout(tick)}
-                      className="flex flex-col items-center text-theme-secondary hover:text-theme-primary transition-colors"
-                    >
-                      <span className="w-px h-1.5 bg-current" />
-                      <span className="mt-1 text-[10px] font-roboto leading-none">{tick}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={1}
-                value={rollout}
-                onChange={(e) => {
-                  const value = Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0)));
-                  setRollout(value);
-                }}
-                className="w-20 px-3 py-2 rounded-lg font-roboto bg-theme-input text-theme-primary border border-theme transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 shadow-sm"
-              />
-            </div>
-            <p className="mt-2 text-sm text-theme-secondary font-roboto">
-              {rollout === 100
-                ? 'Full rollout'
-                : '100 = full rollout · 0 = paused (no new devices) · lower = canary'}
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="mt-8 flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-roboto hover:bg-gray-300 transition-all duration-150 border border-gray-300 shadow-sm"
+              className={BTN_GHOST}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-input transition-colors duration-200"
-              disabled={Boolean(selectedFiles.length > 0 && 
-                ((platforms.length > 0 && !platform) || 
-                 (architectures.length > 0 && !arch) || 
+              className={BTN_PRIMARY}
+              disabled={Boolean(selectedFiles.length > 0 &&
+                ((platforms.length > 0 && !platform) ||
+                 (architectures.length > 0 && !arch) ||
                  (showUpdaterDropdown && updater === '')))}
             >
-              Save
+              Save changes
             </button>
           </div>
         </form>
@@ -1106,85 +1080,18 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
         />
       )}
 
-      {deleteSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span className="font-roboto">Artifact deleted successfully!</span>
-        </div>
-      )}
-
-      {deleteError && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="font-roboto">Error: {deleteError.error}</span>
-            {deleteError.details && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </div>
-          {showDetails && deleteError.details && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {deleteError.details}
-            </div>
-          )}
-        </div>
-      )}
-
-      {unsignSuccess && (
-        <div className="fixed top-4 right-4 bg-green-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 z-[12000] animate-fade-in">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span className="font-roboto">Artifact unsigned successfully!</span>
-        </div>
-      )}
-
-      {unsignError && (
-        <div className="fixed top-4 right-4 bg-red-500 text-theme-primary px-6 py-3 rounded-lg shadow-lg z-[12000] animate-fade-in">
-          <div className="flex items-center space-x-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="font-roboto">Error: {unsignError.error}</span>
-            {unsignError.details && (
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-2 text-theme-primary hover:text-theme-primary-hover"
-              >
-                <svg
-                  className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            )}
-          </div>
-          {showDetails && unsignError.details && (
-            <div className="mt-2 text-sm bg-red-600 p-2 rounded">
-              {unsignError.details}
-            </div>
-          )}
-        </div>
-      )}
+      <ModalFeedback
+        isSuccess={deleteSuccess}
+        successMessage="Artifact deleted"
+        error={deleteError}
+        setError={setDeleteError}
+      />
+      <ModalFeedback
+        isSuccess={unsignSuccess}
+        successMessage="Artifact unsigned"
+        error={unsignError}
+        setError={setUnsignError}
+      />
     </>
   );
 }; 

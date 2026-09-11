@@ -7,6 +7,7 @@ import { ProfileModal } from '@/components/modals/ProfileModal';
 
 interface HeaderProps {
   title: string;
+  titleContent?: React.ReactNode;
   onCreateClick: () => void;
   createButtonText: string;
   additionalButton?: React.ReactNode;
@@ -17,6 +18,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   title,
+  titleContent,
   onCreateClick,
   createButtonText,
   additionalButton,
@@ -81,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
       {!isMobile ? (
       <div className="hidden md:flex items-center justify-between w-full gap-4">
         <div className="flex items-center gap-6 flex-1 min-w-0 justify-between">
-          {title && (
+          {titleContent ? titleContent : title && (
             <h2 className="header-title whitespace-nowrap">{title}</h2>
           )}
           {!hideSearch && (
@@ -122,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
           {createButtonText && (
             <button
               onClick={onCreateClick}
-              className="header-action-btn hidden md:flex px-4 py-2 font-roboto items-center"
+              className="header-action-btn hidden md:flex px-4 py-2 items-center"
             >
               {renderIcon()}
               <span className="ml-2">{createButtonText}</span>
@@ -146,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-col md:hidden gap-2 mt-0">
         <div className="flex justify-between items-center">
           <button
-            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none hover:bg-theme-card-hover transition-colors duration-200"
+            className="p-2 rounded-lg bg-theme-card shadow-lg focus:outline-none focus:ring-2 focus:ring-theme-focus hover:bg-theme-card-hover transition-colors duration-200"
             aria-label="Open menu"
             onClick={onMenuClick}
           >
@@ -180,7 +182,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
         </div>
-        {title && (
+        {titleContent ? (
+          <div className="mb-2 min-w-0">{titleContent}</div>
+        ) : title && (
           <h2 className="header-title mb-2">{title}</h2>
         )}
         {!hideSearch && (

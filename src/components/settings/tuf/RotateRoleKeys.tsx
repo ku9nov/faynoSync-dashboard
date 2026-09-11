@@ -1,14 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/config/axios';
 import { useToast } from '@/hooks/useToast';
-import { useUsersQuery } from '@/hooks/use-query/useUsersQuery';
 import { deleteSigningMetadata } from '@/components/settings/tuf/deleteSigningMetadata';
 import { MetadataUpdatePanel } from '@/components/settings/tuf/MetadataUpdatePanel';
-import { generateCreateNewRootMetadataRoleRotationPythonScript } from '@/components/settings/tuf/generateCreateNewRootMetadataRoleRotationScript';
-import { generateGenerateSignaturesPythonScript } from '@/components/settings/tuf/generateGenerateSignaturesScript';
-import { DEFAULT_KEY_ALGORITHM, KeyAlgorithm, normalizeKeyAlgorithm } from '@/components/settings/tuf/keyAlgorithm';
-import { generateRotateRoleKeysPythonScript } from '@/components/settings/tuf/generateRotateRoleKeysScript';
-import { generateUpdateKeyInfoRoleRotationPythonScript } from '@/components/settings/tuf/generateUpdateKeyInfoRoleRotationScript';
+import { Dropdown } from '@/components/common/Dropdown';
 
 interface RotateRoleKeysProps {
   selectedApp: string;
@@ -19,9 +14,6 @@ interface RotateRoleKeysProps {
 }
 
 type BuiltInRole = 'timestamp' | 'snapshot' | 'targets';
-
-const sanitizeRoleForFileTag = (roleName: string): string =>
-  roleName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'role';
 
 const isThresholdNotMetError = (message: string): boolean => {
   const normalized = message.toLowerCase();
@@ -75,27 +67,17 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
   onUpdateMetadata,
 }) => {
   const { toastSuccess, toastError } = useToast();
-  const { data: userData } = useUsersQuery();
 
   const [showRotateRoleKeys, setShowRotateRoleKeys] = useState(false);
   const [selectedRole, setSelectedRole] = useState<BuiltInRole>('timestamp');
   const [keyCount, setKeyCount] = useState(1);
   const [threshold, setThreshold] = useState(1);
-  const [selectedKeyType, setSelectedKeyType] = useState<KeyAlgorithm>(DEFAULT_KEY_ALGORITHM);
-
-  const [exampleScript, setExampleScript] = useState('');
-  const [showExampleScript, setShowExampleScript] = useState(false);
-  const [newRootMetadataScript, setNewRootMetadataScript] = useState('');
-  const [showNewRootMetadataScript, setShowNewRootMetadataScript] = useState(false);
-  const [generateSignaturesScript, setGenerateSignaturesScript] = useState('');
-  const [showGenerateSignaturesScript, setShowGenerateSignaturesScript] = useState(false);
-  const [updateKeyInfoScript, setUpdateKeyInfoScript] = useState('');
-  const [showUpdateKeyInfoScript, setShowUpdateKeyInfoScript] = useState(false);
+  const [expirationDays, setExpirationDays] = useState(0);
 
   const [rootMetadata, setRootMetadata] = useState<any>(null);
   const [rootMetadataAppName, setRootMetadataAppName] = useState<string | null>(null);
-  const [showRootMetadataStep2, setShowRootMetadataStep2] = useState(false);
-  const [showRootMetadataStep6, setShowRootMetadataStep6] = useState(false);
+  const [showRootMetadataStep1, setShowRootMetadataStep1] = useState(false);
+  const [showRootMetadataStep4, setShowRootMetadataStep4] = useState(false);
   const [loadingRootMetadata, setLoadingRootMetadata] = useState(false);
 
   const [metadataPayload, setMetadataPayload] = useState('');
@@ -112,54 +94,15 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
   const [metadataStatusResult, setMetadataStatusResult] = useState<string | null>(null);
   const [deletingSigningMetadata, setDeletingSigningMetadata] = useState(false);
 
-  const adminName = userData?.owner || userData?.username || 'admin';
-  const selectedRoleName = selectedRole;
-  const selectedRoleFileTag = sanitizeRoleForFileTag(selectedRoleName);
-
-  const rotateRoleKeysScriptFileName = selectedApp
-    ? `rotate_${selectedRoleFileTag}_keys_${selectedApp}_${adminName}.py`
-    : 'rotate_role_keys.py';
-  const newRoleKeysInfoFileName = selectedApp
-    ? `new_${selectedRoleFileTag}_keys_info_${selectedApp}_${adminName}.json`
-    : 'new_role_keys_info.json';
-  const currentRootFileName = selectedApp
-    ? `current_root_${selectedApp}_${adminName}.json`
-    : 'current_root.json';
-  const createNewRootMetadataScriptFileName = selectedApp
-    ? `create_new_root_metadata_${selectedRoleFileTag}_rotation_${selectedApp}_${adminName}.py`
-    : 'create_new_root_metadata_role_rotation.py';
-  const unsignedNewRootMetadataFileName = selectedApp
-    ? `new_root_metadata_${selectedApp}_${adminName}.json`
-    : 'new_root_metadata.json';
-  const generateSignaturesScriptFileName = selectedApp
-    ? `generate_signatures_${selectedApp}_${adminName}.py`
-    : 'generate_signatures.py';
-  const keyInfoFileName = selectedApp
-    ? `key_info_${selectedApp}_${adminName}.json`
-    : 'key_info.json';
-  const updateKeyInfoScriptFileName = selectedApp
-    ? `update_key_info_${selectedRoleFileTag}_rotation_${selectedApp}_${adminName}.py`
-    : 'update_key_info_role_rotation.py';
-
-  const detectedRoleKeyType = useMemo(() => {
-    if (!selectedRoleName) {
-      return DEFAULT_KEY_ALGORITHM;
-    }
-    const normalizedRoot = normalizeTrustedRootMetadata(rootMetadata);
-    const keys = normalizedRoot?.signed?.keys;
-    const roleKeyIds = normalizedRoot?.signed?.roles?.[selectedRoleName]?.keyids;
-    const roleKeyId = Array.isArray(roleKeyIds) ? roleKeyIds[0] : null;
-    const rawType = roleKeyId && keys?.[roleKeyId] ? keys[roleKeyId]?.keytype : null;
-    try {
-      return normalizeKeyAlgorithm(rawType || DEFAULT_KEY_ALGORITHM);
-    } catch {
-      return DEFAULT_KEY_ALGORITHM;
-    }
-  }, [rootMetadata, selectedRoleName]);
-
-  useEffect(() => {
-    setSelectedKeyType(detectedRoleKeyType);
-  }, [detectedRoleKeyType]);
+  // 0 means "leave root's expiry where it is": tuf-kms keeps the current one
+  // when the flag is absent, and a rotation of an online role has no reason to
+  // move it by default.
+  const rotateCommand = [
+    `tuf-kms rotate role ${selectedRole}`,
+    `  --keys ${keyCount}`,
+    `  --threshold ${threshold}`,
+    ...(expirationDays > 0 ? [`  --root-expires ${expirationDays}`] : []),
+  ].join(' \\\n');
 
   useEffect(() => {
     setRootMetadata(null);
@@ -249,78 +192,6 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
       return;
     }
     await handleCopyToClipboard(JSON.stringify(rootMetadata, null, 2), 'Root metadata copied to clipboard successfully!');
-  };
-
-  const generateExampleScript = () => {
-    if (!selectedApp) {
-      toastError('Please select app and role');
-      return;
-    }
-    if (keyCount < 1 || threshold < 1 || threshold > keyCount) {
-      toastError('Invalid key count or threshold');
-      return;
-    }
-
-    const script = generateRotateRoleKeysPythonScript({
-      appName: selectedApp,
-      adminName,
-      roleName: selectedRoleName,
-      roleFileTag: selectedRoleFileTag,
-      keyCount,
-      threshold,
-      keyType: selectedKeyType,
-    });
-    setExampleScript(script);
-    setShowExampleScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const generateNewRootMetadataScript = () => {
-    if (!selectedApp) {
-      toastError('Please select app and role');
-      return;
-    }
-    const script = generateCreateNewRootMetadataRoleRotationPythonScript({
-      appName: selectedApp,
-      adminName,
-      roleName: selectedRoleName,
-      roleFileTag: selectedRoleFileTag,
-      keyType: selectedKeyType,
-    });
-    setNewRootMetadataScript(script);
-    setShowNewRootMetadataScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const generateGenerateSignaturesScript = () => {
-    if (!selectedApp) {
-      toastError('Please select an app');
-      return;
-    }
-    const script = generateGenerateSignaturesPythonScript({
-      appName: selectedApp,
-      adminName,
-      keyType: selectedKeyType,
-    });
-    setGenerateSignaturesScript(script);
-    setShowGenerateSignaturesScript(false);
-    toastSuccess('Python script generated successfully!');
-  };
-
-  const generateUpdateKeyInfoScript = () => {
-    if (!selectedApp) {
-      toastError('Please select app and role');
-      return;
-    }
-    const script = generateUpdateKeyInfoRoleRotationPythonScript({
-      appName: selectedApp,
-      adminName,
-      roleName: selectedRoleName,
-      roleFileTag: selectedRoleFileTag,
-    });
-    setUpdateKeyInfoScript(script);
-    setShowUpdateKeyInfoScript(false);
-    toastSuccess('Python script generated successfully!');
   };
 
   const handleSubmitMetadata = async () => {
@@ -538,41 +409,43 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
         onClick={() => setShowRotateRoleKeys(!showRotateRoleKeys)}
         className="flex items-center justify-between w-full text-left text-theme-primary hover:text-theme-button-primary transition-colors"
       >
-        <h2 className="text-lg font-bold font-roboto">Rotate Top-Level Role Keys</h2>
+        <h2 className="text-lg font-bold">Rotate Top-Level Role Keys</h2>
         <i className={`fas fa-chevron-${showRotateRoleKeys ? 'up' : 'down'}`}></i>
       </button>
 
       {showRotateRoleKeys && (
         <div className="mt-6 space-y-6">
           <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
-            <p className="text-theme-primary text-sm leading-relaxed">
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
               This flow rotates role keys for <code className="bg-theme-input px-1 rounded">timestamp</code>,
               <code className="bg-theme-input px-1 rounded ml-1">snapshot</code>,
               <code className="bg-theme-input px-1 rounded ml-1">targets</code> without root key rotation.
               Root trust remains anchored in root metadata signatures.
             </p>
+            <p className="text-theme-primary text-sm leading-relaxed">
+              These are online keys: the server holds them and signs with them. The new keys are generated on your
+              offline machine and copied to <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code>, while the
+              root keys that authorise the change never leave it.
+            </p>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 1: Generate role keys</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 1: Rotate role keys</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Role</label>
-                <select
+                <label className="block text-theme-primary mb-2">Role</label>
+                <Dropdown
+                  ariaLabel="Role"
                   value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as BuiltInRole)}
-                  className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                >
-                  <option value="timestamp">timestamp</option>
-                  <option value="snapshot">snapshot</option>
-                  <option value="targets">targets</option>
-                </select>
+                  onChange={(value) => setSelectedRole(value as BuiltInRole)}
+                  options={['timestamp', 'snapshot', 'targets'].map((role) => ({ value: role, label: role }))}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Number of keys</label>
+                <label className="block text-theme-primary mb-2">Number of keys</label>
                 <input
                   type="number"
                   min={1}
@@ -582,7 +455,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Role threshold</label>
+                <label className="block text-theme-primary mb-2">Role threshold</label>
                 <input
                   type="number"
                   min={1}
@@ -593,80 +466,73 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-theme-primary mb-2 font-roboto">Key algorithm</label>
-                <select
-                  value={selectedKeyType}
-                  onChange={(e) => setSelectedKeyType(e.target.value as KeyAlgorithm)}
+                <label className="block text-theme-primary mb-2">Root expiration (days)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={expirationDays}
+                  onChange={(e) => setExpirationDays(Math.max(0, parseInt(e.target.value, 10) || 0))}
                   className="w-full bg-theme-input text-theme-primary border border-theme rounded-lg px-4 py-2"
-                >
-                  <option value="ed25519">ed25519</option>
-                  <option value="ecdsa">ecdsa</option>
-                  <option value="rsa">rsa</option>
-                </select>
+                />
+                <p className="text-xs text-theme-primary opacity-70 mt-1">
+                  0 keeps root's current expiry. Any other number is the new lifetime of the <strong>root</strong> metadata
+                  this rotation produces — not of {selectedRole}.
+                </p>
               </div>
             </div>
 
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {rotateRoleKeysScriptFileName}
-            </div>
-
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={generateExampleScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {exampleScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(exampleScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-
-            {exampleScript && (
-              <div>
-                <button
-                  onClick={() => setShowExampleScript(!showExampleScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showExampleScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showExampleScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showExampleScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{exampleScript}</pre>
-                  </div>
-                )}
+            <div>
+              <label className="block text-theme-primary mb-2">Run on the offline machine</label>
+              <div className="bg-theme-input rounded-lg p-4 border border-theme">
+                <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{rotateCommand}</pre>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => handleCopyToClipboard(rotateCommand, 'Command copied to clipboard successfully!')}
+                    className="bg-theme-button-primary text-theme-primary px-3 py-1 rounded text-sm hover:bg-theme-button-primary-hover"
+                  >
+                    <i className="fas fa-copy mr-1"></i>
+                    Copy Command
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 2: Get current root</h2>
-          <div className="space-y-4">
-            <div className="mt-2 p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+            <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
               <div className="flex items-start">
                 <i className="fas fa-info-circle text-yellow-500 mr-3 mt-0.5 text-xl"></i>
                 <div className="flex-1">
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    Rotating an online role rewrites root metadata, so the command asks for the root passphrase and signs
+                    with the root keys. It writes:
+                  </p>
+                  <ul className="text-theme-primary text-sm leading-relaxed list-disc list-inside ml-2 space-y-1 mb-3">
+                    <li><code className="bg-theme-input px-1 rounded">out/online-keys/</code> — the new {selectedRole} keys, for Step 2</li>
+                    <li><code className="bg-theme-input px-1 rounded">out/root-metadata.json</code> — the new root metadata, for Step 3</li>
+                    <li><code className="bg-theme-input px-1 rounded">out/signatures/root-old-*.json</code> — the root signatures, for Step 4</li>
+                  </ul>
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    New keys use the key type stored in <code className="bg-theme-input px-1 rounded">tuf-kms.yaml</code>. The expiration is
+                    the lifetime of the root metadata this rotation produces, counted from the moment the command runs —
+                    which is why the flag is called <code className="bg-theme-input px-1 rounded">--root-expires</code>.
+                  </p>
+                  <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                    It cannot set {selectedRole}'s own lifetime: the server recomputes that from its own settings every time
+                    it re-signs, so any value put in the metadata here would last until the next artifact is published.
+                    Change it under <strong>TUF &rarr; Config</strong> instead.
+                  </p>
                   <p className="text-theme-primary text-sm leading-relaxed">
-                    After you have successfully generated new keys for the selected role, you need to get the current root file.
-                    Click the "Get current root" button and save the received JSON to a file named{' '}
-                    <code className="bg-theme-input px-1 rounded">{currentRootFileName}</code>.
+                    <strong>Air-gapped machine:</strong> run <code className="bg-theme-input px-1 rounded">tuf-kms fetch</code> where there is
+                    network, carry <code className="bg-theme-input px-1 rounded">trust/</code> over, and add <code className="bg-theme-input px-1 rounded">--trust-dir /media/usb/trust</code>.
                   </p>
                 </div>
               </div>
             </div>
+
             <div className="flex gap-2 items-center">
               <button
                 onClick={handleGetCurrentRoot}
                 disabled={!selectedApp || loadingRootMetadata}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingRootMetadata ? (
                   <>
@@ -683,7 +549,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               {rootMetadata && (
                 <button
                   onClick={handleCopyRootMetadata}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
+                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors"
                 >
                   <i className="fas fa-copy mr-2"></i>
                   Copy Root Metadata
@@ -693,13 +559,13 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             {rootMetadata && (
               <div>
                 <button
-                  onClick={() => setShowRootMetadataStep2(!showRootMetadataStep2)}
+                  onClick={() => setShowRootMetadataStep1(!showRootMetadataStep1)}
                   className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
                 >
-                  <i className={`fas fa-chevron-${showRootMetadataStep2 ? 'up' : 'down'} mr-2`}></i>
-                  Current Root Metadata {showRootMetadataStep2 ? '(click to hide)' : '(click to expand)'}
+                  <i className={`fas fa-chevron-${showRootMetadataStep1 ? 'up' : 'down'} mr-2`}></i>
+                  Current Root Metadata {showRootMetadataStep1 ? '(click to hide)' : '(click to expand)'}
                 </button>
-                {showRootMetadataStep2 && (
+                {showRootMetadataStep1 && (
                   <div className="bg-theme-input rounded-lg p-4 border border-theme">
                     <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
                       {JSON.stringify(rootMetadata, null, 2)}
@@ -710,65 +576,36 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">
-            Step 3: Create new root metadata (only {selectedRoleName || 'role'} key change)
-          </h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 2: Copy the new keys to the server</h2>
           <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {createNewRootMetadataScriptFileName} {'\\'}
-              <br />
-              --current {currentRootFileName} {'\\'}
-              <br />
-              --new-{selectedRoleFileTag}-keys {newRoleKeysInfoFileName} {'\\'}
-              <br />
-              --output {unsignedNewRootMetadataFileName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={generateNewRootMetadataScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {newRootMetadataScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(newRootMetadataScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {newRootMetadataScript && (
-              <div>
-                <button
-                  onClick={() => setShowNewRootMetadataScript(!showNewRootMetadataScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showNewRootMetadataScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showNewRootMetadataScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showNewRootMetadataScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{newRootMetadataScript}</pre>
-                  </div>
-                )}
+            <div className="p-4 bg-red-500 bg-opacity-10 border border-red-500 rounded-lg">
+              <div className="flex items-start">
+                <i className="fas fa-exclamation-triangle text-red-500 mr-3 mt-0.5 text-xl"></i>
+                <div className="flex-1">
+                  <p className="text-theme-primary text-sm leading-relaxed">
+                    Copy <code className="bg-theme-input px-1 rounded">out/online-keys/*</code> into <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code> on
+                    the faynosync API server <strong>before</strong> submitting the metadata below. Once the new root metadata is
+                    accepted, the server is expected to sign {selectedRole} with the new key — without the key file it cannot.
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 4: Submit metadata</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 3: Submit metadata</h2>
           <div className="space-y-4">
+            <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+              <p className="text-theme-primary text-sm leading-relaxed">
+                Paste the contents of <code className="bg-theme-input px-1 rounded">out/root-metadata.json</code> here.
+              </p>
+            </div>
             <textarea
               value={metadataPayload}
               onChange={(e) => {
                 setMetadataPayload(e.target.value);
                 setMetadataPayloadError('');
               }}
-              placeholder="Paste unsigned root metadata JSON here..."
+              placeholder="Paste the contents of out/root-metadata.json here..."
               rows={8}
               className={`w-full bg-theme-input text-theme-primary border rounded-lg px-4 py-2 font-mono text-sm ${
                 metadataPayloadError ? 'border-red-500' : 'border-theme'
@@ -778,7 +615,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             <button
               onClick={handleSubmitMetadata}
               disabled={!selectedApp || !metadataPayload.trim() || submittingMetadata}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submittingMetadata ? (
                 <>
@@ -794,53 +631,17 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             </button>
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 5: Generate signatures</h2>
-          <div className="space-y-4">
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {generateSignaturesScriptFileName} {'\\'}
-              <br />
-              --metadata {unsignedNewRootMetadataFileName} {'\\'}
-              <br />
-              --old-keys-info {keyInfoFileName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={generateGenerateSignaturesScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {generateSignaturesScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(generateSignaturesScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {generateSignaturesScript && (
-              <div>
-                <button
-                  onClick={() => setShowGenerateSignaturesScript(!showGenerateSignaturesScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showGenerateSignaturesScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showGenerateSignaturesScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showGenerateSignaturesScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{generateSignaturesScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
+          <h2 className="text-lg font-bold text-theme-primary">Step 4: Submit signatures</h2>
+          <div className="p-4 bg-yellow-500 bg-opacity-10 border border-yellow-500 rounded-lg">
+            <p className="text-theme-primary text-sm leading-relaxed mb-2">
+              Submit the files from <code className="bg-theme-input px-1 rounded">out/signatures/</code> one at a time. Only the
+              current root keys sign here, so there are no <code className="bg-theme-input px-1 rounded">root-new-*</code> files —
+              the root keys themselves are not changing.
+            </p>
+            <p className="text-theme-primary text-sm leading-relaxed">
+              Errors about "not enough signatures" or "threshold not reached" are expected until enough signatures are in.
+            </p>
           </div>
-
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 6: Submit signatures</h2>
           <div className="space-y-4">
             <textarea
               value={signaturePayload}
@@ -885,7 +686,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleSubmitSignature}
                 disabled={!selectedApp || !signaturePayload.trim() || submittingSignature}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingSignature ? (
                   <>
@@ -903,7 +704,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleCheckMetadataStatus}
                 disabled={!selectedApp || checkingMetadataStatus}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {checkingMetadataStatus ? (
                   <>
@@ -921,7 +722,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleGetCurrentRoot}
                 disabled={!selectedApp || loadingRootMetadata}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingRootMetadata ? (
                   <>
@@ -939,7 +740,7 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
               <button
                 onClick={handleDeleteSigningMetadata}
                 disabled={!selectedApp || deletingSigningMetadata}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingSigningMetadata ? (
                   <>
@@ -958,13 +759,13 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             {rootMetadata && (
               <div>
                 <button
-                  onClick={() => setShowRootMetadataStep6(!showRootMetadataStep6)}
+                  onClick={() => setShowRootMetadataStep4(!showRootMetadataStep4)}
                   className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
                 >
-                  <i className={`fas fa-chevron-${showRootMetadataStep6 ? 'up' : 'down'} mr-2`}></i>
-                  Current Root Metadata {showRootMetadataStep6 ? '(click to hide)' : '(click to expand)'}
+                  <i className={`fas fa-chevron-${showRootMetadataStep4 ? 'up' : 'down'} mr-2`}></i>
+                  Current Root Metadata {showRootMetadataStep4 ? '(click to hide)' : '(click to expand)'}
                 </button>
-                {showRootMetadataStep6 && (
+                {showRootMetadataStep4 && (
                   <div className="bg-theme-input rounded-lg p-4 border border-theme">
                     <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">
                       {JSON.stringify(rootMetadata, null, 2)}
@@ -996,62 +797,31 @@ export const RotateRoleKeys: React.FC<RotateRoleKeysProps> = ({
             )}
           </div>
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 7: Recommended update metadata files</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 5: Update metadata files</h2>
           <MetadataUpdatePanel
             onUpdateMetadata={onUpdateMetadata}
             title="Update Metadata Files"
-            description="After key rotation is completed, it is strongly recommended to update metadata files to apply the change. Select which roles to update, or leave all unchecked to update all roles (timestamp, targets, snapshot)."
+            description="Required, not optional: until the server re-signs with the new key, the repository keeps serving the rotated role signed by the old one, and clients fail verification. Select which roles to update, or leave all unchecked to update all roles (timestamp, targets, snapshot)."
           />
 
-          <h2 className="text-lg font-bold font-roboto text-theme-primary">Step 8: Recommended update key info state</h2>
+          <h2 className="text-lg font-bold text-theme-primary">Step 6: Promote the new keys</h2>
           <div className="space-y-4">
             <div className="p-4 bg-blue-500 bg-opacity-10 border border-blue-500 rounded-lg">
+              <p className="text-theme-primary text-sm leading-relaxed mb-2">
+                Once the dashboard reports the update finished, run this on the machine that holds the keys:
+              </p>
+              <div className="bg-theme-input rounded-lg p-3 mb-3 font-mono text-xs text-theme-primary overflow-x-auto">
+                <div className="whitespace-pre">tuf-kms fetch</div>
+              </div>
               <p className="text-theme-primary text-sm leading-relaxed">
-                It is recommended to run this script so local key info files keep the correct post-rotation state.
+                It re-verifies the repository and reconciles the keystore against it: the new {selectedRole} keys go from
+                pending to active, the keys they replaced become retired, and thresholds are re-read. Nothing is promoted
+                until the repository actually serves them, so a submission that never landed cannot leave the keystore out
+                of sync. It also names the replaced keys to delete from <code className="bg-theme-input px-1 rounded">ONLINE_KEY_DIR</code>,
+                and clears <code className="bg-theme-input px-1 rounded">out/</code>, which by then holds a spent submission
+                and private keys with no reason to stay on disk.
               </p>
             </div>
-            <div className="bg-theme-input rounded-lg p-3 font-mono text-xs text-theme-primary overflow-x-auto whitespace-pre-wrap">
-              python3 {updateKeyInfoScriptFileName} {'\\'}
-              <br />
-              --key-info {keyInfoFileName} {'\\'}
-              <br />
-              --new-{selectedRoleFileTag}-keys {newRoleKeysInfoFileName}
-            </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={generateUpdateKeyInfoScript}
-                disabled={!selectedApp}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg font-roboto hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <i className="fas fa-code mr-2"></i>
-                Generate Script
-              </button>
-              {updateKeyInfoScript && (
-                <button
-                  onClick={() => handleCopyToClipboard(updateKeyInfoScript, 'Script copied to clipboard successfully!')}
-                  className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors"
-                >
-                  <i className="fas fa-copy mr-2"></i>
-                  Copy Script
-                </button>
-              )}
-            </div>
-            {updateKeyInfoScript && (
-              <div>
-                <button
-                  onClick={() => setShowUpdateKeyInfoScript(!showUpdateKeyInfoScript)}
-                  className="text-theme-primary hover:text-theme-button-primary mb-2 flex items-center"
-                >
-                  <i className={`fas fa-chevron-${showUpdateKeyInfoScript ? 'up' : 'down'} mr-2`}></i>
-                  Generated Python Script {showUpdateKeyInfoScript ? '(click to hide)' : '(click to expand)'}
-                </button>
-                {showUpdateKeyInfoScript && (
-                  <div className="bg-theme-input rounded-lg p-4 border border-theme">
-                    <pre className="text-sm text-theme-primary overflow-x-auto whitespace-pre-wrap">{updateKeyInfoScript}</pre>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}

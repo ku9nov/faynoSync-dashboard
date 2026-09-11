@@ -3,6 +3,7 @@ import axiosInstance from '@/config/axios';
 import { useAppsQuery } from '@/hooks/use-query/useAppsQuery';
 import { useToast } from '@/hooks/useToast';
 import { AllowedItemsModal } from '@/components/settings/AllowedItemsModal';
+import { Dropdown } from '@/components/common/Dropdown';
 
 type ExpirationValue = '1d' | '7d' | '30d' | '90d' | 'never';
 
@@ -261,24 +262,19 @@ export const TokenSettings: React.FC = () => {
 
           <div>
             <label className="block text-sm text-theme-primary mb-2">Expiration</label>
-            <select
+            <Dropdown
+              ariaLabel="Expiration"
               value={expiration}
-              onChange={(event) => setExpiration(event.target.value as ExpirationValue)}
-              className="w-full rounded-lg border border-theme-modal bg-theme-input text-theme-primary px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              {expirationOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setExpiration(value as ExpirationValue)}
+              options={expirationOptions.map((option) => ({ value: option.value, label: option.label }))}
+            />
           </div>
         </div>
 
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <button
             onClick={() => setIsAllowedAppsModalOpen(true)}
-            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+            className="bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200"
           >
             <i className="fas fa-search mr-2"></i>
             Select allowed apps ({selectedAppIds.length})
@@ -287,7 +283,7 @@ export const TokenSettings: React.FC = () => {
           <button
             onClick={handleCreateToken}
             disabled={isCreatingToken}
-            className={`bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg font-roboto transition-colors duration-200 ${
+            className={`bg-theme-button-primary text-theme-primary px-4 py-2 rounded-lg transition-colors duration-200 ${
               isCreatingToken ? 'opacity-60 cursor-not-allowed' : 'hover:bg-theme-button-primary-hover'
             }`}
           >
@@ -322,7 +318,7 @@ export const TokenSettings: React.FC = () => {
             <div className="flex">
               <button
                 onClick={handleCopyLastToken}
-                className="bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg font-roboto hover:bg-theme-button-primary-hover transition-colors duration-200"
+                className="bg-theme-button-primary text-theme-primary px-3 py-2 rounded-lg hover:bg-theme-button-primary-hover transition-colors duration-200"
               >
                 <i className="fas fa-copy mr-2"></i>
                 Copy token
