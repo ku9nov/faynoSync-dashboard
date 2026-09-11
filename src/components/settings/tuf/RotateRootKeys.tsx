@@ -606,10 +606,9 @@ export const RotateRootKeys: React.FC<RotateRootKeysProps> = ({
                   <div className="flex-1">
                     <h3 className="text-yellow-500 font-semibold mb-2">Root Keys Rotation</h3>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
-                      Only need to push root's expiry out? <code className="bg-theme-input px-1 rounded">tuf-kms renew root --expires N</code> publishes
-                      a new root version signed by the keys root already has. No key is replaced, so it writes a single set of
-                      signatures (<code className="bg-theme-input px-1 rounded">out/signatures/root-*.json</code>) instead of an old and
-                      a new one; submit them through Steps 2 and 3 the same way. Rotate only when you actually want new root keys.
+                      Only need to push root's expiry out? Use the <strong>Renew Root</strong> panel above instead: <code className="bg-theme-input px-1 rounded">tuf-kms renew root --expires N</code> publishes
+                      a new root version signed by the keys root already has, so no key is replaced and no online key moves.
+                      Rotate only when you actually want new root keys.
                     </p>
                     <p className="text-theme-primary text-sm leading-relaxed mb-2">
                       Root rotation happens offline. <code className="bg-theme-input px-1 rounded">tuf-kms rotate root</code> builds

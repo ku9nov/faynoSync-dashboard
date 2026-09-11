@@ -9,6 +9,7 @@ import { GenerateKeysOffline } from '@/components/settings/tuf/GenerateKeysOffli
 import { Bootstrap } from '@/components/settings/tuf/Bootstrap';
 import { MonitorStatus } from '@/components/settings/tuf/MonitorStatus';
 import { Config } from '@/components/settings/tuf/Config';
+import { RenewRoot } from '@/components/settings/tuf/RenewRoot';
 import { RotateRootKeys } from '@/components/settings/tuf/RotateRootKeys';
 import { RotateRoleKeys } from '@/components/settings/tuf/RotateRoleKeys';
 import { RotateDelegatedKeys } from '@/components/settings/tuf/RotateDelegatedKeys';
@@ -628,23 +629,50 @@ export const TufSettings: React.FC = () => {
         onRecoverBootstrapState={recoverBootstrapState}
       />
 
-      {/* Config Section */}
-      <Config
-        selectedApp={selectedApp}
-        isBootstrapSuccess={isBootstrapSuccess}
-        tufConfig={tufConfig}
-        configLoading={configLoading}
-        configUpdating={configUpdating}
-        editableExpiration={editableExpiration}
-        onLoadConfig={loadConfig}
-        onUpdateConfig={updateConfig}
-        onResetConfigLoaded={handleResetConfigLoaded}
-        onUpdateMetadata={updateMetadata}
-      />
+      {/* Update Section */}
+      {selectedApp && isBootstrapSuccess && (
+        <div className="rounded-lg border border-theme p-4">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-theme-primary">Update</h2>
+            <p className="mt-1 text-sm text-theme-primary opacity-70">
+              Change the TUF settings, refresh the online metadata and push the root expiry date out. Nothing here
+              replaces a key — the key set stays exactly as it is.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <Config
+              selectedApp={selectedApp}
+              isBootstrapSuccess={isBootstrapSuccess}
+              tufConfig={tufConfig}
+              configLoading={configLoading}
+              configUpdating={configUpdating}
+              editableExpiration={editableExpiration}
+              onLoadConfig={loadConfig}
+              onUpdateConfig={updateConfig}
+              onResetConfigLoaded={handleResetConfigLoaded}
+              onUpdateMetadata={updateMetadata}
+            />
+
+            <RenewRoot
+              selectedApp={selectedApp}
+              isBootstrapSuccess={isBootstrapSuccess}
+              onSaveToHistory={handleSaveToHistory}
+              onCheckTufTasks={checkTufTasks}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Key Rotation Section */}
       {selectedApp && isBootstrapSuccess && (
         <div className="rounded-lg border border-theme p-4">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-theme-primary">Rotation</h2>
+            <p className="mt-1 text-sm text-theme-primary opacity-70">
+              Replace the keys behind a role. Use this when a key is compromised or has to change hands — not to move an
+              expiry date.
+            </p>
+          </div>
           <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-400/30 dark:bg-blue-500/10 dark:text-blue-100">
             <p className="font-semibold">About key rotation workflow</p>
             <p className="mt-2">
