@@ -5,7 +5,6 @@ import axiosInstance from '@/config/axios';
 import { StepStatus, TaskData, TufHistoryEntry, TufConfig } from '@/components/settings/tuf/types';
 import { loadHistoryFromStorage, saveToHistory, updateHistoryStatus, clearHistory } from '@/components/settings/tuf/history';
 import { AppSelection } from '@/components/settings/tuf/AppSelection';
-// import { GenerateKeys } from '@/components/settings/tuf/GenerateKeys';
 import { GenerateKeysOffline } from '@/components/settings/tuf/GenerateKeysOffline';
 import { Bootstrap } from '@/components/settings/tuf/Bootstrap';
 import { MonitorStatus } from '@/components/settings/tuf/MonitorStatus';
@@ -649,16 +648,19 @@ export const TufSettings: React.FC = () => {
           <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-400/30 dark:bg-blue-500/10 dark:text-blue-100">
             <p className="font-semibold">About key rotation workflow</p>
             <p className="mt-2">
-              This dashboard helps you manage TUF metadata and key rotation with Python scripts and helper metadata files.
-              If you follow the instructions carefully, it can help you keep your TUF repository in a healthy working state.
+              The keys and the signing stay on your machine; this dashboard only submits what you paste into it.
+              The <code className="rounded bg-blue-500/10 px-1">tuf-kms</code> command line tool does the crypto against its own
+              keystore, and every rotation below follows the same shape: run one command, then paste the files it writes.
             </p>
             <p className="mt-2">
-              The process is intentionally split into small steps, which can generate many scripts and temporary files.
-              To avoid confusion and folder clutter, make sure you understand each step and clean up artifacts you no longer need.
+              Each run replaces the contents of <code className="rounded bg-blue-500/10 px-1">out/</code>, so there is nothing to
+              clean up by hand — but for the same reason, finish one rotation before starting another, or the files you have not
+              submitted yet are gone. A rotation is finished when the dashboard reports it and
+              <code className="rounded bg-blue-500/10 px-1 ml-1">tuf-kms fetch</code> has promoted the new keys.
             </p>
             <p className="mt-2">
-              If you are an experienced TUF user, you do not have to use these scripts for key rotation.
-              You can prepare metadata and signatures directly and submit them without going through the helper scripts.
+              If you are an experienced TUF user, you do not have to use tuf-kms for key rotation.
+              You can prepare metadata and signatures yourself and submit them here directly.
             </p>
           </div>
           <div className="space-y-4">
