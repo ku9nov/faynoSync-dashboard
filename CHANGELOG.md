@@ -5,10 +5,12 @@
 ### Added
 
 - Bulk deletion of application versions. A `Select` toggle on the versions page turns the cards into a selection surface, and the action bar deletes the whole selection at once (`Select all on page`, or `Select all N matching filters` across pages). Selections wider than the server's batch limit are sent in chunks, and the confirmation modal reports what was deleted plus any artifacts left orphaned in the bucket.
+- New `VITE_TUF_METADATA_URL` environment variable pointing at the TUF metadata endpoint. Set it in `.env` when upgrading; TUF metadata views stay empty without it.
 
 ### Changed
 
-- Updated `TUF` settings page.
+- Migrated the `TUF` settings page to the KMS signing flow, including the key renewal block and updated rotation flags.
+- Redesigned the versions page, the edit version modal, the shared modals and the settings menu. Badges, the default application logo and dropdown styling were reworked for consistency, the application name now shows in the header, and platform icons fall back to a placeholder when no icon matches.
 
 ## v1.3.0
 
