@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.0
+
+### Changed
+
+- Redesigned the app page to support the new private apps flow.
+
+
 ## v1.4.0
 
 ### Added

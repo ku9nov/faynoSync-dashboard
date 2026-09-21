@@ -31,6 +31,8 @@ export type AppVersion = {
   Updated_at: string;
 };
 
+export type DownloadMode = 'unlisted' | 'strict';
+
 export type AppListItem = {
   ID: string;
   AppName: string;
@@ -39,6 +41,7 @@ export type AppListItem = {
   Updated_at: string;
   isExpanded?: boolean;
   Private?: boolean;
+  DownloadMode?: DownloadMode;
   Tuf?: boolean;
   Reports?: boolean;
   CdnEdge?: boolean;

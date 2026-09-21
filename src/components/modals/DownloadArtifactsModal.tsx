@@ -55,7 +55,12 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
         }
         onClose();
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error?.response?.status === 404) {
+          setCopyError('Download is not available.');
+          setTimeout(() => setCopyError(null), 3000);
+          return;
+        }
         // If there's an error (like 401), it might be a direct link to a public file
         // In that case, just open the link directly
         window.open(artifact.link, '_blank');
@@ -84,6 +89,11 @@ export const DownloadArtifactsModal: React.FC<DownloadArtifactsModalProps> = ({
         setTimeout(() => setCopyError(null), 3000);
       }
     } catch (err) {
+      if ((err as { response?: { status?: number } })?.response?.status === 404) {
+        setCopyError('Download is not available.');
+        setTimeout(() => setCopyError(null), 3000);
+        return;
+      }
       // If there's an error, try to copy the original link
       try {
         const success = await copyToClipboard(link);
