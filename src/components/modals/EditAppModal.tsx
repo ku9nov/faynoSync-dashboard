@@ -3,6 +3,8 @@ import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
 import { BaseModal } from '@/components/common/BaseModal';
 import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import { DownloadModeSelector } from '@/components/common/DownloadModeSelector';
+import { DownloadMode } from '@/hooks/use-query/useAppsQuery';
 import {
   ACTION_BUTTON,
   ACTION_GROUP,
@@ -28,6 +30,8 @@ interface EditAppModalProps {
     tuf?: boolean;
     reports?: boolean;
     cdn?: boolean;
+    private?: boolean;
+    downloadMode?: DownloadMode;
   };
 }
 
@@ -44,6 +48,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
     tuf: appData.tuf || false,
     reports: appData.reports || false,
     cdn: appData.cdn || false,
+    downloadMode: appData.downloadMode ?? null,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -77,6 +82,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
         tuf: formData.tuf ? "true" : "false",
         reports: formData.reports ? "true" : "false",
         cdn: formData.cdn ? "true" : "false",
+        ...(appData.private && formData.downloadMode && { download_mode: formData.downloadMode }),
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -171,13 +177,22 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ onClose, onSuccess, 
             checked={formData.reports}
             onChange={(checked) => setFormData(prev => ({ ...prev, reports: checked }))}
           />
-          <FlagCheckbox
-            label="Enable CDN"
-            description="Serve artifacts through a CDN edge"
-            checked={formData.cdn}
-            onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
-          />
+          {!appData.private && (
+            <FlagCheckbox
+              label="Enable CDN"
+              description="Serve artifacts through a CDN edge"
+              checked={formData.cdn}
+              onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
+            />
+          )}
         </div>
+
+        {appData.private && (
+          <DownloadModeSelector
+            value={formData.downloadMode}
+            onChange={(mode) => setFormData(prev => ({ ...prev, downloadMode: mode }))}
+          />
+        )}
 
         <div>
           <label className={FIELD_LABEL}>Logo</label>

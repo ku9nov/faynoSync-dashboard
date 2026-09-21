@@ -3,6 +3,8 @@ import axiosInstance from '@/config/axios';
 import { AxiosError } from 'axios';
 import { AdvancedModal } from '@/components/common/AdvancedModal';
 import { FlagCheckbox } from '@/components/common/FlagCheckbox';
+import { DownloadModeSelector } from '@/components/common/DownloadModeSelector';
+import { DownloadMode } from '@/hooks/use-query/useAppsQuery';
 import {
   FIELD_INPUT,
   FIELD_LABEL,
@@ -26,6 +28,7 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
     tuf: false,
     reports: false,
     cdn: false,
+    downloadMode: null as DownloadMode | null,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -43,9 +46,10 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
         app: formData.app,
         description: formData.description,
         ...(formData.private && { private: "true" }),
+        ...(formData.private && formData.downloadMode && { download_mode: formData.downloadMode }),
         tuf: formData.tuf ? "true" : "false",
         reports: formData.reports ? "true" : "false",
-        cdn: formData.cdn ? "true" : "false",
+        cdn: formData.cdn && !formData.private ? "true" : "false",
       };
       
       formDataToSend.append('data', JSON.stringify(data));
@@ -134,6 +138,15 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
           checked={formData.private}
           onChange={(checked) => setFormData(prev => ({ ...prev, private: checked }))}
         />
+        {formData.private && (
+          <div className="mb-2 ml-4">
+            <DownloadModeSelector
+              value={formData.downloadMode}
+              onChange={(mode) => setFormData(prev => ({ ...prev, downloadMode: mode }))}
+              hint="Leave unselected to use the server default"
+            />
+          </div>
+        )}
         <FlagCheckbox
           label="Enable TUF"
           description="Sign this application's artifacts with The Update Framework"
@@ -146,12 +159,14 @@ export const CreateAppModal: React.FC<CreateAppModalProps> = ({ onClose, onSucce
           checked={formData.reports}
           onChange={(checked) => setFormData(prev => ({ ...prev, reports: checked }))}
         />
-        <FlagCheckbox
-          label="Enable CDN"
-          description="Serve artifacts through a CDN edge"
-          checked={formData.cdn}
-          onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
-        />
+        {!formData.private && (
+          <FlagCheckbox
+            label="Enable CDN"
+            description="Serve artifacts through a CDN edge"
+            checked={formData.cdn}
+            onChange={(checked) => setFormData(prev => ({ ...prev, cdn: checked }))}
+          />
+        )}
       </div>
     </AdvancedModal>
   );

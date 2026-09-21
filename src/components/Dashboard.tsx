@@ -20,6 +20,7 @@ import { getPlatformIcon } from '@/utils/platformIcon';
 import { useAppDataQuery } from '@/hooks/use-query/useAppDataQuery';
 import { AppLogo } from '@/components/common/AppLogo';
 import { Dropdown } from '@/components/common/Dropdown';
+import { DownloadTokensSection } from '@/components/DownloadTokensSection';
 import '@/styles/cards.css';
 
 import {
@@ -233,7 +234,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             window.open(app.Artifacts[0].link, '_blank');
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error?.response?.status === 404) {
+            toastError('Download is not available');
+            return;
+          }
           // If there's an error (like 401), it might be a direct link to a public file
           // In that case, just open the link directly
           window.open(app.Artifacts[0].link, '_blank');
@@ -302,6 +307,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setShowEditAppModal(false);
     setSelectedAppData(null);
     queryClient.invalidateQueries({ queryKey: ['apps'] });
+    queryClient.invalidateQueries({ queryKey: ['appData'] });
   };
 
   // Selection is page-local on purpose: what is selected must stay on screen, so
@@ -671,6 +677,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           )}
         </div>
+
+        {appData?.Private && appData.ID && (
+          <DownloadTokensSection appId={appData.ID} downloadMode={appData.DownloadMode} formatDate={formatDate} />
+        )}
 
         {/* Filters Section */}
         <div className="mb-6">
@@ -1355,7 +1365,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             logo: selectedAppData.Logo,
             tuf: selectedAppData.Tuf,
             reports: selectedAppData.Reports,
-            cdn: selectedAppData.CdnEdge
+            cdn: selectedAppData.CdnEdge,
+            private: selectedAppData.Private,
+            downloadMode: selectedAppData.DownloadMode
           }}
         />
       )}
