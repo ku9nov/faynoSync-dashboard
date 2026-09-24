@@ -9,6 +9,7 @@ export type Artifact = {
   package: string;
   TufTaskID?: string | null;
   TufSigned?: boolean;
+  IsFeed?: boolean;
 };
 
 export type ChangelogEntry = {

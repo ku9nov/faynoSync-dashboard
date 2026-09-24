@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.0
+
+### Added
+
+- `CI command` button.
+
 ## v1.5.0
 
 ### Changed
