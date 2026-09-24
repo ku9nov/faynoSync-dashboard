@@ -7,6 +7,7 @@ import { DeleteVersionsConfirmationModal, SelectedVersion } from '@/components/m
 import { DownloadArtifactsModal } from '@/components/modals/DownloadArtifactsModal';
 import { EditAppModal } from '@/components/modals/EditAppModal';
 import { DeleteAppConfirmationModal } from '@/components/modals/DeleteAppConfirmationModal';
+import { CiUploadCommandModal } from '@/components/modals/CiUploadCommandModal';
 import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '@/config/axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -124,6 +125,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [selection, setSelection] = React.useState<Map<string, SelectedVersion>>(new Map());
   const [isSelectingAll, setIsSelectingAll] = React.useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = React.useState(false);
+  const [showCiCommandModal, setShowCiCommandModal] = React.useState(false);
   const { toastSuccess, toastError } = useToast();
 
   const appList = React.useMemo(() => {
@@ -495,6 +497,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     
     // Consider artifacts that have TufTaskID (not null/undefined) OR have TufTaskID === null and TufSigned === false
     const tufArtifacts = version.Artifacts.filter(artifact => {
+      // Feeds are the updater's index, not a TUF target: the server never signs them,
+      // so counting them would leave every version stuck on 'partial'.
+      if (artifact.IsFeed) {
+        return false;
+      }
       // Include artifacts with TufTaskID (not null/undefined)
       if (artifact.TufTaskID) {
         return true;
@@ -508,7 +515,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     
     // If TUF is enabled but no artifacts match the criteria, check if there are any artifacts at all
     if (tufArtifacts.length === 0) {
-      if (version.Artifacts.length > 0) {
+      if (version.Artifacts.some(artifact => !artifact.IsFeed)) {
         return 'none';
       } else {
         return null;
@@ -535,7 +542,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         acc[key] = { count: 0, label: rawPlatform, unsigned: 0 };
       }
       acc[key].count += 1;
-      if (artifact.TufSigned === false) {
+      if (artifact.TufSigned === false && !artifact.IsFeed) {
         acc[key].unsigned += 1;
       }
       return acc;
@@ -587,6 +594,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
           Back
+        </button>
+
+        <button
+          onClick={() => setShowCiCommandModal(true)}
+          className="self-start px-4 py-2 bg-theme-card text-theme-primary rounded-lg hover:bg-theme-card-hover transition-colors flex items-center gap-2"
+        >
+          <i className="fas fa-terminal"></i>
+          CI command
         </button>
 
           {appData?.Reports && (
@@ -1195,6 +1210,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               setShowDownloadModal(false);
               setSelectedVersion(null);
             }}
+          />
+        )}
+
+        {showCiCommandModal && (
+          <CiUploadCommandModal
+            appName={selectedApp}
+            isTuf={Boolean(appData?.Tuf)}
+            isPrivate={Boolean(appData?.Private)}
+            onClose={() => setShowCiCommandModal(false)}
           />
         )}
       </div>

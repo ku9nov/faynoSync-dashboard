@@ -462,11 +462,15 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
     if (!appData?.Tuf) {
       return null;
     }
+    // Feeds are the updater's index, not a TUF target: the server never signs them,
+    // so counting them would leave every version stuck on 'partial'.
     const tufArtifacts = formData.Artifacts.filter(
-      artifact => artifact.TufTaskID || (artifact.TufTaskID === null && artifact.TufSigned === false)
+      artifact =>
+        !artifact.IsFeed &&
+        (artifact.TufTaskID || (artifact.TufTaskID === null && artifact.TufSigned === false))
     );
     if (tufArtifacts.length === 0) {
-      return formData.Artifacts.length > 0 ? 'none' : null;
+      return formData.Artifacts.some(artifact => !artifact.IsFeed) ? 'none' : null;
     }
     const signedCount = tufArtifacts.filter(artifact => artifact.TufSigned === true).length;
     if (signedCount === tufArtifacts.length) {
@@ -476,7 +480,7 @@ export const EditVersionModal: React.FC<EditVersionModalProps> = ({
   }, [appData?.Tuf, formData.Artifacts]);
 
   const unsignedCount = React.useMemo(
-    () => formData.Artifacts.filter(artifact => artifact.TufSigned !== true).length,
+    () => formData.Artifacts.filter(artifact => artifact.TufSigned !== true && !artifact.IsFeed).length,
     [formData.Artifacts]
   );
 
